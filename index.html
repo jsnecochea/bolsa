@@ -233,9 +233,9 @@
         <div class="pct" id="hMio">+4.9%</div>
         <div class="dh-chip" id="hMioChip">&uarr; $6,921</div>
       </div>
-      <div class="dh-col">
+      <div class="dh-col" id="algoOpen" style="cursor:pointer">
         <div class="label">Algoritmo del mes</div>
-        <div class="pct algo" id="hAlgo" style="cursor:pointer">&minus;9.9%</div>
+        <div class="pct algo" id="hAlgo">&minus;9.9%</div>
         <div class="dh-chip algo">Trim <b id="hAlgoTrim">&minus;9.9%</b></div>
       </div>
     </div>
@@ -666,10 +666,10 @@
   <div class="hist-modal">
     <div class="hist-grip"></div>
     <div class="hist-h"><h2>Algoritmo del trimestre</h2><button class="hist-x" onclick="document.getElementById('histBg').classList.remove('open')">&times;</button></div>
-    <div class="hist-sub">Cómo se ha movido el algoritmo. Busca los mínimos para cronometrar tu siguiente entrada.</div>
+    
     <div class="hist-sel" id="histSel">
-      <button class="hist-sb" data-d="30">30 días</button>
-      <button class="hist-sb" data-d="60">60 días</button>
+      <button class="hist-sb" data-d="30">Últimos 30 días</button>
+      <button class="hist-sb" data-d="60">Últimos 60 días</button>
       <button class="hist-sb on" data-d="0">Todo el trimestre</button>
     </div>
     <div id="histChart"></div>
@@ -856,7 +856,7 @@ function updateCount(){
   };
 
   var got = { precios:false, hist:false, claude:false };
-  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-11";
+  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-15";
   var estado={precios:false,historial:false,claude:false};
   function pinta(){
     var chip=document.getElementById('liveChip'); if(!chip) return;
@@ -871,6 +871,7 @@ function updateCount(){
   }
 
   function fmtPct(v){ return (v>=0?'+':'\u2212')+Math.abs(v).toFixed(1)+'%'; }
+  function fmtPct2(v){ return (v>=0?'+':'\u2212')+Math.abs(v).toFixed(2)+'%'; }
 
   function tryUpdateAll(){
     // Actualizar hero MIO (promedio de mio de las 14)
@@ -883,6 +884,9 @@ function updateCount(){
         var el=document.getElementById('hMio');
         if(el){ el.textContent=fmtPct(avg); }
         var pos=document.getElementById('hPos'); if(pos) pos.textContent=n;
+        // desglose para diagnóstico
+        window.MIOS={}; tickers.forEach(function(t){ window.MIOS[t]=LIVE[t].mio; });
+        window.MIOS_SUMA=sum; window.MIOS_N=n; window.MIOS_PROM=avg;
         // Monto ganado/perdido en vivo = invertido * rendimiento
         var inv=window.INVERTIDO;
         if(inv==null){ inv=n*10000; } // respaldo: 10,000 por posición
@@ -921,7 +925,7 @@ function updateCount(){
   fetch(url(GID.precios)).then(function(r){return r.text();}).then(function(txt){
     var rows=parseCSV(txt);
     for(var i=1;i<rows.length;i++){
-      var r=rows[i]; if(!r||r.length<21) continue;
+      var r=rows[i]; if(!r||r.length<18) continue;
       var raw=(r[17]||"").trim(); if(!raw) continue;
       var tk=raw.split(" ")[0].toUpperCase();
       if(!META[tk]) continue;
@@ -1047,7 +1051,7 @@ function updateCount(){
     if(ev.target && ev.target.id==='histBg'){ ev.target.classList.remove('open'); return; }
     var t=ev.target;
     while(t && t!==document){
-      if(t.id==='hAlgo'){ var bg=document.getElementById('histBg'); if(bg){ bg.classList.add('open'); renderHist(histDias); } return; }
+      if(t.id==='algoOpen'||t.id==='hAlgo'){ var bg=document.getElementById('histBg'); if(bg){ bg.classList.add('open'); renderHist(histDias); } return; }
       t=t.parentNode;
     }
   });
