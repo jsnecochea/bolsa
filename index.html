@@ -233,7 +233,7 @@
         <div class="pct" id="hMio">+4.9%</div>
         <div class="dh-chip" id="hMioChip">&uarr; $6,921</div>
       </div>
-      <div class="dh-col" id="algoOpen" style="cursor:pointer">
+      <div class="dh-col" id="algoOpen" style="cursor:pointer" onclick="if(window.abrirHist)window.abrirHist();">
         <div class="label">Algoritmo del mes</div>
         <div class="pct algo" id="hAlgo">&minus;9.9%</div>
         <div class="dh-chip algo">Trim <b id="hAlgoTrim">&minus;9.9%</b></div>
@@ -856,7 +856,7 @@ function updateCount(){
   };
 
   var got = { precios:false, hist:false, claude:false };
-  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-15";
+  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-16";
   var estado={precios:false,historial:false,claude:false};
   function pinta(){
     var chip=document.getElementById('liveChip'); if(!chip) return;
@@ -993,7 +993,7 @@ function updateCount(){
     if(f.indexOf('/')>0){ var q=f.split('/'); return new Date(+q[2],+q[1]-1,+q[0]); }
     return null;
   }
-  function renderHist(dias){
+  window.renderHist=function(dias){
     var cont=document.getElementById('histChart'); if(!cont) return;
     var data=(window.HIST||[]).slice();
     if(!data.length){ cont.innerHTML='<div style="text-align:center;color:#777;padding:40px 0;font-size:13px">Aún no hay historial guardado.<br>El robot lo va llenando 3 veces al día.</div>'; 
@@ -1038,11 +1038,17 @@ function updateCount(){
     var hoy=data[data.length-1].val;
     document.getElementById('histNow').innerHTML='Hoy el algoritmo está en <b>'+fmt(hoy)+'</b> &middot; '+data.length+' registros';
   }
-  var histDias=0;
+  window.histDias=0;
+  window.abrirHist=function(){
+    var bg=document.getElementById('histBg');
+    if(bg){ bg.classList.add('open'); }
+    try{ if(typeof window.renderHist==='function'){ window.renderHist(window.histDias||0); } }catch(e){ console.log('renderHist err',e); }
+  };
+  var histDias=window.histDias;
   document.querySelectorAll('#histSel .hist-sb').forEach(function(b){
     b.addEventListener('click',function(){
       document.querySelectorAll('#histSel .hist-sb').forEach(function(x){x.classList.remove('on');});
-      b.classList.add('on'); histDias=parseInt(b.getAttribute('data-d')); renderHist(histDias);
+      b.classList.add('on'); window.histDias=parseInt(b.getAttribute('data-d')); window.renderHist(window.histDias);
     });
   });
   // Abrir histórico al picar el algoritmo (robusto por delegación)
@@ -1051,7 +1057,6 @@ function updateCount(){
     if(ev.target && ev.target.id==='histBg'){ ev.target.classList.remove('open'); return; }
     var t=ev.target;
     while(t && t!==document){
-      if(t.id==='algoOpen'||t.id==='hAlgo'){ var bg=document.getElementById('histBg'); if(bg){ bg.classList.add('open'); renderHist(histDias); } return; }
       t=t.parentNode;
     }
   });
