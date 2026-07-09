@@ -662,10 +662,10 @@
 </div>
 
 
-<div class="hist-bg" id="histBg">
+<div class="hist-bg" id="histBg" onclick="if(event.target===this)window.cerrarHist&&window.cerrarHist()">
   <div class="hist-modal">
     <div class="hist-grip"></div>
-    <div class="hist-h"><h2>Algoritmo del trimestre</h2><button class="hist-x" onclick="document.getElementById('histBg').classList.remove('open')">&times;</button></div>
+    <div class="hist-h"><h2>Algoritmo del trimestre</h2><button class="hist-x" onclick="window.cerrarHist&&window.cerrarHist()">&times;</button></div>
     
     <div class="hist-sel" id="histSel">
       <button class="hist-sb" data-d="30">Últimos 30 días</button>
@@ -856,7 +856,7 @@ function updateCount(){
   };
 
   var got = { precios:false, hist:false, claude:false };
-  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-16";
+  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-17";
   var estado={precios:false,historial:false,claude:false};
   function pinta(){
     var chip=document.getElementById('liveChip'); if(!chip) return;
@@ -1073,6 +1073,58 @@ function updateCount(){
     var fe=document.getElementById('hDate');
     if(fe) fe.textContent=dias[d.getDay()]+" "+d.getDate()+" "+mes[d.getMonth()];
   }catch(e){}
+})();
+</script>
+
+
+<script>
+/* ==== HISTORICO INDEPENDIENTE (autónomo) ==== */
+(function(){
+  var URL_HIST="https://docs.google.com/spreadsheets/d/e/2PACX-1vQ1gnRj1TvcXXF66yAreWKo6RON27GE3K2pZWq8LSxb98SNZeKpFuYaeHgovJTO9zM1QSeHb-cxWJ2N/pub?gid=1844874580&single=true&output=csv";
+  var HISTX=[]; var diasSel=0;
+  function csv(t){var R=[],r=[],c="",q=false;for(var i=0;i<t.length;i++){var ch=t[i];if(q){if(ch=='"'){if(t[i+1]=='"'){c+='"';i++;}else q=false;}else c+=ch;}else{if(ch=='"')q=true;else if(ch==','){r.push(c);c="";}else if(ch=='\n'){r.push(c);R.push(r);r=[];c="";}else if(ch=='\r'){}else c+=ch;}}if(c.length||r.length){r.push(c);R.push(r);}return R;}
+  function n(v){if(v==null)return NaN;v=String(v).replace(/[%$,\s]/g,'');var x=parseFloat(v);return isNaN(x)?NaN:x;}
+  function pf(f){if(!f)return null;if(f.indexOf('-')>0){var p=f.split('-');return new Date(+p[0],+p[1]-1,+p[2]);}if(f.indexOf('/')>0){var q=f.split('/');return new Date(+q[2],+q[1]-1,+q[0]);}return null;}
+  function cargar(){
+    fetch(URL_HIST).then(function(r){return r.text();}).then(function(t){
+      var rows=csv(t); HISTX=[];
+      for(var i=1;i<rows.length;i++){var r=rows[i];if(!r||r.length<23)continue;var q=n(r[12]),sm=n(r[22]);if(isNaN(q)||isNaN(sm))continue;HISTX.push({fecha:(r[0]||"").trim(),val:(q+sm)/2});}
+    }).catch(function(e){console.log("histX err",e);});
+  }
+  cargar();
+
+  function fmt(v){return (v>=0?'+':'\u2212')+Math.abs(v).toFixed(1)+'%';}
+  function fd(f){var d=pf(f);if(!d)return f||'';var m=["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"];return d.getDate()+" "+m[d.getMonth()];}
+
+  function dibujar(){
+    var cont=document.getElementById('histChart');if(!cont)return;
+    var data=HISTX.slice();
+    if(!data.length){cont.innerHTML='<div style="text-align:center;color:#777;padding:44px 0;font-size:13px">Aún no hay historial guardado.<br>El robot lo va llenando 3 veces al día.</div>';
+      setTxt('histMax','—');setTxt('histMin','—');setTxt('histMaxD','');setTxt('histMinD','');setHTML('histNow','');return;}
+    if(diasSel>0){var lim=new Date(Date.now()-diasSel*86400000);var fdata=data.filter(function(p){var d=pf(p.fecha);return !d||d>=lim;});if(fdata.length)data=fdata;}
+    var vals=data.map(function(p){return p.val;});
+    var mn=Math.min.apply(null,vals),mx=Math.max.apply(null,vals),rg=(mx-mn)||1;
+    var W=600,H=220,pL=8,pR=8,pT=16,pB=16;
+    function X(i){return pL+(data.length<=1?0:i/(data.length-1))*(W-pL-pR);}
+    function Y(v){return pT+(1-(v-mn)/rg)*(H-pT-pB);}
+    var pts=data.map(function(p,i){return X(i)+','+Y(p.val);}).join(' ');
+    var iMin=vals.indexOf(mn),iMax=vals.indexOf(mx);
+    var zero='';if(mn<0&&mx>0){var zy=Y(0);zero='<line x1="'+pL+'" y1="'+zy+'" x2="'+(W-pR)+'" y2="'+zy+'" stroke="rgba(255,255,255,.12)" stroke-dasharray="3 3"/>';}
+    var area='M '+X(0)+' '+Y(data[0].val)+' L '+data.map(function(p,i){return X(i)+' '+Y(p.val);}).join(' L ')+' L '+X(data.length-1)+' '+(H-pB)+' L '+X(0)+' '+(H-pB)+' Z';
+    cont.innerHTML='<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto;display:block"><defs><linearGradient id="hgX" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="rgba(255,69,58,.28)"/><stop offset="1" stop-color="rgba(255,69,58,0)"/></linearGradient></defs>'+zero+'<path d="'+area+'" fill="url(#hgX)"/><polyline points="'+pts+'" fill="none" stroke="#ff6b60" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/><circle cx="'+X(iMax)+'" cy="'+Y(mx)+'" r="4.5" fill="#30D158"/><circle cx="'+X(iMin)+'" cy="'+Y(mn)+'" r="4.5" fill="#ff453a"/><circle cx="'+X(data.length-1)+'" cy="'+Y(data[data.length-1].val)+'" r="4" fill="#fff"/></svg>';
+    setTxt('histMax',fmt(mx));setTxt('histMin',fmt(mn));setTxt('histMaxD',fd(data[iMax].fecha));setTxt('histMinD',fd(data[iMin].fecha));
+    setHTML('histNow','Hoy el algoritmo está en <b style="color:#E8E8EE">'+fmt(data[data.length-1].val)+'</b> · '+data.length+' registros');
+  }
+  function setTxt(id,v){var e=document.getElementById(id);if(e)e.textContent=v;}
+  function setHTML(id,v){var e=document.getElementById(id);if(e)e.innerHTML=v;}
+
+  window.abrirHist=function(){var bg=document.getElementById('histBg');if(bg)bg.classList.add('open');dibujar();};
+  window.cerrarHist=function(){var bg=document.getElementById('histBg');if(bg)bg.classList.remove('open');};
+
+  document.addEventListener('DOMContentLoaded',function(){
+    var sel=document.querySelectorAll('#histSel .hist-sb');
+    sel.forEach(function(b){b.addEventListener('click',function(){sel.forEach(function(x){x.classList.remove('on');});b.classList.add('on');diasSel=parseInt(b.getAttribute('data-d'));dibujar();});});
+  });
 })();
 </script>
 
