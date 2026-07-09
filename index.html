@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mi Cartera</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#08080C;--line:#26262E;--txt:#F5F5F7;--dim:#8A8A93;--dim2:#6E6E76;--green:#30D158;--red:#FF453A;--amber:#FFD426;--orange:#FF9F0A;--blue:#0A84FF;--purple:#BF5AF2;}
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-font-smoothing:antialiased}
+  body{font-family:'Inter',-apple-system,sans-serif;background:var(--bg);color:var(--txt);min-height:100vh;padding:0 0 60px;letter-spacing:-0.02em}
+  .wrap{max-width:480px;margin:0 auto;padding:0 20px}
+  .section-cap{font-size:13px;color:var(--dim2);font-weight:600;text-transform:uppercase;letter-spacing:0.04em;margin:26px 0 13px;padding-left:2px}
+  /* HERO */
+  .hero{position:relative;border-radius:28px;overflow:hidden;margin-top:22px;padding:30px 26px;background:radial-gradient(120% 120% at 15% 0%, rgba(48,209,88,.18), transparent 55%),radial-gradient(130% 130% at 100% 110%, rgba(120,80,255,.20), transparent 55%),linear-gradient(165deg,#18181F,#101015);border:1px solid rgba(255,255,255,.06);box-shadow:0 30px 60px -30px rgba(0,0,0,.9), inset 0 1px 0 rgba(255,255,255,.05);}
+  .hero::after{content:"";position:absolute;inset:0;border-radius:28px;pointer-events:none;background:radial-gradient(80% 50% at 50% -10%, rgba(255,255,255,.06), transparent 60%);}
+  .hrow{display:flex;justify-content:space-between;align-items:center;margin-bottom:26px;position:relative;z-index:1}
+  .brand{display:flex;align-items:center;gap:10px}
+  .brand .dot{width:9px;height:9px;border-radius:50%;background:var(--green);box-shadow:0 0 12px var(--green)}
+  .brand span{font-size:14px;font-weight:600}
+  .date{font-size:13px;color:var(--dim);font-weight:500;background:rgba(255,255,255,.06);padding:6px 12px;border-radius:100px}
+  .label{font-size:14px;color:var(--dim);font-weight:500;margin-bottom:12px}
+  .duel-hero{position:relative;z-index:1;display:flex;gap:10px}
+  .dh-col{flex:1;min-width:0}
+  .pct{font-size:52px;font-weight:700;letter-spacing:-0.04em;line-height:.9;background:linear-gradient(180deg,#fff,#7ee89f);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+  .pct.algo{background:linear-gradient(180deg,#ffd9d5,#ff4d42);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+  .dh-chip{display:inline-block;margin-top:12px;font-size:14px;font-weight:600;color:#7ee89f;background:rgba(48,209,88,.16);padding:6px 12px;border-radius:100px}
+  .dh-chip.algo{color:#ff6b60;background:rgba(255,69,58,.16)}
+  .dh-chip.algo b{color:#ff8079;font-weight:700}
+  .statgrid{position:relative;z-index:1;display:flex;gap:12px;margin-top:26px}
+  .stat{flex:1;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:15px 16px;backdrop-filter:blur(8px)}
+  .stat .s-lbl{font-size:11px;color:var(--dim);font-weight:600;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:6px}
+  .stat .s-val{font-size:22px;font-weight:700;letter-spacing:-0.02em}
+  .stat .s-val small{font-size:15px;font-weight:600;color:var(--dim);letter-spacing:0}
+  .strip{position:relative;z-index:1;display:flex;gap:12px;margin-top:12px}
+  .pill-card{flex:1;display:flex;align-items:center;gap:11px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:14px 15px;backdrop-filter:blur(8px)}
+  .pulse{width:12px;height:12px;border-radius:50%;flex:none;position:relative;background:var(--green);box-shadow:0 0 12px var(--green)}
+  .pulse::after{content:"";position:absolute;inset:-5px;border-radius:50%;border:1.5px solid rgba(48,209,88,.4)}
+  .pc-lbl{font-size:11px;color:var(--dim2);font-weight:600;text-transform:uppercase;letter-spacing:.03em}
+  .pc-val{font-size:16px;font-weight:700;margin-top:2px}
+  .pc-val.green{color:var(--green)}
+  .card{position:relative;border-radius:24px;padding:22px;margin-bottom:14px;background:linear-gradient(165deg,#17171E,#111116);border:1px solid rgba(255,255,255,.055);box-shadow:0 20px 40px -28px rgba(0,0,0,.8), inset 0 1px 0 rgba(255,255,255,.04);}
+  .card-title{font-size:16px;font-weight:600}
+  /* alerts */
+  .a-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+  .a-head-right{display:flex;align-items:center;gap:8px}
+  .a-count{font-size:12px;font-weight:600;color:var(--amber);background:rgba(255,212,38,.14);padding:4px 10px;border-radius:100px}
+  .rules-btn{width:26px;height:26px;border-radius:8px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2.5px;cursor:pointer;padding:0}
+  .rules-btn span{display:block;width:12px;height:1.6px;background:var(--dim);border-radius:2px}
+  .alert-wrap{position:relative;overflow:hidden;border-top:1px solid rgba(255,255,255,.05)}
+  .alert-wrap:first-of-type{border-top:none}
+  .alert-del{position:absolute;inset:0;background:var(--red);display:flex;align-items:center;justify-content:flex-end;padding-right:22px;color:#fff;font-size:20px}
+  .alert{position:relative;display:flex;align-items:flex-start;gap:13px;padding:13px 2px;background:linear-gradient(165deg,#17171E,#111116);transition:transform .15s ease;touch-action:pan-y}
+  .a-ic{width:40px;height:40px;border-radius:12px;flex:none;display:flex;align-items:center;justify-content:center}
+  .a-ic svg{width:20px;height:20px}
+  .a-ic.warn{background:linear-gradient(145deg,rgba(255,212,38,.22),rgba(255,212,38,.08));border:1px solid rgba(255,212,38,.3);color:var(--amber);box-shadow:0 4px 12px -4px rgba(255,212,38,.4)}
+  .a-ic.orange{background:linear-gradient(145deg,rgba(255,159,10,.24),rgba(255,159,10,.08));border:1px solid rgba(255,159,10,.32);color:var(--orange);box-shadow:0 4px 12px -4px rgba(255,159,10,.45)}
+  .a-ic.sell{background:linear-gradient(145deg,rgba(255,69,58,.26),rgba(255,69,58,.08));border:1px solid rgba(255,69,58,.34);color:var(--red);box-shadow:0 4px 14px -4px rgba(255,69,58,.5)}
+  .a-ic.task{background:linear-gradient(145deg,rgba(10,132,255,.24),rgba(10,132,255,.08));border:1px solid rgba(10,132,255,.32);color:var(--blue);box-shadow:0 4px 12px -4px rgba(10,132,255,.45)}
+  .a-body{flex:1}
+  .a-tx{font-size:15px;font-weight:700;display:flex;align-items:center;gap:8px}
+  .a-strat{font-size:10px;font-weight:700;padding:2px 7px;border-radius:6px}
+  .a-strat.q{color:var(--blue);background:rgba(10,132,255,.15)}
+  .a-strat.s{color:var(--purple);background:rgba(191,90,242,.15)}
+  .a-why{font-size:12.5px;color:var(--dim);font-weight:500;margin-top:3px}
+  .a-vals{font-size:13px;font-weight:700;color:#C9C9D2;margin-top:4px;font-variant-numeric:tabular-nums}
+  .a-obs{font-size:12px;color:var(--dim);font-weight:500;margin-top:3px}
+  .a-obs.am{color:var(--amber);font-weight:600}
+  .a-obs.na{color:var(--orange);font-weight:600}
+  .a-obs.ro{color:#ff6b60;font-weight:600}
+  .a-scoreline{display:flex;align-items:baseline;gap:6px;font-variant-numeric:tabular-nums;margin-top:3px}
+  .a-scoreline .lbl{font-size:9.5px;color:var(--dim2);font-weight:600;text-transform:uppercase;letter-spacing:.03em;width:34px;flex:none}
+  .a-scoreline .num{font-size:13px;font-weight:700}
+  .a-scoreline.ini .num{color:#7E7E88;font-weight:600}
+  .a-scoreline.now .num{color:#E8E8EE}
+  .a-boxes{display:flex;flex-direction:column;gap:6px;flex:none;align-items:stretch}
+  .a-box{min-width:66px;text-align:center;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:6px 8px}
+  .a-box .bx-lbl{font-size:9px;color:var(--dim2);font-weight:700;text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px}
+  .a-box .bx-val{font-size:14px;font-weight:800;font-variant-numeric:tabular-nums}
+  .bx-val.g{color:var(--green)} .bx-val.r{color:var(--red)} .bx-val.dim{color:var(--dim2)}
+  .a-tag{font-size:11px;color:var(--dim2);font-weight:600;margin-top:3px;flex:none}
+  .a-tag.sell{color:#fff;background:var(--red);padding:4px 10px;border-radius:8px;font-weight:800;box-shadow:0 4px 12px -3px rgba(255,69,58,.6)}
+  .alert.sell-row .a-tx{color:#ff6b60}
+  .swipe-hint{text-align:center;font-size:10.5px;color:#4A4A52;margin-top:12px;padding-top:10px;border-top:1px solid rgba(255,255,255,.05)}
+  /* chart */
+  .chart-head{display:flex;justify-content:space-between;align-items:center}
+  .seg{display:flex;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.07);border-radius:11px;padding:2px}
+  .seg button{font-family:inherit;border:none;background:none;color:var(--dim);font-size:12px;font-weight:600;padding:6px 12px;border-radius:9px;cursor:pointer}
+  .seg button.on{background:rgba(255,255,255,.12);color:var(--txt)}
+  .legend{display:flex;gap:16px;margin:14px 4px 4px}
+  .legend .item{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--dim);font-weight:500}
+  .legend .dot{width:11px;height:3px;border-radius:2px}
+  .legend .lval{font-weight:700;margin-left:2px}
+  .legend .lval.cy{color:var(--blue)} .legend .lval.pu{color:var(--purple)}
+  .plot{display:flex;margin-top:8px}
+  .yaxis{width:34px;display:flex;flex-direction:column;justify-content:space-between;padding:2px 0 6px;font-size:9.5px;color:var(--dim2);font-weight:600;text-align:right}
+  .chartbox{position:relative;flex:1;height:150px}
+  .xlabels{display:flex;justify-content:space-between;margin:6px 0 0 34px}
+  .xlabels span{font-size:10px;color:var(--dim2);font-weight:500}
+  .emptytag{text-align:center;font-size:11px;color:var(--dim2);margin-top:12px;font-weight:500}
+  /* strategy */
+  .strat .toprow{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+  .strat .name{font-size:19px;font-weight:600}
+  .strat .inv{font-size:14px;color:var(--dim);font-weight:500;margin-top:3px}
+  .verdict{font-size:12px;font-weight:600;padding:6px 12px;border-radius:100px;color:var(--green);background:rgba(48,209,88,.15)}
+  .metrics{display:flex}
+  .metric{flex:1;text-align:center}
+  .metric .m-lbl{font-size:11px;color:var(--dim2);font-weight:600;text-transform:uppercase;letter-spacing:0.03em;margin-bottom:9px}
+  .metric .m-val{font-size:20px;font-weight:700;letter-spacing:-0.02em}
+  .metric .m-val.g{color:var(--green)} .metric .m-val.r{color:var(--red)} .metric .m-val.calc{color:var(--dim)}
+  .sep{width:1px;background:rgba(255,255,255,.08);margin:2px 0}
+  /* movers */
+  .movers{display:flex;gap:12px}
+  .mover{flex:1;position:relative;border-radius:22px;padding:20px;overflow:hidden;border:1px solid rgba(255,255,255,.06);box-shadow:0 20px 40px -28px rgba(0,0,0,.8), inset 0 1px 0 rgba(255,255,255,.04);}
+  .mover.best{background:radial-gradient(120% 100% at 100% 0%, rgba(48,209,88,.16), transparent 60%),linear-gradient(165deg,#16171B,#101014);}
+  .mover.worst{background:radial-gradient(120% 100% at 100% 0%, rgba(255,69,58,.16), transparent 60%),linear-gradient(165deg,#16171B,#101014);}
+  .m-head{display:flex;align-items:center;gap:7px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin-bottom:16px}
+  .m-head.best{color:var(--green)} .m-head.worst{color:var(--red)}
+  .m-tickrow{display:flex;align-items:center;gap:9px;margin-bottom:5px}
+  .m-ticker{font-size:24px;font-weight:700;letter-spacing:-0.03em}
+  .chipicon{width:23px;height:23px;flex:none}
+  .chipicon.tech{color:var(--blue)} .chipicon.notech{color:var(--dim2)}
+  .m-ind{font-size:12.5px;color:var(--dim);font-weight:500;margin-bottom:18px}
+  .twopct{display:flex;gap:10px}
+  .pctbox{flex:1}
+  .pctbox .p-lbl{font-size:10px;color:var(--dim2);font-weight:600;text-transform:uppercase;letter-spacing:.03em;margin-bottom:5px}
+  .pctbox .p-val{font-size:21px;font-weight:700;letter-spacing:-0.03em}
+  .p-val.g{color:var(--green)} .p-val.r{color:var(--red)}
+  .vline{width:1px;background:rgba(255,255,255,.09)}
+  .m-sub{font-size:11px;color:var(--dim2);font-weight:500;margin-top:14px}
+  /* conc */
+  .conc-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:14px}
+  .conc-val{font-size:15px;font-weight:700;color:var(--green)}
+  .bar{height:12px;border-radius:8px;background:rgba(255,255,255,.06);overflow:hidden;position:relative}
+  .bar .fill{height:100%;width:50%;border-radius:8px;background:linear-gradient(90deg,var(--blue),var(--purple))}
+  .bar .cap{position:absolute;top:-3px;bottom:-3px;left:50%;width:2px;background:rgba(255,255,255,.5)}
+  .conc-foot{display:flex;justify-content:space-between;margin-top:9px;font-size:11px;color:var(--dim2);font-weight:600}
+  .foot{text-align:center;font-size:11px;color:#4A4A52;font-weight:500;margin-top:30px;margin-bottom:80px}
+  .tabbar{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);display:flex;gap:4px;background:rgba(28,28,34,.74);backdrop-filter:blur(20px) saturate(1.4);border:1px solid rgba(255,255,255,.09);border-radius:100px;padding:4px;box-shadow:0 18px 44px -12px rgba(0,0,0,.8), inset 0 1px 0 rgba(255,255,255,.08);z-index:90}
+  .tab{display:flex;align-items:center;gap:7px;padding:8px 16px;border-radius:100px;cursor:pointer;border:none;background:none;color:var(--dim2);transition:all .2s ease}
+  .tab svg{width:16px;height:16px}
+  .tab span{font-size:12px;font-weight:600}
+  .tab.on{background:rgba(255,255,255,.1);color:var(--txt)}
+  .tab:not(.on) span{display:none}
+  .view{display:none}
+  .view.on{display:block}
+  .st-hero{margin-top:22px;margin-bottom:6px}
+  .st-hero h1{font-size:26px;font-weight:700;letter-spacing:-0.03em}
+  .st-hero p{font-size:13px;color:var(--dim);font-weight:500;margin-top:6px;line-height:1.4}
+  .rk-card{border-radius:24px;padding:22px;margin-top:16px;background:linear-gradient(165deg,#17171E,#111116);border:1px solid rgba(255,255,255,.055);box-shadow:0 20px 40px -28px rgba(0,0,0,.8), inset 0 1px 0 rgba(255,255,255,.04)}
+  .rk-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+  .rk-name{font-size:19px;font-weight:700}
+  .rk-name.q{color:var(--blue)} .rk-name.s{color:var(--purple)}
+  .rk-tag{font-size:11px;color:var(--dim2);font-weight:600}
+  .rk-row{display:flex;align-items:center;gap:11px;margin-bottom:11px}
+  .rk-rank{font-size:12px;font-weight:700;color:var(--dim2);width:16px;flex:none;text-align:center}
+  .rk-mid{flex:1;min-width:0}
+  .rk-lbl{font-size:12.5px;font-weight:600;color:#D8D8DE;margin-bottom:5px;display:flex;align-items:center;gap:7px}
+  .rk-lbl .mine{font-size:9px;font-weight:800;color:#08080C;background:var(--green);padding:1px 6px;border-radius:5px;letter-spacing:.03em}
+  .rk-barbg{height:9px;border-radius:6px;background:rgba(255,255,255,.05);overflow:hidden}
+  .rk-bar{height:100%;border-radius:6px;background:linear-gradient(90deg,#ff8079,#ff453a)}
+  .rk-bar.win{background:linear-gradient(90deg,#7ee89f,#30d158)}
+  .rk-val{font-size:14px;font-weight:800;width:56px;flex:none;text-align:right;font-variant-numeric:tabular-nums}
+  .rk-val.g{color:var(--green)} .rk-val.r{color:#ff6b60}
+  .rk-mine-row .rk-lbl{color:#fff}
+  .st-note{text-align:center;font-size:11.5px;color:var(--dim2);font-weight:500;margin:20px 8px 0;line-height:1.5}
+  .ac-sort{display:flex;gap:7px;margin:16px 0 14px;flex-wrap:wrap}
+  .ac-sbtn{font-size:12px;font-weight:600;color:var(--dim);background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.07);border-radius:100px;padding:7px 14px;cursor:pointer;transition:all .18s}
+  .ac-sbtn.on{background:rgba(255,255,255,.12);color:var(--txt);border-color:rgba(255,255,255,.16)}
+  .ac-item{display:flex;align-items:center;gap:9px;padding:13px 12px;border-radius:18px;background:linear-gradient(165deg,#16161C,#111116);border:1px solid rgba(255,255,255,.05);margin-bottom:9px}
+  .ac-dot{width:26px;height:26px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:#fff}
+  .ac-dot.c{background:var(--blue)} .ac-dot.s{background:var(--purple)}
+  .ac-info{flex:1;min-width:0}
+  .ac-tk{white-space:nowrap}
+  .ac-tk{font-size:15px;font-weight:700;display:flex;align-items:center;gap:6px}
+  .ac-tech{width:14px;height:14px;color:#FFD426;flex:none}
+  .ac-sub{font-size:11px;color:var(--dim2);font-weight:500;margin-top:2px}
+  .ac-rets{display:flex;gap:5px;flex:none}
+  .ac-r{width:44px;text-align:center;background:rgba(255,255,255,.04);border-radius:8px;padding:5px 3px}
+  .ac-r.sc{background:rgba(255,255,255,.02)}
+  .ac-r .l{font-size:7.5px;color:var(--dim2);font-weight:700;text-transform:uppercase;letter-spacing:.01em;margin-bottom:2px}
+  .ac-r .n{font-size:12px;font-weight:800;font-variant-numeric:tabular-nums;color:#E8E8EE}
+  .ac-r .n.g{color:var(--green)} .ac-r .n.r{color:#ff6b60}
+  .ac-scores{display:flex;gap:14px;flex:none;text-align:center}
+  .ac-sc{display:flex;flex-direction:column}
+  .ac-sc .n{font-size:14px;font-weight:800;font-variant-numeric:tabular-nums}
+  .ac-sc .l{font-size:8.5px;color:var(--dim2);font-weight:700;text-transform:uppercase;letter-spacing:.03em;margin-top:1px}
+  .ac-ret{width:60px;flex:none;text-align:right;font-size:15px;font-weight:800;font-variant-numeric:tabular-nums}
+  .ac-ret.g{color:var(--green)} .ac-ret.r{color:#ff6b60}
+  .dv-row{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+  .dv-lbl{width:96px;flex:none;font-size:12px;font-weight:600;color:#D8D8DE;text-align:right}
+  .dv-lbl small{display:block;font-size:10px;color:var(--dim2);font-weight:600}
+  .dv-track{flex:1;position:relative;height:22px;background:rgba(255,255,255,.04);border-radius:6px}
+  .dv-zero{position:absolute;top:-3px;bottom:-3px;left:50%;width:1px;background:rgba(255,255,255,.18)}
+  .dv-bar{position:absolute;top:3px;height:16px;border-radius:4px}
+  .dv-bar.g{background:linear-gradient(90deg,#30d158,#7ee89f)}
+  .dv-bar.r{background:linear-gradient(270deg,#ff453a,#ff8079)}
+  .dv-val{position:absolute;top:3px;font-size:10.5px;font-weight:800;line-height:16px;color:#fff;white-space:nowrap;box-sizing:border-box}
+  .rk-card h3{font-size:13px;color:var(--dim);font-weight:600;margin:0 0 4px}
+  .dv-dot{width:16px;height:16px;border-radius:50%;flex:none;display:inline-flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;color:#fff}
+  .dv-dot.c{background:var(--blue)} .dv-dot.s{background:var(--purple)}
+  .dv-lbl.tick{width:112px;flex:none;display:flex;align-items:center;gap:6px;justify-content:flex-start;text-align:left}
+  .dv-lbl.tick .tk{font-size:13px;font-weight:700;color:#E8E8EE;width:46px;flex:none}
+  .dv-tech{width:16px;height:16px;flex:none;color:#FFD426}
+  /* modal */
+  .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);z-index:100;display:none;align-items:flex-start;justify-content:center;padding:40px 18px;overflow-y:auto}
+  .modal-bg.open{display:flex}
+  .modal{max-width:440px;width:100%;background:linear-gradient(165deg,#17171E,#111116);border:1px solid rgba(255,255,255,.08);border-radius:24px;padding:24px;box-shadow:0 40px 80px -30px rgba(0,0,0,.9)}
+  .modal h2{font-size:19px;font-weight:700;margin-bottom:4px}
+  .modal .sub{font-size:12px;color:var(--dim2);margin-bottom:16px}
+  .modal .close{float:right;width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.08);border:none;color:var(--txt);font-size:16px;cursor:pointer;line-height:1}
+  .rule-strat{font-size:15px;font-weight:700;margin:18px 0 10px;padding-bottom:6px;border-bottom:1px solid rgba(255,255,255,.08)}
+  .rule-strat.q{color:var(--blue)} .rule-strat.s{color:var(--purple)}
+  .rule{display:flex;align-items:flex-start;gap:10px;padding:7px 0;font-size:13px}
+  .rule .rdot{width:9px;height:9px;border-radius:3px;flex:none;margin-top:3px}
+  .rdot.am{background:var(--amber)} .rdot.na{background:var(--orange)} .rdot.ro{background:var(--red)} .rdot.gr{background:var(--dim2)} .rdot.bl{background:var(--blue)}
+  .rule .rt{flex:1;color:#D8D8DE}
+  .rule .rt b{color:var(--txt)}
+  .rule .vtag{font-size:10px;font-weight:700;color:var(--red);border:1px solid rgba(255,69,58,.4);border-radius:6px;padding:2px 6px;flex:none}
+</style>
+</head>
+<body>
+<div class="wrap view on" id="viewResumen">
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hrow"><div class="brand"><span class="dot"></span><span>Mi Cartera</span></div><div class="date" id="hDate">jueves 9 jul</div></div>
+    <div class="duel-hero">
+      <div class="dh-col">
+        <div class="label">Mi rendimiento del mes</div>
+        <div class="pct" id="hMio">+4.9%</div>
+        <div class="dh-chip" id="hMioChip">&uarr; $6,921</div>
+      </div>
+      <div class="dh-col">
+        <div class="label">Algoritmo del mes</div>
+        <div class="pct algo" id="hAlgo">&minus;9.9%</div>
+        <div class="dh-chip algo">Trim <b id="hAlgoTrim">&minus;9.9%</b></div>
+      </div>
+    </div>
+    <div class="statgrid">
+      <div class="stat"><div class="s-lbl">Invertido</div><div class="s-val">$140<small>,000</small></div></div>
+      <div class="stat"><div class="s-lbl">Posiciones</div><div class="s-val" id="hPos">14</div></div>
+    </div>
+    <div class="strip">
+      <div class="pill-card"><div class="pulse"></div><div><div class="pc-lbl">Mercado</div><div class="pc-val green">Verde</div></div></div>
+      <div class="pill-card"><div><div class="pc-lbl">Días para rotar</div><div class="pc-val">84</div></div></div>
+    </div>
+  </div>
+
+  <!-- ALERTAS -->
+  <div class="section-cap">Alertas &middot; requieren atención</div>
+  <div class="card">
+    <div class="a-head"><div><div class="card-title">Requieren atención</div><div style="font-size:11px;color:var(--dim2);font-weight:500;margin-top:2px">Score al 8 jul</div></div>
+      <div class="a-head-right"><div class="a-count" id="aCount">6</div>
+        <button class="rules-btn" onclick="document.getElementById('rulesModal').classList.add('open')"><span></span><span></span><span></span></button>
+      </div>
+    </div>
+    <div id="alertList">
+      <div class="alert-wrap"><div class="alert-del">&#128465;</div><div class="alert sell-row">
+        <div class="a-ic sell"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a8 8 0 0 0-8 8c0 2.5 1.1 4.2 2.5 5.3.3.24.5.6.5 1V18a1.5 1.5 0 0 0 1.5 1.5h.3a1.2 1.2 0 0 1 1.2-1.5 1.2 1.2 0 0 1 1.2 1.5h1.6a1.2 1.2 0 0 1 1.2-1.5 1.2 1.2 0 0 1 1.2 1.5h.3A1.5 1.5 0 0 0 19 18v-1.7c0-.4.2-.76.5-1C20.9 14.2 22 12.5 22 10a8 8 0 0 0-8-8zm-3 9.5a1.6 1.6 0 1 1 0-3.2 1.6 1.6 0 0 1 0 3.2zm6 0a1.6 1.6 0 1 1 0-3.2 1.6 1.6 0 0 1 0 3.2z"/><rect x="9.2" y="19.4" width="1.4" height="2.4" rx="0.6"/><rect x="11.3" y="19.4" width="1.4" height="2.4" rx="0.6"/><rect x="13.4" y="19.4" width="1.4" height="2.4" rx="0.6"/></svg></div>
+        <div class="a-body"><div class="a-tx">EJEMPLO <span class="a-strat s">SMART</span></div><div class="a-vals">Smart 2.40 / St 24.0</div><div class="a-obs">Smart momentum rompió el 2.5<br>Salida por regla</div></div>
+        <div class="a-tag sell">VENDER</div>
+      </div></div>
+      <div class="alert-wrap"><div class="alert-del">&#128465;</div><div class="alert">
+        <div class="a-ic warn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.2 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.2a2 2 0 0 0-3.4 0z"/><line x1="12" y1="9" x2="12" y2="13"/><circle cx="12" cy="17" r="0.6" fill="currentColor" stroke="none"/></svg></div>
+        <div class="a-body"><div class="a-tx">KRYS <span class="a-strat q">QUANT</span></div>
+        <div class="a-scoreline ini"><span class="lbl">Inicio</span><span class="num">Sm 2.49 / St 17.6</span></div>
+        <div class="a-scoreline now"><span class="lbl">Ahora</span><span class="num">Sm 2.49 / St 17.6</span></div>
+        <div class="a-obs am">Smart bajo 2.5 y strength bajo 18</div></div>
+        <div class="a-boxes">
+          <div class="a-box"><div class="bx-lbl">Trim</div><div class="bx-val g">+1.0%</div></div>
+          <div class="a-box"><div class="bx-lbl">Mío</div><div class="bx-val g">+0.3%</div></div>
+        </div>
+      </div></div>
+      <div class="alert-wrap"><div class="alert-del">&#128465;</div><div class="alert">
+        <div class="a-ic warn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.2 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.2a2 2 0 0 0-3.4 0z"/><line x1="12" y1="9" x2="12" y2="13"/><circle cx="12" cy="17" r="0.6" fill="currentColor" stroke="none"/></svg></div>
+        <div class="a-body"><div class="a-tx">SEI &middot; Solaris <span class="a-strat q">QUANT</span></div>
+        <div class="a-scoreline ini"><span class="lbl">Inicio</span><span class="num">Sm 2.43 / St 20.4</span></div>
+        <div class="a-scoreline now"><span class="lbl">Ahora</span><span class="num">Sm 2.43 / St 20.4</span></div>
+        <div class="a-obs am">Smart bajo 2.5</div></div>
+        <div class="a-boxes">
+          <div class="a-box"><div class="bx-lbl">Trim</div><div class="bx-val r">&minus;17.7%</div></div>
+          <div class="a-box"><div class="bx-lbl">Mío</div><div class="bx-val g">+0.9%</div></div>
+        </div>
+      </div></div>
+      <div class="alert-wrap"><div class="alert-del">&#128465;</div><div class="alert">
+        <div class="a-ic orange"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="18"/><polyline points="6 12 12 18 18 12"/></svg></div>
+        <div class="a-body"><div class="a-tx">STRL &middot; Sterling <span class="a-strat q">QUANT</span></div>
+        <div class="a-scoreline ini"><span class="lbl">Inicio</span><span class="num">Sm 3.00 / St 19.4</span></div>
+        <div class="a-scoreline now"><span class="lbl">Ahora</span><span class="num">Sm 3.00 / St 19.4</span></div>
+        <div class="a-obs am">Bajó del 20% desde inicio de trimestre</div></div>
+        <div class="a-boxes">
+          <div class="a-box"><div class="bx-lbl">Trim</div><div class="bx-val r">&minus;21.2%</div></div>
+          <div class="a-box"><div class="bx-lbl">Mío</div><div class="bx-val r">&minus;0.9%</div></div>
+        </div>
+      </div></div>
+      <div class="alert-wrap"><div class="alert-del">&#128465;</div><div class="alert">
+        <div class="a-ic warn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="18"/><polyline points="6 12 12 18 18 12"/></svg></div>
+        <div class="a-body"><div class="a-tx">CIEN <span class="a-strat q">QUANT</span></div>
+        <div class="a-scoreline ini"><span class="lbl">Inicio</span><span class="num">Sm 3.00 / St 24.0</span></div>
+        <div class="a-scoreline now"><span class="lbl">Ahora</span><span class="num">Sm 3.00 / St 18.4</span></div>
+        <div class="a-obs am">Tocó mínimo de 3 meses<br>Strength cayendo</div></div>
+        <div class="a-boxes">
+          <div class="a-box"><div class="bx-lbl">Trim</div><div class="bx-val r">&minus;10.0%</div></div>
+          <div class="a-box"><div class="bx-lbl">Mío</div><div class="bx-val g">+4.5%</div></div>
+        </div>
+      </div></div>
+      <div class="alert-wrap"><div class="alert-del">&#128465;</div><div class="alert">
+        <div class="a-ic warn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.2 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.2a2 2 0 0 0-3.4 0z"/><line x1="12" y1="9" x2="12" y2="13"/><circle cx="12" cy="17" r="0.6" fill="currentColor" stroke="none"/></svg></div>
+        <div class="a-body"><div class="a-tx">AXTI <span class="a-strat s">SMART</span></div>
+        <div class="a-scoreline ini"><span class="lbl">Inicio</span><span class="num">Sm 3.00 / St 25.2</span></div>
+        <div class="a-scoreline now"><span class="lbl">Ahora</span><span class="num">Sm 3.00 / St 25.2</span></div>
+        <div class="a-obs am">Strength bajo 26</div></div>
+        <div class="a-boxes">
+          <div class="a-box"><div class="bx-lbl">Trim</div><div class="bx-val g">+8.0%</div></div>
+          <div class="a-box"><div class="bx-lbl">Mío</div><div class="bx-val g">+0.5%</div></div>
+        </div>
+      </div></div>
+    </div>
+  </div>
+
+  <!-- DESEMPEÑO -->
+  <div class="section-cap">Desempeño</div>
+  <div class="card">
+    <div class="chart-head"><div class="card-title">Algoritmo &middot; mes</div><div class="seg"><button class="on">10d</button><button>30d</button><button>60d</button></div></div>
+    <div class="legend"><div class="item"><span class="dot" style="background:var(--blue)"></span>Cuant <span class="lval cy">&minus;11.7%</span></div><div class="item"><span class="dot" style="background:var(--purple)"></span>Smart <span class="lval pu">&minus;14.4%</span></div></div>
+    <div class="plot">
+      <div class="yaxis" style="padding-bottom:6px"><span>+5%</span><span>0%</span><span>&minus;5%</span><span>&minus;10%</span><span>&minus;15%</span><span>&minus;20%</span></div>
+      <div class="chartbox">
+        <svg viewBox="0 0 440 150" preserveAspectRatio="none" style="width:100%;height:100%">
+          <line x1="0" y1="0" x2="440" y2="0" stroke="#20202A" stroke-width="1"/>
+          <line x1="0" y1="30" x2="440" y2="30" stroke="#3A3A46" stroke-width="1.3" stroke-dasharray="5 5"/>
+          <line x1="0" y1="60" x2="440" y2="60" stroke="#20202A" stroke-width="1" stroke-dasharray="2 6"/>
+          <line x1="0" y1="90" x2="440" y2="90" stroke="#20202A" stroke-width="1" stroke-dasharray="2 6"/>
+          <line x1="0" y1="120" x2="440" y2="120" stroke="#20202A" stroke-width="1" stroke-dasharray="2 6"/>
+          <line x1="0" y1="150" x2="440" y2="150" stroke="#20202A" stroke-width="1"/>
+          <line x1="352" y1="0" x2="352" y2="150" stroke="#FFD426" stroke-width="1" stroke-dasharray="3 4" opacity="0.5"/>
+          <path d="M0,30 L88,69 L176,64.2 L264,56.4 L352,72 L440,100.2" fill="none" stroke="#0A84FF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M0,30 L88,87 L176,78 L264,64.8 L352,84 L440,116.4" fill="none" stroke="#BF5AF2" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+    </div>
+    <div class="xlabels" style="margin-left:34px"><span>1 jul</span><span>2</span><span>3</span><span>6</span><span>7</span><span>8</span></div>
+    <div class="emptytag">Brinco el 8 jul por ajuste de base al cierre del 30 jun</div>
+  </div>
+
+  <!-- ESTRATEGIAS -->
+  <div class="section-cap">Estrategias</div>
+  <div class="card strat">
+    <div class="toprow"><div><div class="name">Quant</div><div class="inv">$70,000 &middot; 7 posiciones</div></div><div class="verdict">&uarr; le gano</div></div>
+    <div class="metrics">
+      <div class="metric"><div class="m-lbl">Directo</div><div class="m-val g">+0.4%</div></div>
+      <div class="sep"></div>
+      <div class="metric"><div class="m-lbl">Ponderado</div><div class="m-val calc">&middot;&middot;&middot;</div></div>
+      <div class="sep"></div>
+      <div class="metric"><div class="m-lbl">Algoritmo</div><div class="m-val r">&minus;11.7%</div></div>
+    </div>
+  </div>
+  <div class="card strat">
+    <div class="toprow"><div><div class="name">Smart</div><div class="inv">$70,000 &middot; 7 posiciones</div></div><div class="verdict">&uarr; le gano</div></div>
+    <div class="metrics">
+      <div class="metric"><div class="m-lbl">Directo</div><div class="m-val g">+1.3%</div></div>
+      <div class="sep"></div>
+      <div class="metric"><div class="m-lbl">Ponderado</div><div class="m-val calc">&middot;&middot;&middot;</div></div>
+      <div class="sep"></div>
+      <div class="metric"><div class="m-lbl">Algoritmo</div><div class="m-val r">&minus;14.4%</div></div>
+    </div>
+  </div>
+
+  <!-- MOVERS desde compra -->
+  <div class="section-cap">Mejor y peor desde mi compra</div>
+  <div class="movers">
+    <div class="mover best">
+      <div class="m-head best">&#9650; Mejor</div>
+      <div class="m-tickrow"><span class="m-ticker">CIEN</span>
+        <svg class="chipicon tech" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="7" width="10" height="10" rx="1.5"/><rect x="10" y="10" width="4" height="4" rx="0.5" fill="currentColor" stroke="none"/><path d="M10 3v2M14 3v2M10 19v2M14 19v2M3 10h2M3 14h2M19 10h2M19 14h2"/></svg>
+      </div>
+      <div class="m-ind">Comunicaciones</div>
+      <div class="twopct">
+        <div class="pctbox"><div class="p-lbl">Mi compra</div><div class="p-val g">+4.5%</div></div>
+        <div class="vline"></div>
+        <div class="pctbox"><div class="p-lbl">Trimestre</div><div class="p-val r">&minus;10.0%</div></div>
+      </div>
+      <div class="m-sub">Ciena</div>
+    </div>
+    <div class="mover worst">
+      <div class="m-head worst">&#9660; Peor</div>
+      <div class="m-tickrow"><span class="m-ticker">SPHR</span>
+        <svg class="chipicon notech" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="7" width="10" height="10" rx="1.5"/><path d="M10 3v2M14 3v2M10 19v2M14 19v2M3 10h2M3 14h2M19 10h2M19 14h2"/><line x1="3.5" y1="20.5" x2="20.5" y2="3.5" stroke-width="2"/></svg>
+      </div>
+      <div class="m-ind">Entretenimiento</div>
+      <div class="twopct">
+        <div class="pctbox"><div class="p-lbl">Mi compra</div><div class="p-val r">&minus;3.2%</div></div>
+        <div class="vline"></div>
+        <div class="pctbox"><div class="p-lbl">Trimestre</div><div class="p-val r">&minus;12.7%</div></div>
+      </div>
+      <div class="m-sub">Sphere Entr.</div>
+    </div>
+  </div>
+
+  <!-- MOVERS trimestre -->
+  <div class="section-cap">Mejor y peor del trimestre</div>
+  <div class="movers">
+    <div class="mover best">
+      <div class="m-head best">&#9650; Mejor</div>
+      <div class="m-tickrow"><span class="m-ticker">KRYS</span>
+        <svg class="chipicon notech" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="7" width="10" height="10" rx="1.5"/><path d="M10 3v2M14 3v2M10 19v2M14 19v2M3 10h2M3 14h2M19 10h2M19 14h2"/><line x1="3.5" y1="20.5" x2="20.5" y2="3.5" stroke-width="2"/></svg>
+      </div>
+      <div class="m-ind">Biotech</div>
+      <div class="twopct">
+        <div class="pctbox"><div class="p-lbl">Mi compra</div><div class="p-val g">+0.3%</div></div>
+        <div class="vline"></div>
+        <div class="pctbox"><div class="p-lbl">Trimestre</div><div class="p-val g">+1.0%</div></div>
+      </div>
+      <div class="m-sub">Krystal Biotech</div>
+    </div>
+    <div class="mover worst">
+      <div class="m-head worst">&#9660; Peor</div>
+      <div class="m-tickrow"><span class="m-ticker">STRL</span>
+        <svg class="chipicon notech" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="7" width="10" height="10" rx="1.5"/><path d="M10 3v2M14 3v2M10 19v2M14 19v2M3 10h2M3 14h2M19 10h2M19 14h2"/><line x1="3.5" y1="20.5" x2="20.5" y2="3.5" stroke-width="2"/></svg>
+      </div>
+      <div class="m-ind">Construcción</div>
+      <div class="twopct">
+        <div class="pctbox"><div class="p-lbl">Mi compra</div><div class="p-val r">&minus;0.9%</div></div>
+        <div class="vline"></div>
+        <div class="pctbox"><div class="p-lbl">Trimestre</div><div class="p-val r">&minus;21.2%</div></div>
+      </div>
+      <div class="m-sub">Sterling Infra.</div>
+    </div>
+  </div>
+
+  <!-- CONCENTRACIÓN -->
+  <div class="section-cap">Concentración</div>
+  <div class="card">
+    <div class="conc-top"><div class="card-title">Tecnología</div><div class="conc-val">50%</div></div>
+    <div class="bar"><div class="fill"></div><div class="cap"></div></div>
+    <div class="conc-foot"><span>7 tech &middot; 7 no-tech</span><span>tope 50%</span></div>
+  </div>
+
+  <div class="foot">Datos de tu hoja &middot; 8 jul 2026 &middot; no es asesoría de inversión</div>
+</div>
+
+
+<div class="wrap view" id="viewEstrategias">
+  <div class="st-hero">
+    <h1>Laboratorio</h1>
+    <p>Cómo va cada variante de selección compitiendo con datos reales, sin arriesgar dinero. Ordenadas de mejor a peor este mes.</p>
+  </div>
+
+  <div class="rk-card">
+    <div class="rk-top"><div class="rk-name q">Quant</div><div class="rk-tag">desde inicio de mes</div></div>
+    <div class="rk-row">
+      <div class="rk-rank">1</div>
+      <div class="rk-mid">
+        <div class="rk-lbl">Chicas (Sm2.6 St22)</div>
+        <div class="rk-barbg"><div class="rk-bar" style="width:100.0%"></div></div>
+      </div>
+      <div class="rk-val r">&minus;18.0%</div>
+    </div>
+    <div class="rk-row">
+      <div class="rk-rank">2</div>
+      <div class="rk-mid">
+        <div class="rk-lbl">Viejas (Sm2.6 St22)</div>
+        <div class="rk-barbg"><div class="rk-bar" style="width:97.8%"></div></div>
+      </div>
+      <div class="rk-val r">&minus;17.6%</div>
+    </div>
+    <div class="rk-row">
+      <div class="rk-rank">3</div>
+      <div class="rk-mid">
+        <div class="rk-lbl">Strength 20 o más</div>
+        <div class="rk-barbg"><div class="rk-bar" style="width:79.4%"></div></div>
+      </div>
+      <div class="rk-val r">&minus;14.3%</div>
+    </div>
+    <div class="rk-row">
+      <div class="rk-rank">4</div>
+      <div class="rk-mid">
+        <div class="rk-lbl">Strength 22 o más</div>
+        <div class="rk-barbg"><div class="rk-bar" style="width:76.7%"></div></div>
+      </div>
+      <div class="rk-val r">&minus;13.8%</div>
+    </div>
+    <div class="rk-row">
+      <div class="rk-rank">5</div>
+      <div class="rk-mid">
+        <div class="rk-lbl">8 mejores smart</div>
+        <div class="rk-barbg"><div class="rk-bar" style="width:72.8%"></div></div>
+      </div>
+      <div class="rk-val r">&minus;13.1%</div>
+    </div>
+    <div class="rk-row rk-mine-row">
+      <div class="rk-rank">6</div>
+      <div class="rk-mid">
+        <div class="rk-lbl">Mi selección (industria)<span class="mine">MÍA</span></div>
+        <div class="rk-barbg"><div class="rk-bar" style="width:70.6%"></div></div>
+      </div>
+      <div class="rk-val r">&minus;12.7%</div>
+    </div>
+    <div class="rk-row">
+      <div class="rk-rank">7</div>
+      <div class="rk-mid">
+        <div class="rk-lbl">Smart 2.6 o más</div>
+        <div class="rk-barbg"><div class="rk-bar" style="width:68.9%"></div></div>
+      </div>
+      <div class="rk-val r">&minus;12.4%</div>
+    </div>
+    <div class="rk-row">
+      <div class="rk-rank">8</div>
+      <div class="rk-mid">
+        <div class="rk-lbl">Todo el Cuant<span class="mine" style="background:var(--blue);color:#fff">QUANT</span></div>
+        <div class="rk-barbg"><div class="rk-bar" style="width:65.0%"></div></div>
+      </div>
+      <div class="rk-val r">&minus;11.7%</div>
+    </div>
+    <div class="rk-row">
+      <div class="rk-rank">9</div>
+      <div class="rk-mid">
+        <div class="rk-lbl">Smart 2.5 o más</div>
+        <div class="rk-barbg"><div class="rk-bar" style="width:63.9%"></div></div>
+      </div>
+      <div class="rk-val r">&minus;11.5%</div>
+    </div>
+  </div>
+
+  <div class="rk-card">
+    <div class="rk-top"><div class="rk-name s">Smart</div><div class="rk-tag">desde inicio de mes</div></div>
+    <div class="rk-row">
+      <div class="rk-rank">1</div>
+      <div class="rk-mid">
+        <div class="rk-lbl">Arranque 3.0 / 29</div>
+        <div class="rk-barbg"><div class="rk-bar" style="width:88.3%"></div></div>
+      </div>
+      <div class="rk-val r">&minus;15.9%</div>
+    </div>
+    <div class="rk-row">
+      <div class="rk-rank">2</div>
+      <div class="rk-mid">
+        <div class="rk-lbl">Todo el Smart<span class="mine" style="background:var(--purple);color:#fff">SMART</span></div>
+        <div class="rk-barbg"><div class="rk-bar" style="width:80.0%"></div></div>
+      </div>
+      <div class="rk-val r">&minus;14.4%</div>
+    </div>
+    <div class="rk-row rk-mine-row">
+      <div class="rk-rank">3</div>
+      <div class="rk-mid">
+        <div class="rk-lbl">Mi selección (industria)<span class="mine">MÍA</span></div>
+        <div class="rk-barbg"><div class="rk-bar" style="width:64.4%"></div></div>
+      </div>
+      <div class="rk-val r">&minus;11.6%</div>
+    </div>
+  </div>
+
+  <div class="rk-card">
+    <h3>Mi rendimiento vs el algoritmo</h3>
+    <div class="rk-top" style="margin-bottom:14px"><div class="rk-name" style="font-size:15px">Por estrategia &middot; desde inicio de mes</div></div>
+    <div class="dv-row">
+      <div class="dv-lbl">Quant<small>yo</small></div>
+      <div class="dv-track"><div class="dv-zero"></div><div class="dv-bar g" style="left:50%;width:7.0%"></div><div class="dv-val" style="left:50%;width:7.0%;text-align:right;padding-right:5px">+0.4%</div></div>
+    </div>
+    <div class="dv-row">
+      <div class="dv-lbl">Quant<small>algoritmo</small></div>
+      <div class="dv-track"><div class="dv-zero"></div><div class="dv-bar r" style="left:calc(50% - 40.6%);width:40.6%"></div><div class="dv-val" style="left:calc(50% - 40.6%);width:40.6%;text-align:left;padding-left:5px">&minus;11.7%</div></div>
+    </div>
+    <div class="dv-row">
+      <div class="dv-lbl">Smart<small>yo</small></div>
+      <div class="dv-track"><div class="dv-zero"></div><div class="dv-bar g" style="left:50%;width:7.0%"></div><div class="dv-val" style="left:50%;width:7.0%;text-align:right;padding-right:5px">+1.3%</div></div>
+    </div>
+    <div class="dv-row">
+      <div class="dv-lbl">Smart<small>algoritmo</small></div>
+      <div class="dv-track"><div class="dv-zero"></div><div class="dv-bar r" style="left:calc(50% - 50.0%);width:50.0%"></div><div class="dv-val" style="left:calc(50% - 50.0%);width:50.0%;text-align:left;padding-left:5px">&minus;14.4%</div></div>
+    </div>
+  </div>
+
+  <div class="rk-card">
+    <h3>Todas mis acciones desde mi compra</h3>
+    <div class="rk-top" style="margin-bottom:14px">
+      <div class="rk-name" style="font-size:15px">14 posiciones</div>
+      <div class="rk-tag"><span class="dv-dot c" style="width:13px;height:13px">C</span> Quant &nbsp; <span class="dv-dot s" style="width:13px;height:13px">S</span> Smart</div>
+    </div>
+    <div class="dv-row">
+      <div class="dv-lbl tick"><span class="tk">SNDK</span><span class="dv-dot s">S</span><svg class="dv-tech" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="7" width="10" height="10" rx="1.5"/><rect x="10.5" y="10.5" width="3" height="3" fill="currentColor" stroke="none"/><path d="M10 3v2M14 3v2M10 19v2M14 19v2M3 10h2M3 14h2M19 10h2M19 14h2"/></svg></div>
+      <div class="dv-track"><div class="dv-zero"></div><div class="dv-bar g" style="left:50%;width:50.0%"></div><div class="dv-val" style="left:50%;width:50.0%;text-align:right;padding-right:5px">+7.5%</div></div>
+    </div>
+    <div class="dv-row">
+      <div class="dv-lbl tick"><span class="tk">CIEN</span><span class="dv-dot c">C</span><svg class="dv-tech" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="7" width="10" height="10" rx="1.5"/><rect x="10.5" y="10.5" width="3" height="3" fill="currentColor" stroke="none"/><path d="M10 3v2M14 3v2M10 19v2M14 19v2M3 10h2M3 14h2M19 10h2M19 14h2"/></svg></div>
+      <div class="dv-track"><div class="dv-zero"></div><div class="dv-bar g" style="left:50%;width:30.1%"></div><div class="dv-val" style="left:50%;width:30.1%;text-align:right;padding-right:5px">+4.5%</div></div>
+    </div>
+    <div class="dv-row">
+      <div class="dv-lbl tick"><span class="tk">WDC</span><span class="dv-dot s">S</span><svg class="dv-tech" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="7" width="10" height="10" rx="1.5"/><rect x="10.5" y="10.5" width="3" height="3" fill="currentColor" stroke="none"/><path d="M10 3v2M14 3v2M10 19v2M14 19v2M3 10h2M3 14h2M19 10h2M19 14h2"/></svg></div>
+      <div class="dv-track"><div class="dv-zero"></div><div class="dv-bar g" style="left:50%;width:23.9%"></div><div class="dv-val" style="left:50%;width:23.9%;text-align:right;padding-right:5px">+3.6%</div></div>
+    </div>
+    <div class="dv-row">
+      <div class="dv-lbl tick"><span class="tk">TNGX</span><span class="dv-dot s">S</span><span style="width:16px;flex:none"></span></div>
+      <div class="dv-track"><div class="dv-zero"></div><div class="dv-bar g" style="left:50%;width:12.0%"></div><div class="dv-val" style="left:50%;width:12.0%;text-align:right;padding-right:5px">+1.8%</div></div>
+    </div>
+    <div class="dv-row">
+      <div class="dv-lbl tick"><span class="tk">SEI</span><span class="dv-dot c">C</span><span style="width:16px;flex:none"></span></div>
+      <div class="dv-track"><div class="dv-zero"></div><div class="dv-bar g" style="left:50%;width:7.0%"></div><div class="dv-val" style="left:50%;width:7.0%;text-align:right;padding-right:5px">+0.9%</div></div>
+    </div>
+    <div class="dv-row">
+      <div class="dv-lbl tick"><span class="tk">COHR</span><span class="dv-dot s">S</span><svg class="dv-tech" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="7" width="10" height="10" rx="1.5"/><rect x="10.5" y="10.5" width="3" height="3" fill="currentColor" stroke="none"/><path d="M10 3v2M14 3v2M10 19v2M14 19v2M3 10h2M3 14h2M19 10h2M19 14h2"/></svg></div>
+      <div class="dv-track"><div class="dv-zero"></div><div class="dv-bar g" style="left:50%;width:7.0%"></div><div class="dv-val" style="left:50%;width:7.0%;text-align:right;padding-right:5px">+0.7%</div></div>
+    </div>
+    <div class="dv-row">
+      <div class="dv-lbl tick"><span class="tk">FIX</span><span class="dv-dot c">C</span><span style="width:16px;flex:none"></span></div>
+      <div class="dv-track"><div class="dv-zero"></div><div class="dv-bar g" style="left:50%;width:7.0%"></div><div class="dv-val" style="left:50%;width:7.0%;text-align:right;padding-right:5px">+0.5%</div></div>
+    </div>
+    <div class="dv-row">
+      <div class="dv-lbl tick"><span class="tk">LSCC</span><span class="dv-dot c">C</span><svg class="dv-tech" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="7" width="10" height="10" rx="1.5"/><rect x="10.5" y="10.5" width="3" height="3" fill="currentColor" stroke="none"/><path d="M10 3v2M14 3v2M10 19v2M14 19v2M3 10h2M3 14h2M19 10h2M19 14h2"/></svg></div>
+      <div class="dv-track"><div class="dv-zero"></div><div class="dv-bar g" style="left:50%;width:7.0%"></div><div class="dv-val" style="left:50%;width:7.0%;text-align:right;padding-right:5px">+0.4%</div></div>
+    </div>
+    <div class="dv-row">
+      <div class="dv-lbl tick"><span class="tk">KRYS</span><span class="dv-dot c">C</span><span style="width:16px;flex:none"></span></div>
+      <div class="dv-track"><div class="dv-zero"></div><div class="dv-bar g" style="left:50%;width:7.0%"></div><div class="dv-val" style="left:50%;width:7.0%;text-align:right;padding-right:5px">+0.3%</div></div>
+    </div>
+    <div class="dv-row">
+      <div class="dv-lbl tick"><span class="tk">AXTI</span><span class="dv-dot s">S</span><svg class="dv-tech" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="7" width="10" height="10" rx="1.5"/><rect x="10.5" y="10.5" width="3" height="3" fill="currentColor" stroke="none"/><path d="M10 3v2M14 3v2M10 19v2M14 19v2M3 10h2M3 14h2M19 10h2M19 14h2"/></svg></div>
+      <div class="dv-track"><div class="dv-zero"></div><div class="dv-bar g" style="left:50%;width:7.0%"></div><div class="dv-val" style="left:50%;width:7.0%;text-align:right;padding-right:5px">+0.2%</div></div>
+    </div>
+    <div class="dv-row">
+      <div class="dv-lbl tick"><span class="tk">STRL</span><span class="dv-dot c">C</span><span style="width:16px;flex:none"></span></div>
+      <div class="dv-track"><div class="dv-zero"></div><div class="dv-bar r" style="left:calc(50% - 7.0%);width:7.0%"></div><div class="dv-val" style="left:calc(50% - 7.0%);width:7.0%;text-align:left;padding-left:5px">&minus;0.9%</div></div>
+    </div>
+    <div class="dv-row">
+      <div class="dv-lbl tick"><span class="tk">EXE</span><span class="dv-dot s">S</span><span style="width:16px;flex:none"></span></div>
+      <div class="dv-track"><div class="dv-zero"></div><div class="dv-bar r" style="left:calc(50% - 11.6%);width:11.6%"></div><div class="dv-val" style="left:calc(50% - 11.6%);width:11.6%;text-align:left;padding-left:5px">&minus;1.7%</div></div>
+    </div>
+    <div class="dv-row">
+      <div class="dv-lbl tick"><span class="tk">DOCN</span><span class="dv-dot s">S</span><svg class="dv-tech" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="7" width="10" height="10" rx="1.5"/><rect x="10.5" y="10.5" width="3" height="3" fill="currentColor" stroke="none"/><path d="M10 3v2M14 3v2M10 19v2M14 19v2M3 10h2M3 14h2M19 10h2M19 14h2"/></svg></div>
+      <div class="dv-track"><div class="dv-zero"></div><div class="dv-bar r" style="left:calc(50% - 19.8%);width:19.8%"></div><div class="dv-val" style="left:calc(50% - 19.8%);width:19.8%;text-align:left;padding-left:5px">&minus;3.0%</div></div>
+    </div>
+    <div class="dv-row">
+      <div class="dv-lbl tick"><span class="tk">SPHR</span><span class="dv-dot c">C</span><span style="width:16px;flex:none"></span></div>
+      <div class="dv-track"><div class="dv-zero"></div><div class="dv-bar r" style="left:calc(50% - 21.4%);width:21.4%"></div><div class="dv-val" style="left:calc(50% - 21.4%);width:21.4%;text-align:left;padding-left:5px">&minus;3.2%</div></div>
+    </div>
+
+  </div>
+
+  <div class="st-note">Apenas 2 días de datos &middot; el ranking cambiará conforme el robot acumule historial. No tomes decisiones con la foto de hoy.</div>
+  <div class="foot" style="margin-bottom:80px">Datos de tu hoja &middot; 8 jul 2026 &middot; no es asesoría de inversión</div>
+</div>
+
+
+<div class="wrap view" id="viewAcciones">
+  <div class="st-hero">
+    <h1>Acciones</h1>
+    <p>Tus 14 posiciones. Toca un criterio para reordenar.</p>
+  </div>
+  <div class="ac-sort" id="acSort">
+    <button class="ac-sbtn on" data-k="ret">Mío</button>
+    <button class="ac-sbtn" data-k="mes">Mes</button>
+    <button class="ac-sbtn" data-k="trim">Trimestre</button>
+    <button class="ac-sbtn" data-k="smart">Smart</button>
+    <button class="ac-sbtn" data-k="stren">Strength</button>
+  </div>
+  <div id="acList"></div>
+  <div class="st-note">Scores al 8 jul &middot; rendimiento desde tu compra &middot; no es asesoría de inversión</div>
+  <div class="foot" style="margin-bottom:80px">Datos de tu hoja &middot; 8 jul 2026</div>
+</div>
+
+<!-- MODAL REGLAS -->
+<div class="modal-bg" id="rulesModal">
+  <div class="modal">
+    <button class="close" onclick="document.getElementById('rulesModal').classList.remove('open')">&times;</button>
+    <h2>Reglas y alertas</h2>
+    <div class="sub">Cómo están programadas mis políticas de venta y avisos</div>
+
+    <div class="rule-strat q">QUANT / VALUE</div>
+    <div class="rule"><span class="rdot ro"></span><div class="rt"><b>Vender</b> si el algoritmo la pasa a <b>C</b> (tú la dictas)</div><span class="vtag">VENDER</span></div>
+    <div class="rule"><span class="rdot ro"></span><div class="rt"><b>Vender</b> si cae <b>25%</b> desde mi compra</div><span class="vtag">VENDER</span></div>
+    <div class="rule"><span class="rdot na"></span><div class="rt">Cae <b>20%</b> desde mi compra &middot; vigilar</div></div>
+    <div class="rule"><span class="rdot am"></span><div class="rt">Strength baja de <b>18</b> &middot; vigilar</div></div>
+    <div class="rule"><span class="rdot am"></span><div class="rt">Smart baja de <b>2.5</b> &middot; vigilar</div></div>
+    <div class="rule"><span class="rdot ro"></span><div class="rt">Strength baja de <b>16</b> &middot; muy débil, atención (no venta)</div></div>
+    <div class="rule"><span class="rdot ro"></span><div class="rt">Smart baja de <b>2.4</b> &middot; muy débil, atención (no venta)</div></div>
+
+    <div class="rule-strat s">SMART</div>
+    <div class="rule"><span class="rdot ro"></span><div class="rt"><b>Vender</b> si el algoritmo la pasa a <b>C</b> (tú la dictas)</div><span class="vtag">VENDER</span></div>
+    <div class="rule"><span class="rdot ro"></span><div class="rt"><b>Vender</b> si el smart momentum baja de <b>2.5</b></div><span class="vtag">VENDER</span></div>
+    <div class="rule"><span class="rdot am"></span><div class="rt">Smart momentum baja de <b>2.6</b> &middot; vigilar</div></div>
+    <div class="rule"><span class="rdot am"></span><div class="rt">Strength abajo de <b>26</b> &middot; observar</div></div>
+    <div class="rule"><span class="rdot na"></span><div class="rt">Strength abajo de <b>25</b> &middot; observar de cerca (no venta)</div></div>
+    <div class="rule"><span class="rdot ro"></span><div class="rt">Cae <b>+25%</b> (trim/mes/compra) &middot; cuidado, posible venta</div></div>
+    <div class="rule"><span class="rdot na"></span><div class="rt">Cae <b>20-25%</b> &middot; aviso</div></div>
+    <div class="rule"><span class="rdot am"></span><div class="rt">Cae <b>15%</b> &middot; aviso</div></div>
+    <div class="rule"><span class="rdot gr"></span><div class="rt">Si llega una nueva fuerte y ya hay <b>15</b>, sale la más débil</div></div>
+
+    <div class="rule-strat" style="color:var(--dim)">Actualización de scores</div>
+    <div class="rule"><span class="rdot am"></span><div class="rt">Miércoles o después sin captura de la semana</div></div>
+    <div class="rule"><span class="rdot am"></span><div class="rt">Cartera cae más de <b>2.5%</b> en el día</div></div>
+    <div class="rule"><span class="rdot am"></span><div class="rt">Una acción cae más de <b>8%</b> o se desploma en pocos días</div></div>
+
+    <div class="rule-strat" style="color:var(--dim)">Al vender</div>
+    <div class="rule"><span class="rdot bl"></span><div class="rt">Cada venta detectada: <b>revisar que no queden órdenes stop</b> de esa acción &middot; insiste hasta que la elimines</div></div>
+
+    <div class="rule-strat" style="color:var(--dim)">Cómo se borran</div>
+    <div class="rule"><span class="rdot gr"></span><div class="rt"><b>De tarea</b> (revisar stops, actualizar scores): se borran y no vuelven hasta el próximo evento</div></div>
+    <div class="rule"><span class="rdot gr"></span><div class="rt"><b>De mercado</b> (scores, caídas): se borran por hoy, reaparecen mañana si la condición sigue vigente</div></div>
+  </div>
+</div>
+
+<div class="tabbar">
+  <button class="tab on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l9-8 9 8"/><path d="M5 10v10h14V10"/></svg><span>Resumen</span></button>
+  <button class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><rect x="7" y="12" width="3" height="6"/><rect x="12" y="8" width="3" height="10"/><rect x="17" y="5" width="3" height="13"/></svg><span>Estrategias</span></button>
+  <button class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.5" y2="6"/><line x1="3" y1="12" x2="3.5" y2="12"/><line x1="3" y1="18" x2="3.5" y2="18"/></svg><span>Acciones</span></button>
+</div>
+
+<script>
+// Swipe-to-delete tipo Apple
+// Navegación de vistas
+var tabs=document.querySelectorAll('.tab');
+var views={0:'viewResumen',1:'viewEstrategias',2:'viewAcciones'};
+tabs.forEach(function(t,i){
+  t.addEventListener('click',function(){
+    tabs.forEach(function(x){x.classList.remove('on');});
+    t.classList.add('on');
+    document.querySelectorAll('.view').forEach(function(v){v.classList.remove('on');});
+    var id=views[i];
+    if(id){document.getElementById(id).classList.add('on');}
+    window.scrollTo(0,0);
+  });
+});
+
+document.querySelectorAll('.alert-wrap').forEach(function(wrap){
+  var el = wrap.querySelector('.alert');
+  var startX=0, curX=0, dragging=false;
+  function start(x){startX=x;dragging=true;el.style.transition='none';}
+  function move(x){if(!dragging)return;curX=Math.min(0,x-startX);el.style.transform='translateX('+curX+'px)';}
+  function end(){if(!dragging)return;dragging=false;el.style.transition='transform .15s ease';
+    if(curX<-90){
+      if(confirm('¿Eliminar esta alerta?')){
+        wrap.style.height=wrap.offsetHeight+'px';
+        requestAnimationFrame(function(){wrap.style.transition='all .2s ease';wrap.style.height='0px';wrap.style.opacity='0';wrap.style.margin='0';wrap.style.padding='0';});
+        setTimeout(function(){wrap.remove();updateCount();},200);
+      } else {el.style.transform='translateX(0)';}
+    } else {el.style.transform='translateX(0)';}
+    curX=0;
+  }
+  el.addEventListener('touchstart',function(e){start(e.touches[0].clientX);});
+  el.addEventListener('touchmove',function(e){move(e.touches[0].clientX);});
+  el.addEventListener('touchend',end);
+  el.addEventListener('mousedown',function(e){start(e.clientX);});
+  window.addEventListener('mousemove',function(e){move(e.clientX);});
+  window.addEventListener('mouseup',end);
+});
+
+// Vista Acciones: lista ordenable
+var ACC = [["CIEN","Ciena","c",true,3.0,18.4,11.0,-4.4,-4.4], ["FIX","Comfort Sys","c",false,2.94,25.4,6.4,-10.0,-10.0], ["KRYS","Krystal Bio","c",false,2.49,17.6,-2.3,-1.5,-1.5], ["LSCC","Lattice","c",true,3.0,22.3,7.4,-7.4,-7.4], ["SEI","Solaris","c",false,2.43,20.4,4.2,-15.0,-15.0], ["SPHR","Sphere","c",false,3.0,29.6,-0.6,-10.4,-10.4], ["STRL","Sterling","c",false,3.0,19.4,6.3,-15.5,-15.5], ["AXTI","AXT Inc","s",true,3.0,25.2,2.9,-14.2,-14.2], ["COHR","Coherent","s",true,3.0,28.7,5.7,-15.7,-15.7], ["DOCN","DigitalOcean","s",true,2.88,27.6,0.1,-7.7,-7.7], ["EXE","Extendicare","s",false,3.0,30.0,-0.7,6.4,6.4], ["SNDK","SanDisk","s",true,3.0,29.5,17.3,-17.1,-17.1], ["TNGX","Tango Tx","s",false,2.84,28.7,0.9,-2.8,-2.8], ["WDC","Western Dig","s",true,3.0,29.0,10.7,-7.9,-7.9]];
+var TECHSVG = '<svg class="ac-tech" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="7" width="10" height="10" rx="1.5"/><rect x="10.5" y="10.5" width="3" height="3" fill="currentColor" stroke="none"/><path d="M10 3v2M14 3v2M10 19v2M14 19v2M3 10h2M3 14h2M19 10h2M19 14h2"/></svg>';
+function renderAcc(key){
+  var arr = ACC.slice();
+  var idx = {ret:6, mes:8, trim:7, smart:4, stren:5};
+  var i = idx[key];
+  arr.sort(function(a,b){ return b[i]-a[i]; });
+  function pct(v){ return (v>=0?'+':'\u2212')+Math.abs(v).toFixed(1)+'%'; }
+  function cl(v){ return v>=0?'g':'r'; }
+  var html = '';
+  for(var j=0;j<arr.length;j++){
+    var a=arr[j];
+    var tk=a[0], nm=a[1], st=a[2], tech=a[3], sm=a[4], sr=a[5], ret=a[6], trim=a[7], mes=a[8];
+    var dot='<span class="ac-dot '+st+'">'+(st==='c'?'C':'S')+'</span>';
+    var chip=tech?TECHSVG:'';
+    html += '<div class="ac-item">'+dot+
+      '<div class="ac-info"><div class="ac-tk">'+tk+chip+'</div><div class="ac-sub">'+nm+'</div></div>'+
+      '<div class="ac-rets">'+
+        '<div class="ac-r"><div class="l">M\u00edo</div><div class="n '+cl(ret)+'">'+pct(ret)+'</div></div>'+
+        '<div class="ac-r"><div class="l">Mes</div><div class="n '+cl(mes)+'">'+pct(mes)+'</div></div>'+
+        '<div class="ac-r"><div class="l">Trim</div><div class="n '+cl(trim)+'">'+pct(trim)+'</div></div>'+
+        '<div class="ac-r sc"><div class="l">Smart</div><div class="n">'+sm.toFixed(2)+'</div></div>'+
+        '<div class="ac-r sc"><div class="l">Stren</div><div class="n">'+sr.toFixed(1)+'</div></div>'+
+      '</div>'+
+    '</div>';
+  }
+  document.getElementById('acList').innerHTML = html;
+}
+document.querySelectorAll('#acSort .ac-sbtn').forEach(function(b){
+  b.addEventListener('click',function(){
+    document.querySelectorAll('#acSort .ac-sbtn').forEach(function(x){x.classList.remove('on');});
+    b.classList.add('on');
+    renderAcc(b.getAttribute('data-k'));
+  });
+});
+renderAcc('ret');
+
+function updateCount(){
+  var n=document.querySelectorAll('#alertList .alert-wrap').length;
+  document.getElementById('aCount').textContent=n;
+}
+</script>
+
+
+
+<script>
+/* ====== LECTURA EN VIVO DESDE GOOGLE SHEETS ====== */
+(function(){
+  var BASE = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ1gnRj1TvcXXF66yAreWKo6RON27GE3K2pZWq8LSxb98SNZeKpFuYaeHgovJTO9zM1QSeHb-cxWJ2N/pub";
+  var GID = { precios:"1127250102", historial:"1844874580", claude:"1972938992" };
+  function url(gid){ return BASE + "?gid=" + gid + "&single=true&output=csv"; }
+
+  // Parser CSV que respeta comillas
+  function parseCSV(txt){
+    var rows=[], row=[], cur="", q=false;
+    for(var i=0;i<txt.length;i++){
+      var c=txt[i];
+      if(q){
+        if(c==='"'){ if(txt[i+1]==='"'){cur+='"';i++;} else q=false; }
+        else cur+=c;
+      } else {
+        if(c==='"') q=true;
+        else if(c===','){ row.push(cur); cur=""; }
+        else if(c==='\n'){ row.push(cur); rows.push(row); row=[]; cur=""; }
+        else if(c==='\r'){}
+        else cur+=c;
+      }
+    }
+    if(cur.length||row.length){ row.push(cur); rows.push(row); }
+    return rows;
+  }
+  function num(v){
+    if(v==null) return NaN;
+    v=String(v).replace(/[%$,\s]/g,'');
+    var n=parseFloat(v);
+    return isNaN(n)?NaN:n;
+  }
+
+  // Meta fija de las 14 acciones (nombre, estrategia, tech)
+  var META = {
+    CIEN:["Ciena","c",true], FIX:["Comfort Sys","c",false], KRYS:["Krystal Bio","c",false],
+    LSCC:["Lattice","c",true], SEI:["Solaris","c",false], SPHR:["Sphere","c",false],
+    STRL:["Sterling","c",false], AXTI:["AXT Inc","s",true], COHR:["Coherent","s",true],
+    DOCN:["DigitalOcean","s",true], EXE:["Extendicare","s",false], SNDK:["SanDisk","s",true],
+    TNGX:["Tango Tx","s",false], WDC:["Western Dig","s",true]
+  };
+
+  var got = { precios:false, hist:false, claude:false };
+  var LIVE = {}; // ticker -> {trim,mes,mio,smart,stren}
+
+  function fmtPct(v){ return (v>=0?'+':'\u2212')+Math.abs(v).toFixed(1)+'%'; }
+
+  function tryUpdateAll(){
+    // Actualizar hero MIO (promedio de mio de las 14)
+    var tickers=Object.keys(LIVE);
+    if(got.precios && tickers.length){
+      var sum=0,n=0;
+      tickers.forEach(function(t){ if(!isNaN(LIVE[t].mio)){sum+=LIVE[t].mio;n++;} });
+      if(n){
+        var avg=sum/n;
+        var el=document.getElementById('hMio');
+        if(el){ el.textContent=fmtPct(avg); }
+        var pos=document.getElementById('hPos'); if(pos) pos.textContent=n;
+      }
+    }
+    // Reconstruir ACC (vista Acciones) con datos vivos
+    if(got.precios && got.claude && typeof ACC!=='undefined' && tickers.length){
+      var nuevo=[];
+      tickers.forEach(function(t){
+        var m=META[t]; if(!m) return;
+        var d=LIVE[t];
+        nuevo.push([t, m[0], m[1], m[2],
+          isNaN(d.smart)?0:d.smart, isNaN(d.stren)?0:d.stren,
+          isNaN(d.mio)?0:d.mio, isNaN(d.trim)?0:d.trim, isNaN(d.mes)?0:d.mes]);
+      });
+      if(nuevo.length){
+        ACC.length=0; nuevo.forEach(function(r){ACC.push(r);});
+        var on=document.querySelector('#acSort .ac-sbtn.on');
+        if(typeof renderAcc==='function') renderAcc(on?on.getAttribute('data-k'):'ret');
+      }
+    }
+  }
+
+  // precios: col16=Q Ticker,17=R Trim,18=S Mes,19=T Mio
+  fetch(url(GID.precios)).then(function(r){return r.text();}).then(function(txt){
+    var rows=parseCSV(txt);
+    for(var i=1;i<rows.length;i++){
+      var r=rows[i]; if(!r||r.length<20) continue;
+      var raw=(r[16]||"").trim(); if(!raw) continue;
+      var tk=raw.split(" ")[0].toUpperCase();
+      if(!META[tk]) continue;
+      LIVE[tk]=LIVE[tk]||{};
+      LIVE[tk].trim=num(r[17]); LIVE[tk].mes=num(r[18]); LIVE[tk].mio=num(r[19]);
+    }
+    got.precios=true; tryUpdateAll();
+  }).catch(function(e){ console.log("precios err",e); });
+
+  // historial: ultima fila; M(12)=algoQuantTrim N(13)=algoQuantMes W(22)=algoSmartTrim X(23)=algoSmartMes
+  fetch(url(GID.historial)).then(function(r){return r.text();}).then(function(txt){
+    var rows=parseCSV(txt);
+    var last=null;
+    for(var i=rows.length-1;i>=1;i--){ if(rows[i] && rows[i].length>23 && (rows[i][13]!=="" || rows[i][23]!=="")){ last=rows[i]; break; } }
+    if(last){
+      var qMes=num(last[13]), sMes=num(last[23]), qTrim=num(last[12]), sTrim=num(last[22]);
+      if(!isNaN(qMes)&&!isNaN(sMes)){
+        var algoMes=(qMes+sMes)/2;
+        var el=document.getElementById('hAlgo'); if(el) el.textContent=fmtPct(algoMes);
+      }
+      if(!isNaN(qTrim)&&!isNaN(sTrim)){
+        var algoTrim=(qTrim+sTrim)/2;
+        var tel=document.getElementById('hAlgoTrim'); if(tel) tel.textContent=fmtPct(algoTrim);
+      }
+    }
+    got.hist=true; tryUpdateAll();
+  }).catch(function(e){ console.log("historial err",e); });
+
+  // claude: A=Fecha B=Estrategia C=Accion(2) D=Comprada E=Smart(4) F=Strength(5). Ultima aparicion por ticker.
+  fetch(url(GID.claude)).then(function(r){return r.text();}).then(function(txt){
+    var rows=parseCSV(txt);
+    for(var i=1;i<rows.length;i++){
+      var r=rows[i]; if(!r||r.length<6) continue;
+      var raw=(r[2]||"").trim(); if(!raw) continue;
+      var tk=raw.split(" ")[0].toUpperCase();
+      if(!META[tk]) continue;
+      var sm=num(r[4]), st=num(r[5]);
+      if(isNaN(sm)&&isNaN(st)) continue;
+      LIVE[tk]=LIVE[tk]||{};
+      if(!isNaN(sm)) LIVE[tk].smart=sm;
+      if(!isNaN(st)) LIVE[tk].stren=st;
+    }
+    got.claude=true; tryUpdateAll();
+  }).catch(function(e){ console.log("claude err",e); });
+
+  // Fecha de hoy
+  try{
+    var d=new Date();
+    var dias=["domingo","lunes","martes","miércoles","jueves","viernes","sábado"];
+    var mes=["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"];
+    var fe=document.getElementById('hDate');
+    if(fe) fe.textContent=dias[d.getDay()]+" "+d.getDate()+" "+mes[d.getMonth()];
+  }catch(e){}
+})();
+</script>
+
+</body>
+</html>
