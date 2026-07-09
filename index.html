@@ -149,11 +149,11 @@
   .hist-sb{font-size:12px;font-weight:600;color:var(--dim);background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.07);border-radius:100px;padding:7px 15px;cursor:pointer}
   .hist-sb.on{background:rgba(255,69,58,.16);color:#ff8079;border-color:rgba(255,69,58,.35)}
   .hist-mm{display:flex;gap:11px}
-  .hist-card{flex:1;background:rgba(255,255,255,.04);border-radius:16px;padding:13px 15px}
+  .hist-card{flex:1;min-width:0;background:rgba(255,255,255,.04);border-radius:14px;padding:11px 12px}
   .hist-card .l{font-size:10px;color:var(--dim2);font-weight:700;text-transform:uppercase;letter-spacing:.03em}
-  .hist-card .v{font-size:22px;font-weight:800;margin:3px 0;font-variant-numeric:tabular-nums}
+  .hist-card .v{font-size:18px;font-weight:800;margin:3px 0;font-variant-numeric:tabular-nums}
   .hist-card .d{font-size:11px;color:var(--dim)}
-  .hist-card.min .v{color:#ff6b60} .hist-card.max .v{color:#7ee89f}
+  .hist-card.min .v{color:#ff6b60} .hist-card.max .v{color:#7ee89f} .hist-card.now .v{color:#fff}
   .hist-now{text-align:center;font-size:12.5px;color:var(--dim);margin-top:14px}
   .hist-now b{color:#E8E8EE}
   .tabbar{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);display:flex;gap:4px;background:rgba(28,28,34,.74);backdrop-filter:blur(20px) saturate(1.4);border:1px solid rgba(255,255,255,.09);border-radius:100px;padding:4px;box-shadow:0 18px 44px -12px rgba(0,0,0,.8), inset 0 1px 0 rgba(255,255,255,.08);z-index:90}
@@ -698,6 +698,7 @@
   <div class="hist-mm" style="margin-top:16px">
     <div class="hist-card max"><div class="l">Máximo</div><div class="v" id="histMax2">—</div><div class="d" id="histMaxD2">—</div></div>
     <div class="hist-card min"><div class="l">Mínimo</div><div class="v" id="histMin2">—</div><div class="d" id="histMinD2">—</div></div>
+    <div class="hist-card now"><div class="l">Actual</div><div class="v" id="histNowV2">—</div><div class="d" id="histNowD2">—</div></div>
   </div>
   <div class="hist-now" id="histNow2"></div>
   <div class="foot" style="margin-bottom:80px">Datos de tu hoja · no es asesoría de inversión</div>
@@ -880,7 +881,7 @@ function updateCount(){
   };
 
   var got = { precios:false, hist:false, claude:false };
-  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-20";
+  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-21";
   var estado={precios:false,historial:false,claude:false};
   function pinta(){
     var chip=document.getElementById('liveChip'); if(!chip) return;
@@ -1148,8 +1149,8 @@ function updateCount(){
     var zero='';if(mn<0&&mx>0){var zy=Y(0);zero='<line x1="'+pL+'" y1="'+zy+'" x2="'+(W-pR)+'" y2="'+zy+'" stroke="rgba(255,255,255,.12)" stroke-dasharray="3 3"/>';}
     var area='M '+X(0)+' '+Y(data[0].val)+' L '+data.map(function(p,i){return X(i)+' '+Y(p.val);}).join(' L ')+' L '+X(data.length-1)+' '+(H-pB)+' L '+X(0)+' '+(H-pB)+' Z';
     cont.innerHTML='<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto;display:block"><defs><linearGradient id="hgX'+sfx+'" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="rgba(255,69,58,.28)"/><stop offset="1" stop-color="rgba(255,69,58,0)"/></linearGradient></defs>'+zero+'<path d="'+area+'" fill="url(#hgX'+sfx+')"/><polyline points="'+ptsQ+'" fill="none" stroke="#0A84FF" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" opacity="0.9"/><polyline points="'+ptsS+'" fill="none" stroke="#30D158" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" opacity="0.9"/><polyline points="'+pts+'" fill="none" stroke="#ff6b60" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/><circle cx="'+X(iMax)+'" cy="'+Y(mx)+'" r="4.5" fill="#30D158"/><circle cx="'+X(iMin)+'" cy="'+Y(mn)+'" r="4.5" fill="#ff453a"/><circle cx="'+X(data.length-1)+'" cy="'+Y(data[data.length-1].val)+'" r="4" fill="#fff"/></svg>';
-    setTxt('histMax'+sfx,fmt(mx));setTxt('histMin'+sfx,fmt(mn));setTxt('histMaxD'+sfx,fd(data[iMax].fecha));setTxt('histMinD'+sfx,fd(data[iMin].fecha));
-    setHTML('histNow'+sfx,'Hoy el algoritmo está en <b style="color:#E8E8EE">'+fmt(data[data.length-1].val)+'</b> · '+data.length+' registros');
+    setTxt('histMax'+sfx,fmt(mx));setTxt('histMin'+sfx,fmt(mn));setTxt('histMaxD'+sfx,fd(data[iMax].fecha));setTxt('histMinD'+sfx,fd(data[iMin].fecha));var ult=data[data.length-1];setTxt('histNowV'+sfx,fmt(ult.val));setTxt('histNowD'+sfx,fd(ult.fecha));
+    setHTML('histNow'+sfx,data.length+' registros');
   }
   function setTxt(id,v){var e=document.getElementById(id);if(e)e.textContent=v;}
   function setHTML(id,v){var e=document.getElementById(id);if(e)e.innerHTML=v;}
