@@ -836,7 +836,7 @@ function updateCount(){
   };
 
   var got = { precios:false, hist:false, claude:false };
-  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-3";
+  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-4";
   // Letrero de estado visible en pantalla
   var badge=document.createElement('div');
   badge.id='liveBadge';
@@ -883,12 +883,12 @@ function updateCount(){
   fetch(url(GID.precios)).then(function(r){return r.text();}).then(function(txt){
     var rows=parseCSV(txt);
     for(var i=1;i<rows.length;i++){
-      var r=rows[i]; if(!r||r.length<20) continue;
-      var raw=(r[16]||"").trim(); if(!raw) continue;
+      var r=rows[i]; if(!r||r.length<21) continue;
+      var raw=(r[17]||"").trim(); if(!raw) continue;
       var tk=raw.split(" ")[0].toUpperCase();
       if(!META[tk]) continue;
       LIVE[tk]=LIVE[tk]||{};
-      LIVE[tk].trim=num(r[17]); LIVE[tk].mes=num(r[18]); LIVE[tk].mio=num(r[19]);
+      LIVE[tk].trim=num(r[18]); LIVE[tk].mes=num(r[19]); LIVE[tk].mio=num(r[20]);
     }
     got.precios=true; estado.precios='OK ('+Object.keys(LIVE).length+')'; pinta(); tryUpdateAll();
   }).catch(function(e){ estado.precios='ERROR'; pinta(); console.log("precios err",e); });
