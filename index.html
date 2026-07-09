@@ -294,103 +294,9 @@
       </div>
     </div>
     <div id="alertList"></div>
-    </div>
   </div>
 
-  <!-- ESTRATEGIAS -->
-  <div class="section-cap">Estrategias</div>
-  <div class="card strat">
-    <div class="toprow"><div><div class="name">Quant</div><div class="inv">$70,000 &middot; 7 posiciones</div></div><div class="verdict">&uarr; le gano</div></div>
-    <div class="metrics">
-      <div class="metric"><div class="m-lbl">Directo</div><div class="m-val g">+0.4%</div></div>
-      <div class="sep"></div>
-      <div class="metric"><div class="m-lbl">Ponderado</div><div class="m-val calc">&middot;&middot;&middot;</div></div>
-      <div class="sep"></div>
-      <div class="metric"><div class="m-lbl">Algoritmo</div><div class="m-val r">&minus;11.7%</div></div>
-    </div>
-  </div>
-  <div class="card strat">
-    <div class="toprow"><div><div class="name">Smart</div><div class="inv">$70,000 &middot; 7 posiciones</div></div><div class="verdict">&uarr; le gano</div></div>
-    <div class="metrics">
-      <div class="metric"><div class="m-lbl">Directo</div><div class="m-val g">+1.3%</div></div>
-      <div class="sep"></div>
-      <div class="metric"><div class="m-lbl">Ponderado</div><div class="m-val calc">&middot;&middot;&middot;</div></div>
-      <div class="sep"></div>
-      <div class="metric"><div class="m-lbl">Algoritmo</div><div class="m-val r">&minus;14.4%</div></div>
-    </div>
-  </div>
-
-  <!-- MOVERS desde compra -->
-  <div class="section-cap">Mejor y peor desde mi compra</div>
-  <div class="movers">
-    <div class="mover best">
-      <div class="m-head best">&#9650; Mejor</div>
-      <div class="m-tickrow"><span class="m-ticker" id="mvBestMioTk">—</span>
-        <svg class="chipicon tech" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="7" width="10" height="10" rx="1.5"/><rect x="10" y="10" width="4" height="4" rx="0.5" fill="currentColor" stroke="none"/><path d="M10 3v2M14 3v2M10 19v2M14 19v2M3 10h2M3 14h2M19 10h2M19 14h2"/></svg>
-      </div>
-      <div class="m-ind" id="mvBestMioInd">—</div>
-      <div class="twopct">
-        <div class="pctbox"><div class="p-lbl">Mi compra</div><div class="p-val" id="mvBestMioMio">—</div></div>
-        <div class="vline"></div>
-        <div class="pctbox"><div class="p-lbl">Trimestre</div><div class="p-val" id="mvBestMioTrim">—</div></div>
-      </div>
-      <div class="m-sub" id="mvBestMioName">—</div>
-    </div>
-    <div class="mover worst">
-      <div class="m-head worst">&#9660; Peor</div>
-      <div class="m-tickrow"><span class="m-ticker" id="mvWorstMioTk">—</span>
-        <svg class="chipicon notech" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="7" width="10" height="10" rx="1.5"/><path d="M10 3v2M14 3v2M10 19v2M14 19v2M3 10h2M3 14h2M19 10h2M19 14h2"/><line x1="3.5" y1="20.5" x2="20.5" y2="3.5" stroke-width="2"/></svg>
-      </div>
-      <div class="m-ind" id="mvWorstMioInd">—</div>
-      <div class="twopct">
-        <div class="pctbox"><div class="p-lbl">Mi compra</div><div class="p-val" id="mvWorstMioMio">—</div></div>
-        <div class="vline"></div>
-        <div class="pctbox"><div class="p-lbl">Trimestre</div><div class="p-val" id="mvWorstMioTrim">—</div></div>
-      </div>
-      <div class="m-sub" id="mvWorstMioName">—</div>
-    </div>
-  </div>
-
-  <!-- MOVERS trimestre -->
-  <div class="section-cap">Mejor y peor del trimestre</div>
-  <div class="movers">
-    <div class="mover best">
-      <div class="m-head best">&#9650; Mejor</div>
-      <div class="m-tickrow"><span class="m-ticker" id="mvBestTrimTk">—</span>
-        <svg class="chipicon notech" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="7" width="10" height="10" rx="1.5"/><path d="M10 3v2M14 3v2M10 19v2M14 19v2M3 10h2M3 14h2M19 10h2M19 14h2"/><line x1="3.5" y1="20.5" x2="20.5" y2="3.5" stroke-width="2"/></svg>
-      </div>
-      <div class="m-ind" id="mvBestTrimInd">—</div>
-      <div class="twopct">
-        <div class="pctbox"><div class="p-lbl">Mi compra</div><div class="p-val" id="mvBestTrimMio">—</div></div>
-        <div class="vline"></div>
-        <div class="pctbox"><div class="p-lbl">Trimestre</div><div class="p-val" id="mvBestTrimTrim">—</div></div>
-      </div>
-      <div class="m-sub" id="mvBestTrimName">—</div>
-    </div>
-    <div class="mover worst">
-      <div class="m-head worst">&#9660; Peor</div>
-      <div class="m-tickrow"><span class="m-ticker" id="mvWorstTrimTk">—</span>
-        <svg class="chipicon notech" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="7" width="10" height="10" rx="1.5"/><path d="M10 3v2M14 3v2M10 19v2M14 19v2M3 10h2M3 14h2M19 10h2M19 14h2"/><line x1="3.5" y1="20.5" x2="20.5" y2="3.5" stroke-width="2"/></svg>
-      </div>
-      <div class="m-ind" id="mvWorstTrimInd">—</div>
-      <div class="twopct">
-        <div class="pctbox"><div class="p-lbl">Mi compra</div><div class="p-val" id="mvWorstTrimMio">—</div></div>
-        <div class="vline"></div>
-        <div class="pctbox"><div class="p-lbl">Trimestre</div><div class="p-val" id="mvWorstTrimTrim">—</div></div>
-      </div>
-      <div class="m-sub" id="mvWorstTrimName">—</div>
-    </div>
-  </div>
-
-  <!-- CONCENTRACIÓN -->
-  <div class="section-cap">Concentración</div>
-  <div class="card">
-    <div class="conc-top"><div class="card-title">Tecnología</div><div class="conc-val">50%</div></div>
-    <div class="bar"><div class="fill"></div><div class="cap"></div></div>
-    <div class="conc-foot"><span>7 tech &middot; 7 no-tech</span><span>tope 50%</span></div>
-  </div>
-
-  <div class="foot">Datos de tu hoja &middot; 8 jul 2026 &middot; no es asesoría de inversión</div>
+  <div class="foot">Datos de tu hoja &middot; en vivo &middot; no es asesoría de inversión</div>
 </div>
 
 
@@ -839,7 +745,7 @@ function updateCount(){
   };
 
   var got = { precios:false, hist:false, claude:false };
-  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-36";
+  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-37";
   var estado={precios:false,historial:false,claude:false};
   function pinta(){
     var chip=document.getElementById('liveChip'); if(!chip) return;
