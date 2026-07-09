@@ -154,6 +154,24 @@
   .hist-card .v{font-size:18px;font-weight:800;margin:3px 0;font-variant-numeric:tabular-nums}
   .hist-card .d{font-size:11px;color:var(--dim)}
   .hist-card.min .v{color:#ff6b60} .hist-card.max .v{color:#7ee89f} .hist-card.now .v{color:#fff}
+  .strat-cards{display:flex;flex-direction:column;gap:9px;margin-top:18px}
+  .strat-card{position:relative;overflow:hidden;border-radius:16px;padding:11px 16px;display:flex;align-items:center;gap:14px;
+    background:linear-gradient(100deg, color-mix(in srgb, var(--acc) 15%, #0d0d12), #0b0b10 55%);
+    border:1px solid color-mix(in srgb, var(--acc) 20%, rgba(255,255,255,.04));
+    box-shadow:0 8px 24px -16px rgba(0,0,0,.9), inset 0 1px 0 rgba(255,255,255,.05)}
+  .strat-card::before{content:"";position:absolute;top:-60%;left:-8%;width:45%;height:220%;
+    background:radial-gradient(circle, var(--acc), transparent 65%);opacity:.16;pointer-events:none;filter:blur(4px)}
+  .sc-name{display:flex;align-items:center;gap:7px;font-size:12px;font-weight:800;color:#fff;letter-spacing:.02em;
+    width:82px;flex:none;position:relative;z-index:1}
+  .sc-dot{width:8px;height:8px;border-radius:50%;background:var(--acc);box-shadow:0 0 10px 1px var(--acc);flex:none}
+  .sc-vals{display:flex;justify-content:space-between;gap:6px;position:relative;z-index:1;flex:1}
+  .sc-v{flex:1;text-align:center}
+  .sc-l{font-size:8px;color:var(--dim2);font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px}
+  .sc-n{font-size:16px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1;letter-spacing:-.01em}
+  .sc-n.up{color:#7ee89f} .sc-n.down{color:#ff6b60} .sc-n.now{color:#fff}
+  .sc-v.mid{background:rgba(255,255,255,.06);border-radius:10px;padding:4px 2px;margin:0 1px}
+  .sc-d{font-size:9px;color:var(--dim2);margin-top:4px;font-weight:500}
+  .hist-lbl{font-size:12px;font-weight:700;margin:16px 0 8px;letter-spacing:.01em}
   .hist-now{text-align:center;font-size:12.5px;color:var(--dim);margin-top:14px}
   .hist-now b{color:#E8E8EE}
   .tabbar{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);display:flex;gap:4px;background:rgba(28,28,34,.74);backdrop-filter:blur(20px) saturate(1.4);border:1px solid rgba(255,255,255,.09);border-radius:100px;padding:4px;box-shadow:0 18px 44px -12px rgba(0,0,0,.8), inset 0 1px 0 rgba(255,255,255,.08);z-index:90}
@@ -690,15 +708,36 @@
     <button class="hist-sb on" data-d="0">Todo el trimestre</button>
   </div>
   <div style="display:flex;gap:14px;margin-bottom:10px;flex-wrap:wrap;font-size:11.5px;color:var(--dim);font-weight:600">
-    <span style="display:flex;align-items:center;gap:5px"><span style="width:14px;height:3px;border-radius:2px;background:#ff6b60"></span>Mezcla</span>
+    <span style="display:flex;align-items:center;gap:5px"><span style="width:14px;height:3px;border-radius:2px;background:#ff6b60"></span>Algoritmo</span>
     <span style="display:flex;align-items:center;gap:5px"><span style="width:14px;height:3px;border-radius:2px;background:#0A84FF"></span>Quant</span>
     <span style="display:flex;align-items:center;gap:5px"><span style="width:14px;height:3px;border-radius:2px;background:#30D158"></span>Smart</span>
   </div>
   <div id="histChart2"></div>
-  <div class="hist-mm" style="margin-top:16px">
-    <div class="hist-card max"><div class="l">Máximo</div><div class="v" id="histMax2">—</div><div class="d" id="histMaxD2">—</div></div>
-    <div class="hist-card min"><div class="l">Mínimo</div><div class="v" id="histMin2">—</div><div class="d" id="histMinD2">—</div></div>
-    <div class="hist-card now"><div class="l">Actual</div><div class="v" id="histNowV2">—</div><div class="d" id="histNowD2">—</div></div>
+  <div class="strat-cards">
+    <div class="strat-card" style="--acc:#ff6b60">
+      <div class="sc-name"><span class="sc-dot"></span>Algoritmo</div>
+      <div class="sc-vals">
+        <div class="sc-v"><div class="sc-l">Máx</div><div class="sc-n up" id="histMax2">—</div></div>
+        <div class="sc-v mid"><div class="sc-l">Actual</div><div class="sc-n now" id="histNowV2">—</div></div>
+        <div class="sc-v"><div class="sc-l">Mín</div><div class="sc-n down" id="histMin2">—</div></div>
+      </div>
+    </div>
+    <div class="strat-card" style="--acc:#0A84FF">
+      <div class="sc-name"><span class="sc-dot"></span>Quant</div>
+      <div class="sc-vals">
+        <div class="sc-v"><div class="sc-l">Máx</div><div class="sc-n up" id="qMax">—</div></div>
+        <div class="sc-v mid"><div class="sc-l">Actual</div><div class="sc-n now" id="qNow">—</div></div>
+        <div class="sc-v"><div class="sc-l">Mín</div><div class="sc-n down" id="qMin">—</div></div>
+      </div>
+    </div>
+    <div class="strat-card" style="--acc:#30D158">
+      <div class="sc-name"><span class="sc-dot"></span>Smart</div>
+      <div class="sc-vals">
+        <div class="sc-v"><div class="sc-l">Máx</div><div class="sc-n up" id="sMax">—</div></div>
+        <div class="sc-v mid"><div class="sc-l">Actual</div><div class="sc-n now" id="sNow">—</div></div>
+        <div class="sc-v"><div class="sc-l">Mín</div><div class="sc-n down" id="sMin">—</div></div>
+      </div>
+    </div>
   </div>
   <div class="hist-now" id="histNow2"></div>
   <div class="foot" style="margin-bottom:80px">Datos de tu hoja · no es asesoría de inversión</div>
@@ -881,7 +920,7 @@ function updateCount(){
   };
 
   var got = { precios:false, hist:false, claude:false };
-  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-24";
+  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-30";
   var estado={precios:false,historial:false,claude:false};
   function pinta(){
     var chip=document.getElementById('liveChip'); if(!chip) return;
@@ -1153,6 +1192,21 @@ function updateCount(){
     var area='M '+X(0)+' '+Y(data[0].val)+' L '+data.map(function(p,i){return X(i)+' '+Y(p.val);}).join(' L ')+' L '+X(data.length-1)+' '+(H-pB)+' L '+X(0)+' '+(H-pB)+' Z';
     cont.innerHTML='<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto;display:block"><defs><linearGradient id="hgX'+sfx+'" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="rgba(255,69,58,.28)"/><stop offset="1" stop-color="rgba(255,69,58,0)"/></linearGradient></defs>'+zero+'<path d="'+area+'" fill="url(#hgX'+sfx+')"/><polyline points="'+ptsQ+'" fill="none" stroke="#0A84FF" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" opacity="0.9"/><polyline points="'+ptsS+'" fill="none" stroke="#30D158" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" opacity="0.9"/><polyline points="'+pts+'" fill="none" stroke="#ff6b60" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/><circle cx="'+X(iMax)+'" cy="'+Y(mx)+'" r="4.5" fill="#30D158"/><circle cx="'+X(iMin)+'" cy="'+Y(mn)+'" r="4.5" fill="#ff453a"/><circle cx="'+X(data.length-1)+'" cy="'+Y(data[data.length-1].val)+'" r="4" fill="#fff"/></svg>';
     setTxt('histMax'+sfx,fmt(mx));setTxt('histMin'+sfx,fmt(mn));setTxt('histMaxD'+sfx,fd(data[iMax].fecha));setTxt('histMinD'+sfx,fd(data[iMin].fecha));if(sfx!=='2'){var ult=data[data.length-1];setTxt('histNowV'+sfx,fmt(ult.val));setTxt('histNowD'+sfx,fd(ult.fecha));}
+    if(sfx==='2'){
+      var qs=data.filter(function(p){return !isNaN(p.q);});
+      var ss=data.filter(function(p){return !isNaN(p.sm);});
+      function llena(arr,key,idMax,idMin,idNow){
+        if(!arr.length){return;}
+        var vv=arr.map(function(p){return p[key];});
+        var Mx=Math.max.apply(null,vv), Mn=Math.min.apply(null,vv);
+        var iMx=vv.indexOf(Mx), iMn=vv.indexOf(Mn);
+        setTxt(idMax,fmt(Mx));setTxt(idMax+'D',fd(arr[iMx].fecha));
+        setTxt(idMin,fmt(Mn));setTxt(idMin+'D',fd(arr[iMn].fecha));
+        setTxt(idNow,fmt(arr[arr.length-1][key]));setTxt(idNow+'D',fd(arr[arr.length-1].fecha));
+      }
+      llena(qs,'q','qMax','qMin','qNow');
+      llena(ss,'sm','sMax','sMin','sNow');
+    }
     setHTML('histNow'+sfx,data.length+' registros');
   }
   function setTxt(id,v){var e=document.getElementById(id);if(e)e.textContent=v;}
@@ -1183,15 +1237,15 @@ function updateCount(){
 <script>
 /* Sincroniza la tarjeta Actual del algoritmo con el número del home */
 (function(){
+  function ft(v){ return (v>=0?'+':'\u2212')+Math.abs(v).toFixed(1)+'%'; }
+  function fechaHoy(){ var a=new Date(); var m=["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"]; return a.getDate()+" "+m[a.getMonth()]+" · ahora"; }
+  function put(idV,idD,txt){ var e=document.getElementById(idV); if(e&&txt){e.textContent=txt;} var d=document.getElementById(idD); if(d){d.textContent=fechaHoy();} }
   function sync(){
     var src=document.getElementById('hAlgo');
-    var dst=document.getElementById('histNowV2');
-    var dd=document.getElementById('histNowD2');
-    if(src&&dst){
-      var t=(src.textContent||'').trim();
-      if(t && t!=='—'){ dst.textContent=t; }
-    }
-    if(dd){ var a=new Date(); var m=["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"]; dd.textContent=a.getDate()+" "+m[a.getMonth()]+" · ahora"; }
+    if(src){ var t=(src.textContent||'').trim(); if(t&&t!=='—'){ var e=document.getElementById('histNowV2'); if(e)e.textContent=t; } }
+    var dd=document.getElementById('histNowD2'); if(dd){ dd.textContent=fechaHoy(); }
+    if(window.ALGO_TRIM_Q!=null && !isNaN(window.ALGO_TRIM_Q)){ put('qNow','qNowD',ft(window.ALGO_TRIM_Q)); }
+    if(window.ALGO_TRIM_S!=null && !isNaN(window.ALGO_TRIM_S)){ put('sNow','sNowD',ft(window.ALGO_TRIM_S)); }
   }
   setInterval(sync, 1000);
   document.addEventListener('DOMContentLoaded',sync);
