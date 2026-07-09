@@ -881,7 +881,7 @@ function updateCount(){
   };
 
   var got = { precios:false, hist:false, claude:false };
-  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-23";
+  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-24";
   var estado={precios:false,historial:false,claude:false};
   function pinta(){
     var chip=document.getElementById('liveChip'); if(!chip) return;
@@ -1176,6 +1176,26 @@ function updateCount(){
       sel.forEach(function(b){b.addEventListener('click',function(){sel.forEach(function(x){x.classList.remove('on');});b.classList.add('on');diasSel=parseInt(b.getAttribute('data-d'));dibujar();});});
     });
   });
+})();
+</script>
+
+
+<script>
+/* Sincroniza la tarjeta Actual del algoritmo con el número del home */
+(function(){
+  function sync(){
+    var src=document.getElementById('hAlgo');
+    var dst=document.getElementById('histNowV2');
+    var dd=document.getElementById('histNowD2');
+    if(src&&dst){
+      var t=(src.textContent||'').trim();
+      if(t && t!=='—'){ dst.textContent=t; }
+    }
+    if(dd){ var a=new Date(); var m=["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"]; dd.textContent=a.getDate()+" "+m[a.getMonth()]+" · ahora"; }
+  }
+  setInterval(sync, 1000);
+  document.addEventListener('DOMContentLoaded',sync);
+  setTimeout(sync,500); setTimeout(sync,2000); setTimeout(sync,4000);
 })();
 </script>
 
