@@ -881,7 +881,7 @@ function updateCount(){
   };
 
   var got = { precios:false, hist:false, claude:false };
-  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-22";
+  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-23";
   var estado={precios:false,historial:false,claude:false};
   function pinta(){
     var chip=document.getElementById('liveChip'); if(!chip) return;
@@ -968,6 +968,8 @@ function updateCount(){
       if(!isNaN(aTrimQ)&&!isNaN(aTrimS)){
         var algoTrim=(aTrimQ+aTrimS)/2;
         var tel=document.getElementById('hAlgoTrim'); if(tel) tel.textContent=fmtPct(algoTrim);
+        window.ALGO_TRIM_LIVE=algoTrim; window.ALGO_TRIM_Q=aTrimQ; window.ALGO_TRIM_S=aTrimS;
+        if(window.pintarActualAlgo) window.pintarActualAlgo();
       }
     }catch(e){ console.log("algo err",e); }
     got.precios=true; estado.precios=(Object.keys(LIVE).length>0); pinta(); tryUpdateAll();
@@ -1123,6 +1125,7 @@ function updateCount(){
     }).catch(function(e){console.log("histX err",e);});
   }
   cargar();
+  setTimeout(function(){ if(window.pintarActualAlgo) window.pintarActualAlgo(); },1500);
 
   function fmt(v){return (v>=0?'+':'\u2212')+Math.abs(v).toFixed(1)+'%';}
   function fd(f){var d=pf(f);if(!d)return f||'';var m=["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"];return d.getDate()+" "+m[d.getMonth()];}
@@ -1149,7 +1152,7 @@ function updateCount(){
     var zero='';if(mn<0&&mx>0){var zy=Y(0);zero='<line x1="'+pL+'" y1="'+zy+'" x2="'+(W-pR)+'" y2="'+zy+'" stroke="rgba(255,255,255,.12)" stroke-dasharray="3 3"/>';}
     var area='M '+X(0)+' '+Y(data[0].val)+' L '+data.map(function(p,i){return X(i)+' '+Y(p.val);}).join(' L ')+' L '+X(data.length-1)+' '+(H-pB)+' L '+X(0)+' '+(H-pB)+' Z';
     cont.innerHTML='<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto;display:block"><defs><linearGradient id="hgX'+sfx+'" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="rgba(255,69,58,.28)"/><stop offset="1" stop-color="rgba(255,69,58,0)"/></linearGradient></defs>'+zero+'<path d="'+area+'" fill="url(#hgX'+sfx+')"/><polyline points="'+ptsQ+'" fill="none" stroke="#0A84FF" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" opacity="0.9"/><polyline points="'+ptsS+'" fill="none" stroke="#30D158" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" opacity="0.9"/><polyline points="'+pts+'" fill="none" stroke="#ff6b60" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/><circle cx="'+X(iMax)+'" cy="'+Y(mx)+'" r="4.5" fill="#30D158"/><circle cx="'+X(iMin)+'" cy="'+Y(mn)+'" r="4.5" fill="#ff453a"/><circle cx="'+X(data.length-1)+'" cy="'+Y(data[data.length-1].val)+'" r="4" fill="#fff"/></svg>';
-    setTxt('histMax'+sfx,fmt(mx));setTxt('histMin'+sfx,fmt(mn));setTxt('histMaxD'+sfx,fd(data[iMax].fecha));setTxt('histMinD'+sfx,fd(data[iMin].fecha));var ult=data[data.length-1];setTxt('histNowV'+sfx,fmt(ult.val));setTxt('histNowD'+sfx,fd(ult.fecha));
+    setTxt('histMax'+sfx,fmt(mx));setTxt('histMin'+sfx,fmt(mn));setTxt('histMaxD'+sfx,fd(data[iMax].fecha));setTxt('histMinD'+sfx,fd(data[iMin].fecha));if(sfx!=='2'){var ult=data[data.length-1];setTxt('histNowV'+sfx,fmt(ult.val));setTxt('histNowD'+sfx,fd(ult.fecha));}
     setHTML('histNow'+sfx,data.length+' registros');
   }
   function setTxt(id,v){var e=document.getElementById(id);if(e)e.textContent=v;}
@@ -1157,7 +1160,14 @@ function updateCount(){
 
   function dibujar(){ dibujarEn(''); dibujarEn('2'); }
   window.abrirHist=function(){dibujar();};
-  window.dibujarAlgo=function(){ dibujarEn('2'); };
+  window.pintarActualAlgo=function(){
+    var v=window.ALGO_TRIM_LIVE;
+    if(v==null||isNaN(v)) return;
+    var e=document.getElementById('histNowV2'); if(e) e.textContent=(v>=0?'+':'\u2212')+Math.abs(v).toFixed(1)+'%';
+    var d=document.getElementById('histNowD2');
+    if(d){ var ah=new Date(); var m=["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"]; d.textContent=ah.getDate()+" "+m[ah.getMonth()]+" · ahora"; }
+  };
+  window.dibujarAlgo=function(){ dibujarEn('2'); if(window.pintarActualAlgo) window.pintarActualAlgo(); };
   window.cerrarHist=function(){var bg=document.getElementById('histBg');if(bg)bg.classList.remove('open');};
 
   document.addEventListener('DOMContentLoaded',function(){
