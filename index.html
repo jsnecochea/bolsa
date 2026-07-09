@@ -226,7 +226,7 @@
 
   <!-- HERO -->
   <div class="hero">
-    <div class="hrow"><div class="brand"><span class="dot"></span><span>Mi Cartera</span></div><div class="date" id="hDate">jueves 9 jul</div></div>
+    <div class="hrow"><div class="brand" id="brandRefresh" style="cursor:pointer"><span class="dot"></span><span>Mi Cartera</span></div><div class="date" id="liveChip">actualizando…</div></div>
     <div class="duel-hero">
       <div class="dh-col">
         <div class="label">Mi rendimiento del mes</div>
@@ -235,7 +235,7 @@
       </div>
       <div class="dh-col">
         <div class="label">Algoritmo del mes</div>
-        <div class="pct algo" id="hAlgo">&minus;9.9%</div>
+        <div class="pct algo" id="hAlgo" style="cursor:pointer">&minus;9.9%</div>
         <div class="dh-chip algo">Trim <b id="hAlgoTrim">&minus;9.9%</b></div>
       </div>
     </div>
@@ -661,6 +661,26 @@
   <div class="foot" style="margin-bottom:80px">Datos de tu hoja &middot; 8 jul 2026</div>
 </div>
 
+
+<div class="hist-bg" id="histBg">
+  <div class="hist-modal">
+    <div class="hist-grip"></div>
+    <div class="hist-h"><h2>Algoritmo del trimestre</h2><button class="hist-x" onclick="document.getElementById('histBg').classList.remove('open')">&times;</button></div>
+    <div class="hist-sub">Cómo se ha movido el algoritmo. Busca los mínimos para cronometrar tu siguiente entrada.</div>
+    <div class="hist-sel" id="histSel">
+      <button class="hist-sb" data-d="30">30 días</button>
+      <button class="hist-sb" data-d="60">60 días</button>
+      <button class="hist-sb on" data-d="0">Todo el trimestre</button>
+    </div>
+    <div id="histChart"></div>
+    <div class="hist-mm">
+      <div class="hist-card max"><div class="l">Máximo</div><div class="v" id="histMax">—</div><div class="d" id="histMaxD">—</div></div>
+      <div class="hist-card min"><div class="l">Mínimo</div><div class="v" id="histMin">—</div><div class="d" id="histMinD">—</div></div>
+    </div>
+    <div class="hist-now" id="histNow"></div>
+  </div>
+</div>
+
 <!-- MODAL REGLAS -->
 <div class="modal-bg" id="rulesModal">
   <div class="modal">
@@ -836,15 +856,19 @@ function updateCount(){
   };
 
   var got = { precios:false, hist:false, claude:false };
-  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-4";
-  // Letrero de estado visible en pantalla
-  var badge=document.createElement('div');
-  badge.id='liveBadge';
-  badge.style.cssText='position:fixed;top:8px;left:50%;transform:translateX(-50%);z-index:9999;background:rgba(10,132,255,.15);border:1px solid rgba(10,132,255,.5);color:#7fb8ff;font:600 11px -apple-system,sans-serif;padding:6px 12px;border-radius:100px;backdrop-filter:blur(8px)';
-  badge.textContent='Conectando con tu hoja…';
-  document.body.appendChild(badge);
-  var estado={precios:'…',historial:'…',claude:'…'};
-  function pinta(){ badge.innerHTML='precios '+estado.precios+' &middot; historial '+estado.historial+' &middot; claude '+estado.claude; }
+  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-9";
+  var estado={precios:false,historial:false,claude:false};
+  function pinta(){
+    var chip=document.getElementById('liveChip'); if(!chip) return;
+    var todo = estado.precios && estado.historial && estado.claude;
+    var ahora = new Date();
+    var dias=["dom","lun","mar","mié","jue","vie","sáb"];
+    var mes=["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"];
+    var f=dias[ahora.getDay()]+" "+ahora.getDate()+" "+mes[ahora.getMonth()];
+    var h=ahora.toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit'});
+    if(todo){ chip.style.color=''; chip.textContent=f+" · "+h; }
+    else { chip.style.color='#ff8079'; chip.textContent='sin conexión'; }
+  }
 
   function fmtPct(v){ return (v>=0?'+':'\u2212')+Math.abs(v).toFixed(1)+'%'; }
 
@@ -890,27 +914,36 @@ function updateCount(){
       LIVE[tk]=LIVE[tk]||{};
       LIVE[tk].trim=num(r[18]); LIVE[tk].mes=num(r[19]); LIVE[tk].mio=num(r[20]);
     }
-    got.precios=true; estado.precios='OK ('+Object.keys(LIVE).length+')'; pinta(); tryUpdateAll();
-  }).catch(function(e){ estado.precios='ERROR'; pinta(); console.log("precios err",e); });
+    // Algoritmo desde columna W (índice 22): filas 2-5 (rows[1]..rows[4])
+    try{
+      var aMesQ=num(rows[1]&&rows[1][22]), aMesS=num(rows[2]&&rows[2][22]);
+      var aTrimQ=num(rows[3]&&rows[3][22]), aTrimS=num(rows[4]&&rows[4][22]);
+      if(!isNaN(aMesQ)&&!isNaN(aMesS)){
+        var algoMes=(aMesQ+aMesS)/2;
+        var el=document.getElementById('hAlgo'); if(el) el.textContent=fmtPct(algoMes);
+      }
+      if(!isNaN(aTrimQ)&&!isNaN(aTrimS)){
+        var algoTrim=(aTrimQ+aTrimS)/2;
+        var tel=document.getElementById('hAlgoTrim'); if(tel) tel.textContent=fmtPct(algoTrim);
+      }
+    }catch(e){ console.log("algo err",e); }
+    got.precios=true; estado.precios=(Object.keys(LIVE).length>0); pinta(); tryUpdateAll();
+  }).catch(function(e){ estado.precios=false; pinta(); console.log("precios err",e); });
 
   // historial: ultima fila; M(12)=algoQuantTrim N(13)=algoQuantMes W(22)=algoSmartTrim X(23)=algoSmartMes
   fetch(url(GID.historial)).then(function(r){return r.text();}).then(function(txt){
     var rows=parseCSV(txt);
-    var last=null;
-    for(var i=rows.length-1;i>=1;i--){ if(rows[i] && rows[i].length>23 && (rows[i][13]!=="" || rows[i][23]!=="")){ last=rows[i]; break; } }
-    if(last){
-      var qMes=num(last[13]), sMes=num(last[23]), qTrim=num(last[12]), sTrim=num(last[22]);
-      if(!isNaN(qMes)&&!isNaN(sMes)){
-        var algoMes=(qMes+sMes)/2;
-        var el=document.getElementById('hAlgo'); if(el) el.textContent=fmtPct(algoMes);
-      }
-      if(!isNaN(qTrim)&&!isNaN(sTrim)){
-        var algoTrim=(qTrim+sTrim)/2;
-        var tel=document.getElementById('hAlgoTrim'); if(tel) tel.textContent=fmtPct(algoTrim);
-      }
+    // Construir serie del algoritmo del trimestre: promedio de col M(12) y W(22) por fila
+    var serie=[];
+    for(var i=1;i<rows.length;i++){
+      var r=rows[i]; if(!r||r.length<23) continue;
+      var q=num(r[12]), sm=num(r[22]);
+      if(isNaN(q)||isNaN(sm)) continue;
+      serie.push({fecha:(r[0]||"").trim(), val:(q+sm)/2});
     }
-    got.hist=true; estado.historial='OK'; pinta(); tryUpdateAll();
-  }).catch(function(e){ estado.historial='ERROR'; pinta(); console.log("historial err",e); });
+    window.HIST=serie;
+    got.hist=true; estado.historial=true; pinta(); tryUpdateAll();
+  }).catch(function(e){ estado.historial=false; pinta(); console.log("historial err",e); });
 
   // claude: A=Fecha B=Estrategia C=Accion(2) D=Comprada E=Smart(4) F=Strength(5). Ultima aparicion por ticker.
   fetch(url(GID.claude)).then(function(r){return r.text();}).then(function(txt){
@@ -926,8 +959,76 @@ function updateCount(){
       if(!isNaN(sm)) LIVE[tk].smart=sm;
       if(!isNaN(st)) LIVE[tk].stren=st;
     }
-    got.claude=true; estado.claude='OK'; pinta(); tryUpdateAll();
-  }).catch(function(e){ estado.claude='ERROR'; pinta(); console.log("claude err",e); });
+    got.claude=true; estado.claude=true; pinta(); tryUpdateAll();
+  }).catch(function(e){ estado.claude=false; pinta(); console.log("claude err",e); });
+
+
+  // ===== Histórico del algoritmo (modal) =====
+  function parseFecha(f){
+    // formatos posibles: yyyy-MM-dd o dd/MM/yyyy
+    if(!f) return null;
+    if(f.indexOf('-')>0){ var p=f.split('-'); return new Date(+p[0],+p[1]-1,+p[2]); }
+    if(f.indexOf('/')>0){ var q=f.split('/'); return new Date(+q[2],+q[1]-1,+q[0]); }
+    return null;
+  }
+  function renderHist(dias){
+    var cont=document.getElementById('histChart'); if(!cont) return;
+    var data=(window.HIST||[]).slice();
+    if(!data.length){ cont.innerHTML='<div style="text-align:center;color:#777;padding:40px 0;font-size:13px">Aún no hay historial guardado.<br>El robot lo va llenando 3 veces al día.</div>'; 
+      document.getElementById('histMax').textContent='—';document.getElementById('histMin').textContent='—';
+      document.getElementById('histMaxD').textContent='';document.getElementById('histMinD').textContent='';
+      document.getElementById('histNow').innerHTML=''; return; }
+    // filtrar por días
+    if(dias>0){
+      var hoy=new Date(); var lim=new Date(hoy.getTime()-dias*86400000);
+      data=data.filter(function(p){ var d=parseFecha(p.fecha); return !d || d>=lim; });
+    }
+    if(data.length<1){ data=(window.HIST||[]).slice(); }
+    var vals=data.map(function(p){return p.val;});
+    var mn=Math.min.apply(null,vals), mx=Math.max.apply(null,vals);
+    var range=(mx-mn)||1;
+    var W=600,H=220,padL=8,padR=8,padT=16,padB=16;
+    function X(i){ return padL + (data.length<=1?0:i/(data.length-1))*(W-padL-padR); }
+    function Y(v){ return padT + (1-(v-mn)/range)*(H-padT-padB); }
+    var pts=data.map(function(p,i){return X(i)+','+Y(p.val);}).join(' ');
+    // índices de min y max
+    var iMin=vals.indexOf(mn), iMax=vals.indexOf(mx);
+    // línea del cero si cabe
+    var zeroLine='';
+    if(mn<0 && mx>0){ var zy=Y(0); zeroLine='<line x1="'+padL+'" y1="'+zy+'" x2="'+(W-padR)+'" y2="'+zy+'" stroke="rgba(255,255,255,.12)" stroke-dasharray="3 3"/>'; }
+    var area='M '+X(0)+' '+Y(data[0].val)+' L '+data.map(function(p,i){return X(i)+' '+Y(p.val);}).join(' L ')+' L '+X(data.length-1)+' '+(H-padB)+' L '+X(0)+' '+(H-padB)+' Z';
+    var svg='<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto;display:block">'+
+      '<defs><linearGradient id="hgrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="rgba(255,69,58,.28)"/><stop offset="1" stop-color="rgba(255,69,58,0)"/></linearGradient></defs>'+
+      zeroLine+
+      '<path d="'+area+'" fill="url(#hgrad)"/>'+
+      '<polyline points="'+pts+'" fill="none" stroke="#ff6b60" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>'+
+      '<circle cx="'+X(iMax)+'" cy="'+Y(mx)+'" r="4.5" fill="#30D158"/>'+
+      '<circle cx="'+X(iMin)+'" cy="'+Y(mn)+'" r="4.5" fill="#ff453a"/>'+
+      '<circle cx="'+X(data.length-1)+'" cy="'+Y(data[data.length-1].val)+'" r="4" fill="#fff"/>'+
+      '</svg>';
+    cont.innerHTML=svg;
+    function fmt(v){return (v>=0?'+':'−')+Math.abs(v).toFixed(1)+'%';}
+    function fd(f){ var d=parseFecha(f); if(!d) return f||''; var m=["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"]; return d.getDate()+" "+m[d.getMonth()]; }
+    document.getElementById('histMax').textContent=fmt(mx);
+    document.getElementById('histMin').textContent=fmt(mn);
+    document.getElementById('histMaxD').textContent=fd(data[iMax].fecha);
+    document.getElementById('histMinD').textContent=fd(data[iMin].fecha);
+    var hoy=data[data.length-1].val;
+    document.getElementById('histNow').innerHTML='Hoy el algoritmo está en <b>'+fmt(hoy)+'</b> &middot; '+data.length+' registros';
+  }
+  var histDias=0;
+  document.querySelectorAll('#histSel .hist-sb').forEach(function(b){
+    b.addEventListener('click',function(){
+      document.querySelectorAll('#histSel .hist-sb').forEach(function(x){x.classList.remove('on');});
+      b.classList.add('on'); histDias=parseInt(b.getAttribute('data-d')); renderHist(histDias);
+    });
+  });
+  var ha=document.getElementById('hAlgo');
+  if(ha){ ha.addEventListener('click',function(){ document.getElementById('histBg').classList.add('open'); renderHist(histDias); }); }
+
+  // Refrescar al picar "Mi Cartera"
+  var rb=document.getElementById('brandRefresh');
+  if(rb){ rb.addEventListener('click',function(){ location.reload(); }); }
 
   // Fecha de hoy
   try{
