@@ -240,7 +240,7 @@
       </div>
     </div>
     <div class="statgrid">
-      <div class="stat"><div class="s-lbl">Invertido</div><div class="s-val">$140<small>,000</small></div></div>
+      <div class="stat"><div class="s-lbl">Invertido</div><div class="s-val" id="hInv">$140,000</div></div>
       <div class="stat"><div class="s-lbl">Posiciones</div><div class="s-val" id="hPos">14</div></div>
     </div>
     <div class="strip">
@@ -856,7 +856,7 @@ function updateCount(){
   };
 
   var got = { precios:false, hist:false, claude:false };
-  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-9";
+  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-11";
   var estado={precios:false,historial:false,claude:false};
   function pinta(){
     var chip=document.getElementById('liveChip'); if(!chip) return;
@@ -883,6 +883,20 @@ function updateCount(){
         var el=document.getElementById('hMio');
         if(el){ el.textContent=fmtPct(avg); }
         var pos=document.getElementById('hPos'); if(pos) pos.textContent=n;
+        // Monto ganado/perdido en vivo = invertido * rendimiento
+        var inv=window.INVERTIDO;
+        if(inv==null){ inv=n*10000; } // respaldo: 10,000 por posición
+        var gan=inv*avg/100;
+        var chip=document.getElementById('hMioChip');
+        if(chip){
+          var signo=gan>=0?'↑':'↓';
+          var txt=Math.round(Math.abs(gan)).toLocaleString('es-MX');
+          chip.innerHTML=signo+' $'+txt;
+          chip.style.color = gan>=0? '' : '#ff8079';
+        }
+        // Invertido en el hero
+        var invEl=document.getElementById('hInv');
+        if(invEl){ invEl.innerHTML='$'+Math.round(inv).toLocaleString('es-MX'); }
       }
     }
     // Reconstruir ACC (vista Acciones) con datos vivos
@@ -935,13 +949,17 @@ function updateCount(){
     var rows=parseCSV(txt);
     // Construir serie del algoritmo del trimestre: promedio de col M(12) y W(22) por fila
     var serie=[];
+    var ultInv=null;
     for(var i=1;i<rows.length;i++){
       var r=rows[i]; if(!r||r.length<23) continue;
       var q=num(r[12]), sm=num(r[22]);
       if(isNaN(q)||isNaN(sm)) continue;
       serie.push({fecha:(r[0]||"").trim(), val:(q+sm)/2});
+      var d=num(r[3]), e=num(r[4]);
+      if(!isNaN(d)||!isNaN(e)){ ultInv=(isNaN(d)?0:d)+(isNaN(e)?0:e); }
     }
     window.HIST=serie;
+    if(ultInv!=null){ window.INVERTIDO=ultInv; }
     got.hist=true; estado.historial=true; pinta(); tryUpdateAll();
   }).catch(function(e){ estado.historial=false; pinta(); console.log("historial err",e); });
 
@@ -1023,8 +1041,16 @@ function updateCount(){
       b.classList.add('on'); histDias=parseInt(b.getAttribute('data-d')); renderHist(histDias);
     });
   });
-  var ha=document.getElementById('hAlgo');
-  if(ha){ ha.addEventListener('click',function(){ document.getElementById('histBg').classList.add('open'); renderHist(histDias); }); }
+  // Abrir histórico al picar el algoritmo (robusto por delegación)
+  document.addEventListener('click',function(ev){
+    // cerrar solo si se pica el fondo directamente
+    if(ev.target && ev.target.id==='histBg'){ ev.target.classList.remove('open'); return; }
+    var t=ev.target;
+    while(t && t!==document){
+      if(t.id==='hAlgo'){ var bg=document.getElementById('histBg'); if(bg){ bg.classList.add('open'); renderHist(histDias); } return; }
+      t=t.parentNode;
+    }
+  });
 
   // Refrescar al picar "Mi Cartera"
   var rb=document.getElementById('brandRefresh');
