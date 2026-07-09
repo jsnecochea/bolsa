@@ -288,98 +288,13 @@
   <!-- ALERTAS -->
   <div class="section-cap">Alertas &middot; requieren atención</div>
   <div class="card">
-    <div class="a-head"><div><div class="card-title">Requieren atención</div><div style="font-size:11px;color:var(--dim2);font-weight:500;margin-top:2px">Score al 8 jul</div></div>
+    <div class="a-head"><div><div class="card-title">Requieren atención</div><div style="font-size:11px;color:var(--dim2);font-weight:500;margin-top:2px" id="aScoreDate">Scores en vivo</div></div>
       <div class="a-head-right"><div class="a-count" id="aCount">6</div>
         <button class="rules-btn" onclick="document.getElementById('rulesModal').classList.add('open')"><span></span><span></span><span></span></button>
       </div>
     </div>
-    <div id="alertList">
-      <div class="alert-wrap"><div class="alert-del">&#128465;</div><div class="alert sell-row">
-        <div class="a-ic sell"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a8 8 0 0 0-8 8c0 2.5 1.1 4.2 2.5 5.3.3.24.5.6.5 1V18a1.5 1.5 0 0 0 1.5 1.5h.3a1.2 1.2 0 0 1 1.2-1.5 1.2 1.2 0 0 1 1.2 1.5h1.6a1.2 1.2 0 0 1 1.2-1.5 1.2 1.2 0 0 1 1.2 1.5h.3A1.5 1.5 0 0 0 19 18v-1.7c0-.4.2-.76.5-1C20.9 14.2 22 12.5 22 10a8 8 0 0 0-8-8zm-3 9.5a1.6 1.6 0 1 1 0-3.2 1.6 1.6 0 0 1 0 3.2zm6 0a1.6 1.6 0 1 1 0-3.2 1.6 1.6 0 0 1 0 3.2z"/><rect x="9.2" y="19.4" width="1.4" height="2.4" rx="0.6"/><rect x="11.3" y="19.4" width="1.4" height="2.4" rx="0.6"/><rect x="13.4" y="19.4" width="1.4" height="2.4" rx="0.6"/></svg></div>
-        <div class="a-body"><div class="a-tx">EJEMPLO <span class="a-strat s">SMART</span></div><div class="a-vals">Smart 2.40 / St 24.0</div><div class="a-obs">Smart momentum rompió el 2.5<br>Salida por regla</div></div>
-        <div class="a-tag sell">VENDER</div>
-      </div></div>
-      <div class="alert-wrap"><div class="alert-del">&#128465;</div><div class="alert">
-        <div class="a-ic warn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.2 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.2a2 2 0 0 0-3.4 0z"/><line x1="12" y1="9" x2="12" y2="13"/><circle cx="12" cy="17" r="0.6" fill="currentColor" stroke="none"/></svg></div>
-        <div class="a-body"><div class="a-tx">KRYS <span class="a-strat q">QUANT</span></div>
-        <div class="a-scoreline ini"><span class="lbl">Inicio</span><span class="num">Sm 2.49 / St 17.6</span></div>
-        <div class="a-scoreline now"><span class="lbl">Ahora</span><span class="num">Sm 2.49 / St 17.6</span></div>
-        <div class="a-obs am">Smart bajo 2.5 y strength bajo 18</div></div>
-        <div class="a-boxes">
-          <div class="a-box"><div class="bx-lbl">Trim</div><div class="bx-val g">+1.0%</div></div>
-          <div class="a-box"><div class="bx-lbl">Mío</div><div class="bx-val g">+0.3%</div></div>
-        </div>
-      </div></div>
-      <div class="alert-wrap"><div class="alert-del">&#128465;</div><div class="alert">
-        <div class="a-ic warn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.2 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.2a2 2 0 0 0-3.4 0z"/><line x1="12" y1="9" x2="12" y2="13"/><circle cx="12" cy="17" r="0.6" fill="currentColor" stroke="none"/></svg></div>
-        <div class="a-body"><div class="a-tx">SEI &middot; Solaris <span class="a-strat q">QUANT</span></div>
-        <div class="a-scoreline ini"><span class="lbl">Inicio</span><span class="num">Sm 2.43 / St 20.4</span></div>
-        <div class="a-scoreline now"><span class="lbl">Ahora</span><span class="num">Sm 2.43 / St 20.4</span></div>
-        <div class="a-obs am">Smart bajo 2.5</div></div>
-        <div class="a-boxes">
-          <div class="a-box"><div class="bx-lbl">Trim</div><div class="bx-val r">&minus;17.7%</div></div>
-          <div class="a-box"><div class="bx-lbl">Mío</div><div class="bx-val g">+0.9%</div></div>
-        </div>
-      </div></div>
-      <div class="alert-wrap"><div class="alert-del">&#128465;</div><div class="alert">
-        <div class="a-ic orange"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="18"/><polyline points="6 12 12 18 18 12"/></svg></div>
-        <div class="a-body"><div class="a-tx">STRL &middot; Sterling <span class="a-strat q">QUANT</span></div>
-        <div class="a-scoreline ini"><span class="lbl">Inicio</span><span class="num">Sm 3.00 / St 19.4</span></div>
-        <div class="a-scoreline now"><span class="lbl">Ahora</span><span class="num">Sm 3.00 / St 19.4</span></div>
-        <div class="a-obs am">Bajó del 20% desde inicio de trimestre</div></div>
-        <div class="a-boxes">
-          <div class="a-box"><div class="bx-lbl">Trim</div><div class="bx-val r">&minus;21.2%</div></div>
-          <div class="a-box"><div class="bx-lbl">Mío</div><div class="bx-val r">&minus;0.9%</div></div>
-        </div>
-      </div></div>
-      <div class="alert-wrap"><div class="alert-del">&#128465;</div><div class="alert">
-        <div class="a-ic warn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="18"/><polyline points="6 12 12 18 18 12"/></svg></div>
-        <div class="a-body"><div class="a-tx">CIEN <span class="a-strat q">QUANT</span></div>
-        <div class="a-scoreline ini"><span class="lbl">Inicio</span><span class="num">Sm 3.00 / St 24.0</span></div>
-        <div class="a-scoreline now"><span class="lbl">Ahora</span><span class="num">Sm 3.00 / St 18.4</span></div>
-        <div class="a-obs am">Tocó mínimo de 3 meses<br>Strength cayendo</div></div>
-        <div class="a-boxes">
-          <div class="a-box"><div class="bx-lbl">Trim</div><div class="bx-val r">&minus;10.0%</div></div>
-          <div class="a-box"><div class="bx-lbl">Mío</div><div class="bx-val g">+4.5%</div></div>
-        </div>
-      </div></div>
-      <div class="alert-wrap"><div class="alert-del">&#128465;</div><div class="alert">
-        <div class="a-ic warn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.2 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.2a2 2 0 0 0-3.4 0z"/><line x1="12" y1="9" x2="12" y2="13"/><circle cx="12" cy="17" r="0.6" fill="currentColor" stroke="none"/></svg></div>
-        <div class="a-body"><div class="a-tx">AXTI <span class="a-strat s">SMART</span></div>
-        <div class="a-scoreline ini"><span class="lbl">Inicio</span><span class="num">Sm 3.00 / St 25.2</span></div>
-        <div class="a-scoreline now"><span class="lbl">Ahora</span><span class="num">Sm 3.00 / St 25.2</span></div>
-        <div class="a-obs am">Strength bajo 26</div></div>
-        <div class="a-boxes">
-          <div class="a-box"><div class="bx-lbl">Trim</div><div class="bx-val g">+8.0%</div></div>
-          <div class="a-box"><div class="bx-lbl">Mío</div><div class="bx-val g">+0.5%</div></div>
-        </div>
-      </div></div>
+    <div id="alertList"></div>
     </div>
-  </div>
-
-  <!-- DESEMPEÑO -->
-  <div class="section-cap">Desempeño</div>
-  <div class="card">
-    <div class="chart-head"><div class="card-title">Algoritmo &middot; mes</div><div class="seg"><button class="on">10d</button><button>30d</button><button>60d</button></div></div>
-    <div class="legend"><div class="item"><span class="dot" style="background:var(--blue)"></span>Cuant <span class="lval cy">&minus;11.7%</span></div><div class="item"><span class="dot" style="background:var(--purple)"></span>Smart <span class="lval pu">&minus;14.4%</span></div></div>
-    <div class="plot">
-      <div class="yaxis" style="padding-bottom:6px"><span>+5%</span><span>0%</span><span>&minus;5%</span><span>&minus;10%</span><span>&minus;15%</span><span>&minus;20%</span></div>
-      <div class="chartbox">
-        <svg viewBox="0 0 440 150" preserveAspectRatio="none" style="width:100%;height:100%">
-          <line x1="0" y1="0" x2="440" y2="0" stroke="#20202A" stroke-width="1"/>
-          <line x1="0" y1="30" x2="440" y2="30" stroke="#3A3A46" stroke-width="1.3" stroke-dasharray="5 5"/>
-          <line x1="0" y1="60" x2="440" y2="60" stroke="#20202A" stroke-width="1" stroke-dasharray="2 6"/>
-          <line x1="0" y1="90" x2="440" y2="90" stroke="#20202A" stroke-width="1" stroke-dasharray="2 6"/>
-          <line x1="0" y1="120" x2="440" y2="120" stroke="#20202A" stroke-width="1" stroke-dasharray="2 6"/>
-          <line x1="0" y1="150" x2="440" y2="150" stroke="#20202A" stroke-width="1"/>
-          <line x1="352" y1="0" x2="352" y2="150" stroke="#FFD426" stroke-width="1" stroke-dasharray="3 4" opacity="0.5"/>
-          <path d="M0,30 L88,69 L176,64.2 L264,56.4 L352,72 L440,100.2" fill="none" stroke="#0A84FF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-          <path d="M0,30 L88,87 L176,78 L264,64.8 L352,84 L440,116.4" fill="none" stroke="#BF5AF2" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-      </div>
-    </div>
-    <div class="xlabels" style="margin-left:34px"><span>1 jul</span><span>2</span><span>3</span><span>6</span><span>7</span><span>8</span></div>
-    <div class="emptytag">Brinco el 8 jul por ajuste de base al cierre del 30 jun</div>
   </div>
 
   <!-- ESTRATEGIAS -->
@@ -410,29 +325,29 @@
   <div class="movers">
     <div class="mover best">
       <div class="m-head best">&#9650; Mejor</div>
-      <div class="m-tickrow"><span class="m-ticker">CIEN</span>
+      <div class="m-tickrow"><span class="m-ticker" id="mvBestMioTk">—</span>
         <svg class="chipicon tech" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="7" width="10" height="10" rx="1.5"/><rect x="10" y="10" width="4" height="4" rx="0.5" fill="currentColor" stroke="none"/><path d="M10 3v2M14 3v2M10 19v2M14 19v2M3 10h2M3 14h2M19 10h2M19 14h2"/></svg>
       </div>
-      <div class="m-ind">Comunicaciones</div>
+      <div class="m-ind" id="mvBestMioInd">—</div>
       <div class="twopct">
-        <div class="pctbox"><div class="p-lbl">Mi compra</div><div class="p-val g">+4.5%</div></div>
+        <div class="pctbox"><div class="p-lbl">Mi compra</div><div class="p-val" id="mvBestMioMio">—</div></div>
         <div class="vline"></div>
-        <div class="pctbox"><div class="p-lbl">Trimestre</div><div class="p-val r">&minus;10.0%</div></div>
+        <div class="pctbox"><div class="p-lbl">Trimestre</div><div class="p-val" id="mvBestMioTrim">—</div></div>
       </div>
-      <div class="m-sub">Ciena</div>
+      <div class="m-sub" id="mvBestMioName">—</div>
     </div>
     <div class="mover worst">
       <div class="m-head worst">&#9660; Peor</div>
-      <div class="m-tickrow"><span class="m-ticker">SPHR</span>
+      <div class="m-tickrow"><span class="m-ticker" id="mvWorstMioTk">—</span>
         <svg class="chipicon notech" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="7" width="10" height="10" rx="1.5"/><path d="M10 3v2M14 3v2M10 19v2M14 19v2M3 10h2M3 14h2M19 10h2M19 14h2"/><line x1="3.5" y1="20.5" x2="20.5" y2="3.5" stroke-width="2"/></svg>
       </div>
-      <div class="m-ind">Entretenimiento</div>
+      <div class="m-ind" id="mvWorstMioInd">—</div>
       <div class="twopct">
-        <div class="pctbox"><div class="p-lbl">Mi compra</div><div class="p-val r">&minus;3.2%</div></div>
+        <div class="pctbox"><div class="p-lbl">Mi compra</div><div class="p-val" id="mvWorstMioMio">—</div></div>
         <div class="vline"></div>
-        <div class="pctbox"><div class="p-lbl">Trimestre</div><div class="p-val r">&minus;12.7%</div></div>
+        <div class="pctbox"><div class="p-lbl">Trimestre</div><div class="p-val" id="mvWorstMioTrim">—</div></div>
       </div>
-      <div class="m-sub">Sphere Entr.</div>
+      <div class="m-sub" id="mvWorstMioName">—</div>
     </div>
   </div>
 
@@ -441,29 +356,29 @@
   <div class="movers">
     <div class="mover best">
       <div class="m-head best">&#9650; Mejor</div>
-      <div class="m-tickrow"><span class="m-ticker">KRYS</span>
+      <div class="m-tickrow"><span class="m-ticker" id="mvBestTrimTk">—</span>
         <svg class="chipicon notech" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="7" width="10" height="10" rx="1.5"/><path d="M10 3v2M14 3v2M10 19v2M14 19v2M3 10h2M3 14h2M19 10h2M19 14h2"/><line x1="3.5" y1="20.5" x2="20.5" y2="3.5" stroke-width="2"/></svg>
       </div>
-      <div class="m-ind">Biotech</div>
+      <div class="m-ind" id="mvBestTrimInd">—</div>
       <div class="twopct">
-        <div class="pctbox"><div class="p-lbl">Mi compra</div><div class="p-val g">+0.3%</div></div>
+        <div class="pctbox"><div class="p-lbl">Mi compra</div><div class="p-val" id="mvBestTrimMio">—</div></div>
         <div class="vline"></div>
-        <div class="pctbox"><div class="p-lbl">Trimestre</div><div class="p-val g">+1.0%</div></div>
+        <div class="pctbox"><div class="p-lbl">Trimestre</div><div class="p-val" id="mvBestTrimTrim">—</div></div>
       </div>
-      <div class="m-sub">Krystal Biotech</div>
+      <div class="m-sub" id="mvBestTrimName">—</div>
     </div>
     <div class="mover worst">
       <div class="m-head worst">&#9660; Peor</div>
-      <div class="m-tickrow"><span class="m-ticker">STRL</span>
+      <div class="m-tickrow"><span class="m-ticker" id="mvWorstTrimTk">—</span>
         <svg class="chipicon notech" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="7" width="10" height="10" rx="1.5"/><path d="M10 3v2M14 3v2M10 19v2M14 19v2M3 10h2M3 14h2M19 10h2M19 14h2"/><line x1="3.5" y1="20.5" x2="20.5" y2="3.5" stroke-width="2"/></svg>
       </div>
-      <div class="m-ind">Construcción</div>
+      <div class="m-ind" id="mvWorstTrimInd">—</div>
       <div class="twopct">
-        <div class="pctbox"><div class="p-lbl">Mi compra</div><div class="p-val r">&minus;0.9%</div></div>
+        <div class="pctbox"><div class="p-lbl">Mi compra</div><div class="p-val" id="mvWorstTrimMio">—</div></div>
         <div class="vline"></div>
-        <div class="pctbox"><div class="p-lbl">Trimestre</div><div class="p-val r">&minus;21.2%</div></div>
+        <div class="pctbox"><div class="p-lbl">Trimestre</div><div class="p-val" id="mvWorstTrimTrim">—</div></div>
       </div>
-      <div class="m-sub">Sterling Infra.</div>
+      <div class="m-sub" id="mvWorstTrimName">—</div>
     </div>
   </div>
 
@@ -808,7 +723,9 @@ tabs.forEach(function(t,i){
   });
 });
 
-document.querySelectorAll('.alert-wrap').forEach(function(wrap){
+window.enlazarSwipe=function(){
+ document.querySelectorAll('.alert-wrap').forEach(function(wrap){
+  if(wrap.__sw)return; wrap.__sw=true;
   var el = wrap.querySelector('.alert');
   var startX=0, curX=0, dragging=false;
   function start(x){startX=x;dragging=true;el.style.transition='none';}
@@ -829,7 +746,9 @@ document.querySelectorAll('.alert-wrap').forEach(function(wrap){
   el.addEventListener('mousedown',function(e){start(e.clientX);});
   window.addEventListener('mousemove',function(e){move(e.clientX);});
   window.addEventListener('mouseup',end);
-});
+ });
+};
+window.enlazarSwipe();
 
 // Vista Acciones: lista ordenable
 var ACC = [["CIEN","Ciena","c",true,3.0,18.4,11.0,-4.4,-4.4], ["FIX","Comfort Sys","c",false,2.94,25.4,6.4,-10.0,-10.0], ["KRYS","Krystal Bio","c",false,2.49,17.6,-2.3,-1.5,-1.5], ["LSCC","Lattice","c",true,3.0,22.3,7.4,-7.4,-7.4], ["SEI","Solaris","c",false,2.43,20.4,4.2,-15.0,-15.0], ["SPHR","Sphere","c",false,3.0,29.6,-0.6,-10.4,-10.4], ["STRL","Sterling","c",false,3.0,19.4,6.3,-15.5,-15.5], ["AXTI","AXT Inc","s",true,3.0,25.2,2.9,-14.2,-14.2], ["COHR","Coherent","s",true,3.0,28.7,5.7,-15.7,-15.7], ["DOCN","DigitalOcean","s",true,2.88,27.6,0.1,-7.7,-7.7], ["EXE","Extendicare","s",false,3.0,30.0,-0.7,6.4,6.4], ["SNDK","SanDisk","s",true,3.0,29.5,17.3,-17.1,-17.1], ["TNGX","Tango Tx","s",false,2.84,28.7,0.9,-2.8,-2.8], ["WDC","Western Dig","s",true,3.0,29.0,10.7,-7.9,-7.9]];
@@ -920,7 +839,7 @@ function updateCount(){
   };
 
   var got = { precios:false, hist:false, claude:false };
-  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-34";
+  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-36";
   var estado={precios:false,historial:false,claude:false};
   function pinta(){
     var chip=document.getElementById('liveChip'); if(!chip) return;
@@ -936,6 +855,91 @@ function updateCount(){
 
   function fmtPct(v){ return (v>=0?'+':'\u2212')+Math.abs(v).toFixed(1)+'%'; }
   function fmtPct2(v){ return (v>=0?'+':'\u2212')+Math.abs(v).toFixed(2)+'%'; }
+
+
+  var INDU={CIEN:"Comunicaciones",FIX:"Construcción",KRYS:"Biotech",LSCC:"Semiconductores",SEI:"Energía",SPHR:"Entretenimiento",STRL:"Construcción",AXTI:"Semiconductores",COHR:"Electrónica",DOCN:"IT Services",EXE:"Salud",SNDK:"Tech Hardware",TNGX:"Biotech",WDC:"Tech Hardware"};
+  function colorPct(id,v){ var e=document.getElementById(id); if(!e)return; e.textContent=(v>=0?'+':'\u2212')+Math.abs(v).toFixed(1)+'%'; e.classList.remove('g','r'); e.classList.add(v>=0?'g':'r'); }
+  function setMover(pre,tk){
+    if(!tk)return; var L=LIVE[tk]||{}; var nm=(META[tk]?META[tk][0]:tk);
+    var t=document.getElementById(pre+'Tk'); if(t)t.textContent=tk;
+    var ind=document.getElementById(pre+'Ind'); if(ind)ind.textContent=INDU[tk]||'';
+    var nmE=document.getElementById(pre+'Name'); if(nmE)nmE.textContent=nm;
+    colorPct(pre+'Mio', isNaN(L.mio)?0:L.mio);
+    colorPct(pre+'Trim', isNaN(L.trim)?0:L.trim);
+  }
+  function actualizarMovers(){
+    var tks=Object.keys(LIVE).filter(function(t){return !isNaN(LIVE[t].mio)&&!isNaN(LIVE[t].trim);});
+    if(!tks.length)return;
+    var bMio=tks[0],wMio=tks[0],bTr=tks[0],wTr=tks[0];
+    tks.forEach(function(t){
+      if(LIVE[t].mio>LIVE[bMio].mio)bMio=t;
+      if(LIVE[t].mio<LIVE[wMio].mio)wMio=t;
+      if(LIVE[t].trim>LIVE[bTr].trim)bTr=t;
+      if(LIVE[t].trim<LIVE[wTr].trim)wTr=t;
+    });
+    setMover('mvBestMio',bMio); setMover('mvWorstMio',wMio);
+    setMover('mvBestTrim',bTr); setMover('mvWorstTrim',wTr);
+  }
+
+
+  // Scores de inicio de trimestre (fijos) para comparar Inicio vs Ahora
+  var INI={CIEN:[3.00,19],FIX:[3.00,26],KRYS:[2.5,18],LSCC:[2.60,27],SEI:[2.50,20],SPHR:[3.00,30],STRL:[3.00,20],AXTI:[3.00,26],COHR:[3.00,29],DOCN:[2.90,28],EXE:[3.00,30],SNDK:[3.00,29],TNGX:[3.00,28],WDC:[3.00,29]};
+  function esQuant(tk){ return META[tk] && META[tk][1]==='c'; }
+  function fpct(v){ return (v>=0?'+':'\u2212')+Math.abs(v).toFixed(1)+'%'; }
+  function evalua(tk){
+    var L=LIVE[tk]||{}; var sm=L.smart, st=L.stren; var trim=L.trim, mio=L.mio;
+    if(isNaN(sm)||isNaN(st)) return null;
+    var q=esQuant(tk); var nivel=0, obs=[]; // 0 nada,1 amarillo,2 naranja,3 vender
+    if(q){
+      if(!isNaN(mio)&&mio<=-25){ nivel=3; obs.push('Cayó 25% desde tu compra'); }
+      if(sm<2.4||st<16){ if(nivel<3){nivel=3;} obs.push('Score en zona de salida'); }
+      else if(sm<2.5||st<18){ if(nivel<1)nivel=1; obs.push('Smart bajo 2.5 o strength bajo 18'); }
+      if(!isNaN(trim)&&trim<=-20 && nivel<2){ if(nivel<1)nivel=1; obs.push('Bajó del 20% del trimestre'); }
+    } else {
+      if(sm<2.5){ nivel=3; obs.push('Smart rompió el 2.5'); }
+      else if(sm<2.6){ if(nivel<1)nivel=1; obs.push('Smart bajo 2.6'); }
+      if(st<25){ if(nivel<2)nivel=2; obs.push('Strength bajo 25'); }
+      else if(st<26){ if(nivel<1)nivel=1; obs.push('Strength bajo 26'); }
+      if(!isNaN(mio)){ if(mio<=-25){nivel=3;obs.push('Cayó 25% desde tu compra');} else if(mio<=-20){if(nivel<2)nivel=2;obs.push('Cayó 20% desde tu compra');} else if(mio<=-15){if(nivel<1)nivel=1;obs.push('Cayó 15% desde tu compra');} }
+    }
+    if(nivel===0) return null;
+    return {tk:tk,q:q,sm:sm,st:st,trim:trim,mio:mio,nivel:nivel,obs:obs};
+  }
+  var IC_SELL='<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a8 8 0 0 0-8 8c0 2.5 1.1 4.2 2.5 5.3.3.24.5.6.5 1V18a1.5 1.5 0 0 0 1.5 1.5h.3a1.2 1.2 0 0 1 1.2-1.5 1.2 1.2 0 0 1 1.2 1.5h1.6a1.2 1.2 0 0 1 1.2-1.5 1.2 1.2 0 0 1 1.2 1.5h.3A1.5 1.5 0 0 0 19 18v-1.7c0-.4.2-.76.5-1C20.9 14.2 22 12.5 22 10a8 8 0 0 0-8-8zm-3 9.5a1.6 1.6 0 1 1 0-3.2 1.6 1.6 0 0 1 0 3.2zm6 0a1.6 1.6 0 1 1 0-3.2 1.6 1.6 0 0 1 0 3.2z"/></svg>';
+  var IC_TRI='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.2 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.2a2 2 0 0 0-3.4 0z"/><line x1="12" y1="9" x2="12" y2="13"/><circle cx="12" cy="17" r="0.6" fill="currentColor" stroke="none"/></svg>';
+  function generaAlertas(){
+    var cont=document.getElementById('alertList'); if(!cont) return;
+    if(!got.claude) return;
+    var lista=[];
+    Object.keys(LIVE).forEach(function(tk){ var a=evalua(tk); if(a)lista.push(a); });
+    lista.sort(function(x,y){ return y.nivel-x.nivel; });
+    if(!lista.length){ cont.innerHTML='<div style="text-align:center;color:#7ee89f;padding:26px 0;font-size:13px">Todo en orden · ninguna acción requiere atención</div>'; var ac=document.getElementById('aCount'); if(ac)ac.textContent='0'; return; }
+    var html='';
+    lista.forEach(function(a){
+      var icCls=a.nivel===3?'sell':(a.nivel===2?'orange':'warn');
+      var ic=a.nivel===3?IC_SELL:IC_TRI;
+      var strat=a.q?'<span class="a-strat q">QUANT</span>':'<span class="a-strat s">SMART</span>';
+      var nm=META[a.tk]?META[a.tk][0]:a.tk;
+      var ini=INI[a.tk]||[a.sm,a.st];
+      var tag=a.nivel===3?'<div class="a-tag sell">VENDER</div>':'';
+      var obsCls=a.nivel===3?'':(a.nivel===2?'na':'am');
+      html+='<div class="alert-wrap"><div class="alert-del">&#128465;</div><div class="alert'+(a.nivel===3?' sell-row':'')+'">'+
+        '<div class="a-ic '+icCls+'">'+ic+'</div>'+
+        '<div class="a-body"><div class="a-tx">'+a.tk+' &middot; '+nm+' '+strat+'</div>'+
+        '<div class="a-scoreline ini"><span class="lbl">Inicio</span><span class="num">Sm '+ini[0].toFixed(2)+' / St '+ini[1].toFixed(1)+'</span></div>'+
+        '<div class="a-scoreline now"><span class="lbl">Ahora</span><span class="num">Sm '+a.sm.toFixed(2)+' / St '+a.st.toFixed(1)+'</span></div>'+
+        '<div class="a-obs '+obsCls+'">'+a.obs.join('<br>')+'</div></div>'+
+        '<div class="a-boxes">'+
+          '<div class="a-box"><div class="bx-lbl">Trim</div><div class="bx-val '+(a.trim>=0?'g':'r')+'">'+(isNaN(a.trim)?'—':fpct(a.trim))+'</div></div>'+
+          '<div class="a-box"><div class="bx-lbl">Mío</div><div class="bx-val '+(a.mio>=0?'g':'r')+'">'+(isNaN(a.mio)?'—':fpct(a.mio))+'</div></div>'+
+        '</div>'+
+        (a.nivel===3?'':'')+tag+
+      '</div></div>';
+    });
+    cont.innerHTML=html;
+    var ac=document.getElementById('aCount'); if(ac)ac.textContent=lista.length;
+    if(window.enlazarSwipe) window.enlazarSwipe();
+  }
 
   function tryUpdateAll(){
     // Actualizar hero MIO (promedio de mio de las 14)
@@ -965,7 +969,9 @@ function updateCount(){
         // Invertido en el hero
         var invEl=document.getElementById('hInv');
         if(invEl){ invEl.innerHTML='$'+Math.round(inv).toLocaleString('es-MX'); }
+        actualizarMovers();
       }
+      try{ generaAlertas(); }catch(e){ console.log("alertas err",e); }
     }
     // Reconstruir ACC (vista Acciones) con datos vivos
     if(got.precios && got.claude && typeof ACC!=='undefined' && tickers.length){
