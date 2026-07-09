@@ -683,12 +683,16 @@
 <div class="wrap view" id="viewAlgoritmo">
   <div class="st-hero">
     <h1>Algoritmo del trimestre</h1>
-    <p>Cómo se ha movido el algoritmo. Busca los mínimos para cronometrar tu siguiente entrada.</p>
   </div>
   <div class="hist-sel" id="histSel2" style="margin:16px 0 14px">
     <button class="hist-sb" data-d="30">Últimos 30 días</button>
     <button class="hist-sb" data-d="60">Últimos 60 días</button>
     <button class="hist-sb on" data-d="0">Todo el trimestre</button>
+  </div>
+  <div style="display:flex;gap:14px;margin-bottom:10px;flex-wrap:wrap;font-size:11.5px;color:var(--dim);font-weight:600">
+    <span style="display:flex;align-items:center;gap:5px"><span style="width:14px;height:3px;border-radius:2px;background:#ff6b60"></span>Mezcla</span>
+    <span style="display:flex;align-items:center;gap:5px"><span style="width:14px;height:3px;border-radius:2px;background:#0A84FF"></span>Quant</span>
+    <span style="display:flex;align-items:center;gap:5px"><span style="width:14px;height:3px;border-radius:2px;background:#30D158"></span>Smart</span>
   </div>
   <div id="histChart2"></div>
   <div class="hist-mm" style="margin-top:16px">
@@ -876,7 +880,7 @@ function updateCount(){
   };
 
   var got = { precios:false, hist:false, claude:false };
-  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-19";
+  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-20";
   var estado={precios:false,historial:false,claude:false};
   function pinta(){
     var chip=document.getElementById('liveChip'); if(!chip) return;
@@ -1032,7 +1036,13 @@ function updateCount(){
     var W=600,H=220,padL=8,padR=8,padT=16,padB=16;
     function X(i){ return padL + (data.length<=1?0:i/(data.length-1))*(W-padL-padR); }
     function Y(v){ return padT + (1-(v-mn)/range)*(H-padT-padB); }
+    // rango considerando las 3 series
+    var allv=[];
+    data.forEach(function(p){ allv.push(p.val); if(!isNaN(p.q))allv.push(p.q); if(!isNaN(p.sm))allv.push(p.sm); });
+    mn=Math.min.apply(null,allv); mx=Math.max.apply(null,allv); rg=(mx-mn)||1;
     var pts=data.map(function(p,i){return X(i)+','+Y(p.val);}).join(' ');
+    var ptsQ=data.filter(function(p){return !isNaN(p.q);}).map(function(p,i,arr){return X(data.indexOf(p))+','+Y(p.q);}).join(' ');
+    var ptsS=data.filter(function(p){return !isNaN(p.sm);}).map(function(p,i){return X(data.indexOf(p))+','+Y(p.sm);}).join(' ');
     // índices de min y max
     var iMin=vals.indexOf(mn), iMax=vals.indexOf(mx);
     // línea del cero si cabe
@@ -1043,7 +1053,7 @@ function updateCount(){
       '<defs><linearGradient id="hgrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="rgba(255,69,58,.28)"/><stop offset="1" stop-color="rgba(255,69,58,0)"/></linearGradient></defs>'+
       zeroLine+
       '<path d="'+area+'" fill="url(#hgrad)"/>'+
-      '<polyline points="'+pts+'" fill="none" stroke="#ff6b60" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>'+
+      '<polyline points="'+ptsQ+'" fill="none" stroke="#0A84FF" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" opacity="0.9"/><polyline points="'+ptsS+'" fill="none" stroke="#30D158" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" opacity="0.9"/><polyline points="'+pts+'" fill="none" stroke="#ff6b60" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>'+
       '<circle cx="'+X(iMax)+'" cy="'+Y(mx)+'" r="4.5" fill="#30D158"/>'+
       '<circle cx="'+X(iMin)+'" cy="'+Y(mn)+'" r="4.5" fill="#ff453a"/>'+
       '<circle cx="'+X(data.length-1)+'" cy="'+Y(data[data.length-1].val)+'" r="4" fill="#fff"/>'+
@@ -1108,7 +1118,7 @@ function updateCount(){
   function cargar(){
     fetch(URL_HIST).then(function(r){return r.text();}).then(function(t){
       var rows=csv(t); HISTX=[];
-      for(var i=1;i<rows.length;i++){var r=rows[i];if(!r||r.length<13)continue;var q=n(r[12]),sm=n(r[22]);if(isNaN(q)&&isNaN(sm))continue;var vv;if(!isNaN(q)&&!isNaN(sm))vv=(q+sm)/2;else vv=isNaN(q)?sm:q;HISTX.push({fecha:(r[0]||"").trim(),val:vv});}
+      for(var i=1;i<rows.length;i++){var r=rows[i];if(!r||r.length<13)continue;var q=n(r[12]),sm=n(r[22]);if(isNaN(q)&&isNaN(sm))continue;var vv;if(!isNaN(q)&&!isNaN(sm))vv=(q+sm)/2;else vv=isNaN(q)?sm:q;HISTX.push({fecha:(r[0]||"").trim(),val:vv,q:q,sm:sm});}
     }).catch(function(e){console.log("histX err",e);});
   }
   cargar();
@@ -1127,11 +1137,17 @@ function updateCount(){
     var W=600,H=220,pL=8,pR=8,pT=16,pB=16;
     function X(i){return pL+(data.length<=1?0:i/(data.length-1))*(W-pL-pR);}
     function Y(v){return pT+(1-(v-mn)/rg)*(H-pT-pB);}
+    // rango considerando las 3 series
+    var allv=[];
+    data.forEach(function(p){ allv.push(p.val); if(!isNaN(p.q))allv.push(p.q); if(!isNaN(p.sm))allv.push(p.sm); });
+    mn=Math.min.apply(null,allv); mx=Math.max.apply(null,allv); rg=(mx-mn)||1;
     var pts=data.map(function(p,i){return X(i)+','+Y(p.val);}).join(' ');
+    var ptsQ=data.filter(function(p){return !isNaN(p.q);}).map(function(p,i,arr){return X(data.indexOf(p))+','+Y(p.q);}).join(' ');
+    var ptsS=data.filter(function(p){return !isNaN(p.sm);}).map(function(p,i){return X(data.indexOf(p))+','+Y(p.sm);}).join(' ');
     var iMin=vals.indexOf(mn),iMax=vals.indexOf(mx);
     var zero='';if(mn<0&&mx>0){var zy=Y(0);zero='<line x1="'+pL+'" y1="'+zy+'" x2="'+(W-pR)+'" y2="'+zy+'" stroke="rgba(255,255,255,.12)" stroke-dasharray="3 3"/>';}
     var area='M '+X(0)+' '+Y(data[0].val)+' L '+data.map(function(p,i){return X(i)+' '+Y(p.val);}).join(' L ')+' L '+X(data.length-1)+' '+(H-pB)+' L '+X(0)+' '+(H-pB)+' Z';
-    cont.innerHTML='<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto;display:block"><defs><linearGradient id="hgX'+sfx+'" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="rgba(255,69,58,.28)"/><stop offset="1" stop-color="rgba(255,69,58,0)"/></linearGradient></defs>'+zero+'<path d="'+area+'" fill="url(#hgX'+sfx+')"/><polyline points="'+pts+'" fill="none" stroke="#ff6b60" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/><circle cx="'+X(iMax)+'" cy="'+Y(mx)+'" r="4.5" fill="#30D158"/><circle cx="'+X(iMin)+'" cy="'+Y(mn)+'" r="4.5" fill="#ff453a"/><circle cx="'+X(data.length-1)+'" cy="'+Y(data[data.length-1].val)+'" r="4" fill="#fff"/></svg>';
+    cont.innerHTML='<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto;display:block"><defs><linearGradient id="hgX'+sfx+'" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="rgba(255,69,58,.28)"/><stop offset="1" stop-color="rgba(255,69,58,0)"/></linearGradient></defs>'+zero+'<path d="'+area+'" fill="url(#hgX'+sfx+')"/><polyline points="'+ptsQ+'" fill="none" stroke="#0A84FF" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" opacity="0.9"/><polyline points="'+ptsS+'" fill="none" stroke="#30D158" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" opacity="0.9"/><polyline points="'+pts+'" fill="none" stroke="#ff6b60" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/><circle cx="'+X(iMax)+'" cy="'+Y(mx)+'" r="4.5" fill="#30D158"/><circle cx="'+X(iMin)+'" cy="'+Y(mn)+'" r="4.5" fill="#ff453a"/><circle cx="'+X(data.length-1)+'" cy="'+Y(data[data.length-1].val)+'" r="4" fill="#fff"/></svg>';
     setTxt('histMax'+sfx,fmt(mx));setTxt('histMin'+sfx,fmt(mn));setTxt('histMaxD'+sfx,fd(data[iMax].fecha));setTxt('histMinD'+sfx,fd(data[iMin].fecha));
     setHTML('histNow'+sfx,'Hoy el algoritmo está en <b style="color:#E8E8EE">'+fmt(data[data.length-1].val)+'</b> · '+data.length+' registros');
   }
