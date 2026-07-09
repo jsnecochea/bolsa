@@ -836,7 +836,15 @@ function updateCount(){
   };
 
   var got = { precios:false, hist:false, claude:false };
-  var LIVE = {}; // ticker -> {trim,mes,mio,smart,stren}
+  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-3";
+  // Letrero de estado visible en pantalla
+  var badge=document.createElement('div');
+  badge.id='liveBadge';
+  badge.style.cssText='position:fixed;top:8px;left:50%;transform:translateX(-50%);z-index:9999;background:rgba(10,132,255,.15);border:1px solid rgba(10,132,255,.5);color:#7fb8ff;font:600 11px -apple-system,sans-serif;padding:6px 12px;border-radius:100px;backdrop-filter:blur(8px)';
+  badge.textContent='Conectando con tu hoja…';
+  document.body.appendChild(badge);
+  var estado={precios:'…',historial:'…',claude:'…'};
+  function pinta(){ badge.innerHTML='precios '+estado.precios+' &middot; historial '+estado.historial+' &middot; claude '+estado.claude; }
 
   function fmtPct(v){ return (v>=0?'+':'\u2212')+Math.abs(v).toFixed(1)+'%'; }
 
@@ -882,8 +890,8 @@ function updateCount(){
       LIVE[tk]=LIVE[tk]||{};
       LIVE[tk].trim=num(r[17]); LIVE[tk].mes=num(r[18]); LIVE[tk].mio=num(r[19]);
     }
-    got.precios=true; tryUpdateAll();
-  }).catch(function(e){ console.log("precios err",e); });
+    got.precios=true; estado.precios='OK ('+Object.keys(LIVE).length+')'; pinta(); tryUpdateAll();
+  }).catch(function(e){ estado.precios='ERROR'; pinta(); console.log("precios err",e); });
 
   // historial: ultima fila; M(12)=algoQuantTrim N(13)=algoQuantMes W(22)=algoSmartTrim X(23)=algoSmartMes
   fetch(url(GID.historial)).then(function(r){return r.text();}).then(function(txt){
@@ -901,8 +909,8 @@ function updateCount(){
         var tel=document.getElementById('hAlgoTrim'); if(tel) tel.textContent=fmtPct(algoTrim);
       }
     }
-    got.hist=true; tryUpdateAll();
-  }).catch(function(e){ console.log("historial err",e); });
+    got.hist=true; estado.historial='OK'; pinta(); tryUpdateAll();
+  }).catch(function(e){ estado.historial='ERROR'; pinta(); console.log("historial err",e); });
 
   // claude: A=Fecha B=Estrategia C=Accion(2) D=Comprada E=Smart(4) F=Strength(5). Ultima aparicion por ticker.
   fetch(url(GID.claude)).then(function(r){return r.text();}).then(function(txt){
@@ -918,8 +926,8 @@ function updateCount(){
       if(!isNaN(sm)) LIVE[tk].smart=sm;
       if(!isNaN(st)) LIVE[tk].stren=st;
     }
-    got.claude=true; tryUpdateAll();
-  }).catch(function(e){ console.log("claude err",e); });
+    got.claude=true; estado.claude='OK'; pinta(); tryUpdateAll();
+  }).catch(function(e){ estado.claude='ERROR'; pinta(); console.log("claude err",e); });
 
   // Fecha de hoy
   try{
