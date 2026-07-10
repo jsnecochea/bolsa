@@ -581,7 +581,7 @@ function updateCount(){
   };
 
   var got = { precios:false, hist:false, claude:false };
-  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-40";
+  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-41";
   var estado={precios:false,historial:false,claude:false};
   function pinta(){
     var chip=document.getElementById('liveChip'); if(!chip) return;
@@ -787,8 +787,8 @@ function updateCount(){
         window.MIOS={}; tickers.forEach(function(t){ window.MIOS[t]=LIVE[t].mio; });
         window.MIOS_SUMA=sum; window.MIOS_N=n; window.MIOS_PROM=avg;
         // Monto ganado/perdido en vivo = invertido * rendimiento
-        var inv=window.INVERTIDO;
-        if(inv==null){ inv=n*10000; } // respaldo: 10,000 por posición
+        var inv=n*10000; // cada posición es $10,000
+        if(window.INVERTIDO!=null && window.INVERTIDO>0){ inv=window.INVERTIDO; }
         var gan=inv*avg/100;
         var chip=document.getElementById('hMioChip');
         if(chip){
