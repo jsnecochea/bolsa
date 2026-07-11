@@ -505,7 +505,7 @@
   <div class="foot" id="anFoot">Desliza las manijas o usa los atajos · no es asesoría de inversión</div>
 </div>
 
-<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v58</div>
+<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v59</div>
 <div class="tabbar">
   <button class="tab on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l9-8 9 8"/><path d="M5 10v10h14V10"/></svg><span>Resumen</span></button>
   <button class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><rect x="7" y="12" width="3" height="6"/><rect x="12" y="8" width="3" height="10"/><rect x="17" y="5" width="3" height="13"/></svg><span>Estrategias</span></button>
@@ -648,7 +648,7 @@ function updateCount(){
   };
 
   var got = { precios:false, hist:false, claude:false };
-  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-58";
+  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-59";
   var estado={precios:false,historial:false,claude:false};
   function pinta(){
     var chip=document.getElementById('liveChip'); if(!chip) return;
@@ -1336,10 +1336,10 @@ function updateCount(){
 
     // Valor de cada estrategia en el tramo (diferencia entre las dos fechas) desde HISTSTRAT
     function campo(strat, rec){
-      if(strat==="cartera") return rec.mi;
-      if(strat==="quant") return rec.miQ;
-      if(strat==="smart") return rec.miS;
-      if(strat==="algo") return rec.algo;
+      if(strat==="cartera") return rec.mi;         // mi rendimiento total
+      if(strat==="quant") return rec.algoQ;        // algoritmo Quant (desde inicio trim)
+      if(strat==="smart") return rec.algoS;        // algoritmo Smart (desde inicio trim)
+      if(strat==="algo") return rec.algo;          // algoritmo combinado
       return NaN;
     }
     function movStrat(strat){ var a=campo(strat,recA), b=campo(strat,recB); return (isNaN(a)||isNaN(b))?NaN:(b-a); }
@@ -1350,7 +1350,7 @@ function updateCount(){
     mainEl.textContent=fp(mainVal); mainEl.style.color = (isNaN(mainVal)||mainVal>=0)?'#4ade80':'#ff5a5a';
     document.getElementById('anMainLbl').textContent=lblMap[stratSel];
     // Nota si falta dato personal en alguna de las dos fechas (solo aplica a cartera/quant/smart)
-    var faltaMio = (stratSel!=='algo') && (isNaN(campo(stratSel,recA)) || isNaN(campo(stratSel,recB)));
+    var faltaMio = (stratSel==='cartera') && (isNaN(campo(stratSel,recA)) || isNaN(campo(stratSel,recB)));
     var notaEl=document.getElementById('anNotaMio');
     if(notaEl){
       if(faltaMio){ notaEl.style.display='block'; notaEl.innerHTML='En alguna de estas fechas no se guardó tu rendimiento personal (registros viejos). Tus datos están completos desde el 8 jul; el Algoritmo sí es confiable en todo el tramo.'; }
@@ -1392,7 +1392,7 @@ function updateCount(){
     var cruzaMes = mesA && mesB && (mesA!==mesB);
     var avEl=document.getElementById('anAviso');
     if(avEl){
-      if(cruzaMes && stratSel!=='algo'){
+      if(cruzaMes && stratSel==='cartera'){
         avEl.style.display='block';
         avEl.innerHTML='&#9888; El tramo cruza un cambio de mes. Tu rendimiento mensual se reinicia el día 1, así que este número no es exacto para Cartera, Quant y Smart. El Algoritmo (desde inicio de trimestre) sí es confiable.';
       } else { avEl.style.display='none'; }
