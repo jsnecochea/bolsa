@@ -495,6 +495,7 @@
     </div>
   </div>
 
+  <div id="anAviso" style="display:none;background:rgba(240,180,40,.12);border:1px solid rgba(240,180,40,.3);color:#f0c040;font-size:11px;line-height:1.5;padding:9px 12px;border-radius:10px;margin-bottom:14px;"></div>
   <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--dim2);margin-bottom:10px;">
     <span id="anListLbl">Quién movió la aguja</span>
     <span style="color:var(--dim2)">cambio · aporte</span>
@@ -503,7 +504,7 @@
   <div class="foot" id="anFoot">Desliza las manijas o usa los atajos · no es asesoría de inversión</div>
 </div>
 
-<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v54</div>
+<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v56</div>
 <div class="tabbar">
   <button class="tab on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l9-8 9 8"/><path d="M5 10v10h14V10"/></svg><span>Resumen</span></button>
   <button class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><rect x="7" y="12" width="3" height="6"/><rect x="12" y="8" width="3" height="10"/><rect x="17" y="5" width="3" height="13"/></svg><span>Estrategias</span></button>
@@ -646,7 +647,7 @@ function updateCount(){
   };
 
   var got = { precios:false, hist:false, claude:false };
-  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-54";
+  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-56";
   var estado={precios:false,historial:false,claude:false};
   function pinta(){
     var chip=document.getElementById('liveChip'); if(!chip) return;
@@ -962,7 +963,9 @@ function updateCount(){
     var H=(rows[0]||[]).map(function(x){return (x||"").trim().toLowerCase();});
     function ix(nombre){ return H.indexOf(nombre); }
     var iFecha=ix("fecha"), iQT=ix("cuant_trim"), iST=ix("smart_trim"), iIQ=ix("inv_cuant"), iIS=ix("inv_smart");
+    var iYQ=ix("yo_mes_cuant"), iYS=ix("yo_mes_smart");
     var serie=[];
+    var estrat=[];
     var ultInv=null;
     for(var i=1;i<rows.length;i++){
       var r=rows[i]; if(!r) continue;
@@ -974,12 +977,17 @@ function updateCount(){
       var q=(iQT>=0?num(r[iQT]):NaN), sm=(iST>=0?num(r[iST]):NaN);
       if(isNaN(q)||isNaN(sm)) continue;
       serie.push({fecha:fchS, val:(q+sm)/2});
+      var yq=(iYQ>=0?num(r[iYQ]):NaN), ys=(iYS>=0?num(r[iYS]):NaN);
+      estrat.push({fecha:fchS, algoQ:q, algoS:sm, algo:(q+sm)/2, miQ:yq, miS:ys,
+                   mi:((!isNaN(yq)&&!isNaN(ys))?(yq+ys)/2:(isNaN(yq)?ys:yq))});
       var d=(iIQ>=0?num(r[iIQ]):NaN), e=(iIS>=0?num(r[iIS]):NaN);
       if(!isNaN(d)||!isNaN(e)){ ultInv=(isNaN(d)?0:d)+(isNaN(e)?0:e); }
     }
     window.HIST=serie;
+    window.HISTSTRAT=estrat;
     if(ultInv!=null){ window.INVERTIDO=ultInv; }
     got.hist=true; estado.historial=true; pinta(); tryUpdateAll();
+    if(window.dibujarAnalisis && document.getElementById("viewAnalisis") && document.getElementById("viewAnalisis").classList.contains("on")){ try{window.dibujarAnalisis();}catch(e){} }
   }).catch(function(e){ estado.historial=false; pinta(); console.log("historial err",e); });
 
   // claude: ubicar columnas por encabezado (Acción/Smart/Strength). Última aparición por ticker.
@@ -1287,22 +1295,19 @@ function updateCount(){
   function valDe(rec, strat, tk){ return strat==="algo" ? (rec.algo?rec.algo[tk]:NaN) : (rec.mias?rec.mias[tk]:NaN); }
 
   window.dibujarAnalisis=function(){
-    var recs=window.REND||[];
-    // filtrar solo hábiles y con datos
-    var utiles=recs.filter(function(x){return esHabil(x.fecha);});
-    // una entrada por fecha (última del día)
-    var porFecha={};
-    utiles.forEach(function(x){ porFecha[x.fecha]=x; });
-    var fechas=Object.keys(porFecha).sort();
-    window.REND_FECHAS=fechas.map(function(f){return porFecha[f];});
+    // ARRIBA: usa HISTORIAL (todo el trimestre). ABAJO: usa RENDIMIENTO (se va llenando).
+    var hs=(window.HISTSTRAT||[]).filter(function(x){return esHabil(x.fecha);});
+    var porF={}; hs.forEach(function(x){ porF[x.fecha]=x; });
+    var fechas=Object.keys(porF).sort();
+    window.REND_FECHAS=fechas.map(function(f){return porF[f];});
     var N=window.REND_FECHAS.length;
     var foot=document.getElementById('anFoot');
     if(N<2){
       document.getElementById('anMainVal').textContent='—';
-      document.getElementById('anList').innerHTML='<div style="text-align:center;color:var(--dim2);padding:24px 0;font-size:13px">Aún no hay suficientes registros.<br>El robot va acumulando 3 veces al día.</div>';
+      document.getElementById('anList').innerHTML='<div style="text-align:center;color:var(--dim2);padding:24px 0;font-size:13px">Aún no hay suficiente historial.</div>';
       document.getElementById('anCompare').innerHTML='';
       document.getElementById('anDates').innerHTML='';
-      if(foot) foot.textContent=N+' registro(s) · se enriquece solo con los días';
+      if(foot) foot.textContent=N+' registro(s)';
       return;
     }
     if(idxB<=idxA){ idxA=0; idxB=N-1; }
@@ -1316,7 +1321,6 @@ function updateCount(){
   function render(){
     var F=window.REND_FECHAS, N=F.length;
     var recA=F[idxA], recB=F[idxB];
-    // posiciones de manijas
     var pa=(idxA/(N-1))*100, pb=(idxB/(N-1))*100;
     document.getElementById('anHandleA').style.left=pa+'%';
     document.getElementById('anHandleB').style.left=pb+'%';
@@ -1328,60 +1332,61 @@ function updateCount(){
     bA.textContent=fmtFecha(recA.fecha); bB.textContent=fmtFecha(recB.fecha);
     document.getElementById('anDates').innerHTML='<span>'+fmtFecha(F[0].fecha)+'</span><span>'+fmtFecha(F[N-1].fecha)+'</span>';
 
-    // cambio por acción en el tramo (estrategia seleccionada)
-    var tks=tickersDe(recB, stratSel);
-    var filas=[];
-    tks.forEach(function(tk){
-      var vA=valDe(recA,stratSel,tk), vB=valDe(recB,stratSel,tk);
-      if(isNaN(vA)||isNaN(vB)) return;
-      var chg=(vB-vA)*100; // puntos porcentuales
-      filas.push({tk:tk, chg:chg});
-    });
-    filas.sort(function(a,b){return b.chg-a.chg;});
-    var nF=filas.length||1;
-    var mx=1; filas.forEach(function(x){ if(Math.abs(x.chg)>mx)mx=Math.abs(x.chg); });
-
-    // número principal + comparativas
-    var totCartera=(recB.miTotal-recA.miTotal)*100;
-    function promStrat(strat){
-      var tt=tickersDe(recB,strat), s=0,c=0;
-      tt.forEach(function(tk){var a=valDe(recA,strat,tk),b=valDe(recB,strat,tk); if(!isNaN(a)&&!isNaN(b)){s+=(b-a)*100;c++;}});
-      return c?s/c:NaN;
+    // Valor de cada estrategia en el tramo (diferencia entre las dos fechas) desde HISTSTRAT
+    function campo(strat, rec){
+      if(strat==="cartera") return rec.mi;
+      if(strat==="quant") return rec.miQ;
+      if(strat==="smart") return rec.miS;
+      if(strat==="algo") return rec.algo;
+      return NaN;
     }
-    var mainVal = stratSel==="cartera"? totCartera : promStrat(stratSel);
-    var mainEl=document.getElementById('anMainVal');
-    mainEl.textContent=fp(mainVal); mainEl.style.color = mainVal>=0?'#4ade80':'#ff5a5a';
-    var lblMap={cartera:'Mi cartera',quant:'Quant',smart:'Smart',algo:'Algoritmo'};
-    document.getElementById('anMainLbl').textContent=lblMap[stratSel];
-    document.getElementById('anListLbl').textContent='Quién movió la aguja · '+lblMap[stratSel].toLowerCase();
+    function movStrat(strat){ var a=campo(strat,recA), b=campo(strat,recB); return (isNaN(a)||isNaN(b))?NaN:(b-a); }
 
-    // comparativas difuminadas (las otras tres)
-    var comps=[]; ['algo','quant','smart','cartera'].forEach(function(k){
-      if(k===stratSel) return;
-      var v = k==='cartera'? totCartera : promStrat(k);
-      comps.push({k:k,v:v});
-    });
+    var lblMap={cartera:'Mi cartera',quant:'Quant',smart:'Smart',algo:'Algoritmo'};
+    var mainVal=movStrat(stratSel);
+    var mainEl=document.getElementById('anMainVal');
+    mainEl.textContent=fp(mainVal); mainEl.style.color = (isNaN(mainVal)||mainVal>=0)?'#4ade80':'#ff5a5a';
+    document.getElementById('anMainLbl').textContent=lblMap[stratSel];
+
+    var comps=[]; ['algo','quant','smart','cartera'].forEach(function(k){ if(k===stratSel) return; comps.push({k:k,v:movStrat(k)}); });
     document.getElementById('anCompare').innerHTML=comps.map(function(c){
-      var col=c.v>=0?'#4ade80':'#ff5a5a';
+      var col=(isNaN(c.v)||c.v>=0)?'#4ade80':'#ff5a5a';
       return '<div style="text-align:right"><div style="font-size:10px;color:var(--dim2)">'+lblMap[c.k]+'</div><div style="font-size:15px;font-weight:600;color:'+col+'">'+fp(c.v)+'</div></div>';
     }).join('');
 
-    // lista de acciones
-    var html='';
-    filas.forEach(function(x){
-      var w=(Math.abs(x.chg)/mx*50).toFixed(1);
-      var apt=(x.chg/nF); // aporte aproximado (peso igual)
-      var pos=x.chg>=0;
-      var bar= pos
-        ? '<div class="an-bar" style="left:50%;width:'+w+'%;background:#1baf7a;border-radius:0 3px 3px 0"></div>'
-        : '<div class="an-bar" style="right:50%;width:'+w+'%;background:#e24b4a;border-radius:3px 0 0 3px"></div>';
-      html+='<div class="an-row"><div class="an-tk">'+x.tk+'</div>'+
-        '<div class="an-track"><div class="an-zero"></div>'+bar+'</div>'+
-        '<div class="an-chg" style="color:'+(pos?'#4ade80':'#ff5a5a')+'">'+fp(x.chg)+'</div>'+
-        '<div class="an-apt">'+(apt>=0?'+':'\u2212')+Math.abs(apt).toFixed(1)+'</div></div>';
-    });
-    document.getElementById('anList').innerHTML=html||'<div style="text-align:center;color:var(--dim2);padding:20px 0;font-size:13px">Sin acciones en esta selección</div>';
-    var foot=document.getElementById('anFoot'); if(foot) foot.textContent=N+' días hábiles · no es asesoría de inversión';
+    // ABAJO: desglose por acción desde RENDIMIENTO (si hay datos para esas fechas)
+    document.getElementById('anListLbl').textContent='Quién movió la aguja · '+lblMap[stratSel].toLowerCase();
+    var rendMap={}; (window.REND||[]).filter(function(x){return esHabil(x.fecha);}).forEach(function(x){ rendMap[x.fecha]=x; });
+    var rA=rendMap[recA.fecha], rB=rendMap[recB.fecha];
+    if(!rA || !rB){
+      document.getElementById('anList').innerHTML='<div style="text-align:center;color:var(--dim2);padding:20px 0;font-size:13px">El desglose por acción se activa cuando el robot de rendimiento tenga esas dos fechas.<br>Se va llenando con los días.</div>';
+    } else {
+      var tks=tickersDe(rB, stratSel), filas=[];
+      tks.forEach(function(tk){ var a=valDe(rA,stratSel,tk), b=valDe(rB,stratSel,tk); if(isNaN(a)||isNaN(b))return; filas.push({tk:tk,chg:(b-a)*100}); });
+      filas.sort(function(a,b){return b.chg-a.chg;});
+      var nF=filas.length||1, mx=1; filas.forEach(function(x){ if(Math.abs(x.chg)>mx)mx=Math.abs(x.chg); });
+      var html='';
+      filas.forEach(function(x){
+        var w=(Math.abs(x.chg)/mx*50).toFixed(1), apt=(x.chg/nF), pos=x.chg>=0;
+        var bar= pos?'<div class="an-bar" style="left:50%;width:'+w+'%;background:#1baf7a;border-radius:0 3px 3px 0"></div>'
+                     :'<div class="an-bar" style="right:50%;width:'+w+'%;background:#e24b4a;border-radius:3px 0 0 3px"></div>';
+        html+='<div class="an-row"><div class="an-tk">'+x.tk+'</div><div class="an-track"><div class="an-zero"></div>'+bar+'</div>'+
+          '<div class="an-chg" style="color:'+(pos?'#4ade80':'#ff5a5a')+'">'+fp(x.chg)+'</div>'+
+          '<div class="an-apt">'+(apt>=0?'+':'\u2212')+Math.abs(apt).toFixed(1)+'</div></div>';
+      });
+      document.getElementById('anList').innerHTML=html||'<div style="text-align:center;color:var(--dim2);padding:20px 0;font-size:13px">Sin acciones en esta selección</div>';
+    }
+    // Aviso si el tramo cruza cambio de mes (afecta métricas mensuales: cartera/quant/smart)
+    var mesA=(recA.fecha||'').slice(0,7), mesB=(recB.fecha||'').slice(0,7);
+    var cruzaMes = mesA && mesB && (mesA!==mesB);
+    var avEl=document.getElementById('anAviso');
+    if(avEl){
+      if(cruzaMes && stratSel!=='algo'){
+        avEl.style.display='block';
+        avEl.innerHTML='&#9888; El tramo cruza un cambio de mes. Tu rendimiento mensual se reinicia el día 1, así que este número no es exacto para Cartera, Quant y Smart. El Algoritmo (desde inicio de trimestre) sí es confiable.';
+      } else { avEl.style.display='none'; }
+    }
+    var foot=document.getElementById('anFoot'); if(foot) foot.textContent=N+' días hábiles · arriba todo el trimestre · no es asesoría';
   }
 
   // Interacción: selector estrategia
