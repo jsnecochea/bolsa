@@ -266,13 +266,13 @@
     <div class="duel-hero">
       <div class="dh-col">
         <div class="label">Mi rendimiento del mes</div>
-        <div class="pct" id="hMio">+4.9%</div>
-        <div class="dh-chip" id="hMioChip">&uarr; $6,921</div>
+        <div class="pct" id="hMio">+3.1%</div>
+        <div class="dh-chip" id="hMioChip">&uarr; $4,181</div>
       </div>
       <div class="dh-col" id="algoOpen" style="cursor:pointer" onclick="if(window.abrirHist)window.abrirHist();">
         <div class="label">Algoritmo del mes</div>
-        <div class="pct algo" id="hAlgo">&minus;9.9%</div>
-        <div class="dh-chip algo">Trim <b id="hAlgoTrim">&minus;9.9%</b></div>
+        <div class="pct algo" id="hAlgo">&minus;10.4%</div>
+        <div class="dh-chip algo">Trim <b id="hAlgoTrim">&minus;10.4%</b></div>
       </div>
     </div>
     <div class="statgrid">
@@ -542,7 +542,7 @@ function updateCount(){
 /* ====== LECTURA EN VIVO DESDE GOOGLE SHEETS ====== */
 (function(){
   var BASE = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ1gnRj1TvcXXF66yAreWKo6RON27GE3K2pZWq8LSxb98SNZeKpFuYaeHgovJTO9zM1QSeHb-cxWJ2N/pub";
-  var GID = { precios:"1127250102", historial:"1844874580", claude:"1972938992" };
+  var GID = { precios:"288876761", historial:"1844874580", claude:"1972938992" };
   function url(gid){ return BASE + "?gid=" + gid + "&single=true&output=csv"; }
 
   // Parser CSV que respeta comillas
@@ -581,7 +581,7 @@ function updateCount(){
   };
 
   var got = { precios:false, hist:false, claude:false };
-  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-41";
+  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-44";
   var estado={precios:false,historial:false,claude:false};
   function pinta(){
     var chip=document.getElementById('liveChip'); if(!chip) return;
@@ -875,7 +875,8 @@ function updateCount(){
     var ultInv=null;
     for(var i=1;i<rows.length;i++){
       var r=rows[i]; if(!r||r.length<23) continue;
-      var q=num(r[12]), sm=num(r[22]);
+      var invN=num(r[3]); var esN=(!isNaN(invN)&&Math.abs(invN)>1000);
+      var q=esN?num(r[14]):num(r[12]); var sm=esN?num(r[24]):num(r[22]);
       if(isNaN(q)||isNaN(sm)) continue;
       serie.push({fecha:(r[0]||"").trim(), val:(q+sm)/2});
       var d=num(r[3]), e=num(r[4]);
@@ -1013,7 +1014,11 @@ function updateCount(){
   function cargar(){
     fetch(URL_HIST).then(function(r){return r.text();}).then(function(t){
       var rows=csv(t); HISTX=[];
-      for(var i=1;i<rows.length;i++){var r=rows[i];if(!r||r.length<13)continue;var q=n(r[12]),sm=n(r[22]);if(isNaN(q)&&isNaN(sm))continue;var vv;if(!isNaN(q)&&!isNaN(sm))vv=(q+sm)/2;else vv=isNaN(q)?sm:q;HISTX.push({fecha:(r[0]||"").trim(),val:vv,q:q,sm:sm});}
+      for(var i=1;i<rows.length;i++){var r=rows[i];if(!r||r.length<13)continue;
+        var invNueva=n(r[3]); var esNuevo=(!isNaN(invNueva)&&Math.abs(invNueva)>1000);
+        var q=esNuevo?n(r[14]):n(r[12]); var sm=esNuevo?n(r[24]):n(r[22]);
+        if(isNaN(q)&&isNaN(sm))continue;var vv;if(!isNaN(q)&&!isNaN(sm))vv=(q+sm)/2;else vv=isNaN(q)?sm:q;
+        HISTX.push({fecha:(r[0]||"").trim(),val:vv,q:q,sm:sm});}
     }).catch(function(e){console.log("histX err",e);});
   }
   cargar();
