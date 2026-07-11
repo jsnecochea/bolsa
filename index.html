@@ -581,7 +581,7 @@ function updateCount(){
   };
 
   var got = { precios:false, hist:false, claude:false };
-  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-44";
+  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-49";
   var estado={precios:false,historial:false,claude:false};
   function pinta(){
     var chip=document.getElementById('liveChip'); if(!chip) return;
@@ -826,32 +826,55 @@ function updateCount(){
   // precios: col16=Q Ticker,17=R Trim,18=S Mes,19=T Mio
   fetch(url(GID.precios)).then(function(r){return r.text();}).then(function(txt){
     var rows=parseCSV(txt);
-    for(var i=1;i<rows.length;i++){
-      var r=rows[i]; if(!r||r.length<18) continue;
-      var raw=(r[17]||"").trim(); if(!raw) continue;
+    // Mapa etiqueta -> valor (escanea toda la hoja; etiqueta en una celda, valor en la de al lado)
+    window.ESPEJO = {};
+    for (var ri=0; ri<rows.length; ri++){
+      var rr=rows[ri]; if(!rr) continue;
+      for (var ci=0; ci<rr.length; ci++){
+        var celda=(rr[ci]||"").trim();
+        if(celda && /^[a-z][a-z0-9_]+$/.test(celda)){ // parece etiqueta (minúsculas_guionbajo)
+          window.ESPEJO[celda]=(rr[ci+1]!==undefined?rr[ci+1]:"");
+        }
+      }
+    }
+    function esp(et){ return (window.ESPEJO && window.ESPEJO[et]!==undefined)? num(window.ESPEJO[et]) : NaN; }
+    // Ubicar columnas del bloque de acciones por su encabezado (Ticker/Trim/Mes/Mío)
+    var cTk=-1,cTrim=-1,cMes=-1,cMio=-1;
+    for(var hr=0; hr<rows.length && cTk<0; hr++){
+      var hh=rows[hr]||[];
+      for(var hc=0; hc<hh.length; hc++){
+        var v=(hh[hc]||"").trim().toLowerCase();
+        if(v==="ticker"){ cTk=hc; }
+        else if(v==="trim"){ cTrim=hc; }
+        else if(v==="mes"){ cMes=hc; }
+        else if(v==="mío"||v==="mio"){ cMio=hc; }
+      }
+      if(cTk<0){ cTrim=cMes=cMio=-1; } // no era la fila correcta
+    }
+    if(cTk<0){ cTk=17; cTrim=18; cMes=19; cMio=20; } // respaldo a posición vieja
+    for(var i=0;i<rows.length;i++){
+      var r=rows[i]; if(!r) continue;
+      var raw=(r[cTk]||"").trim(); if(!raw) continue;
       var tk=raw.split(" ")[0].toUpperCase();
       if(!META[tk]) continue;
       LIVE[tk]=LIVE[tk]||{};
-      LIVE[tk].trim=num(r[18]); LIVE[tk].mes=num(r[19]); LIVE[tk].mio=num(r[20]);
+      LIVE[tk].trim=num(r[cTrim]); LIVE[tk].mes=num(r[cMes]); LIVE[tk].mio=num(r[cMio]);
     }
     // Laboratorio: columna Z (índice 25), filas 2-17
     try{
       window.LAB={
-        q_trim:num(rows[1]&&rows[1][25]), q_mes:num(rows[2]&&rows[2][25]),
-        q_claude:num(rows[3]&&rows[3][25]), q_8smart:num(rows[4]&&rows[4][25]),
-        q_sm26:num(rows[5]&&rows[5][25]), q_sm25:num(rows[6]&&rows[6][25]),
-        q_str22:num(rows[7]&&rows[7][25]), q_str20:num(rows[8]&&rows[8][25]),
-        q_chicas:num(rows[9]&&rows[9][25]), q_viejas:num(rows[10]&&rows[10][25]),
-        s_trim:num(rows[11]&&rows[11][25]), s_mes:num(rows[12]&&rows[12][25]),
-        s_claude:num(rows[13]&&rows[13][25]), s_arranque:num(rows[14]&&rows[14][25]),
-        sem_trim:num(rows[15]&&rows[15][25]), sem_mes:num(rows[16]&&rows[16][25])
+        q_trim:esp('q_trim'), q_mes:esp('q_mes'), q_claude:esp('q_claude'), q_8smart:esp('q_8smart'),
+        q_sm26:esp('q_sm26'), q_sm25:esp('q_sm25'), q_str22:esp('q_str22'), q_str20:esp('q_str20'),
+        q_chicas:esp('q_chicas'), q_viejas:esp('q_viejas'),
+        s_trim:esp('s_trim'), s_mes:esp('s_mes'), s_claude:esp('s_claude'), s_arranque:esp('s_arranque'),
+        sem_trim:esp('sem_trim'), sem_mes:esp('sem_mes')
       };
       if(window.dibujarLab) window.dibujarLab();
     }catch(e){ console.log("lab err",e); }
     // Algoritmo desde columna W (índice 22): filas 2-5 (rows[1]..rows[4])
     try{
-      var aMesQ=num(rows[1]&&rows[1][22]), aMesS=num(rows[2]&&rows[2][22]);
-      var aTrimQ=num(rows[3]&&rows[3][22]), aTrimS=num(rows[4]&&rows[4][22]);
+      var aMesQ=esp('algo_mes_quant'), aMesS=esp('algo_mes_smart');
+      var aTrimQ=esp('algo_trim_quant'), aTrimS=esp('algo_trim_smart');
       if(!isNaN(aMesQ)&&!isNaN(aMesS)){
         var algoMes=(aMesQ+aMesS)/2;
         var el=document.getElementById('hAlgo'); if(el) el.textContent=fmtPct(algoMes);
@@ -870,16 +893,20 @@ function updateCount(){
   // historial: ultima fila; M(12)=algoQuantTrim N(13)=algoQuantMes W(22)=algoSmartTrim X(23)=algoSmartMes
   fetch(url(GID.historial)).then(function(r){return r.text();}).then(function(txt){
     var rows=parseCSV(txt);
-    // Construir serie del algoritmo del trimestre: promedio de col M(12) y W(22) por fila
+    // Ubicar columnas por encabezado (a prueba de cambios)
+    var H=(rows[0]||[]).map(function(x){return (x||"").trim().toLowerCase();});
+    function ix(nombre){ return H.indexOf(nombre); }
+    var iFecha=ix("fecha"), iQT=ix("cuant_trim"), iST=ix("smart_trim"), iIQ=ix("inv_cuant"), iIS=ix("inv_smart");
     var serie=[];
     var ultInv=null;
     for(var i=1;i<rows.length;i++){
-      var r=rows[i]; if(!r||r.length<23) continue;
-      var invN=num(r[3]); var esN=(!isNaN(invN)&&Math.abs(invN)>1000);
-      var q=esN?num(r[14]):num(r[12]); var sm=esN?num(r[24]):num(r[22]);
+      var r=rows[i]; if(!r) continue;
+      var fchS=(iFecha>=0?(r[iFecha]||"").trim():"");
+      var dS=parseFecha(fchS); if(dS){ var wS=dS.getDay(); if(wS===0||wS===6) continue; } // salta sáb/dom
+      var q=(iQT>=0?num(r[iQT]):NaN), sm=(iST>=0?num(r[iST]):NaN);
       if(isNaN(q)||isNaN(sm)) continue;
-      serie.push({fecha:(r[0]||"").trim(), val:(q+sm)/2});
-      var d=num(r[3]), e=num(r[4]);
+      serie.push({fecha:fchS, val:(q+sm)/2});
+      var d=(iIQ>=0?num(r[iIQ]):NaN), e=(iIS>=0?num(r[iIS]):NaN);
       if(!isNaN(d)||!isNaN(e)){ ultInv=(isNaN(d)?0:d)+(isNaN(e)?0:e); }
     }
     window.HIST=serie;
@@ -887,15 +914,23 @@ function updateCount(){
     got.hist=true; estado.historial=true; pinta(); tryUpdateAll();
   }).catch(function(e){ estado.historial=false; pinta(); console.log("historial err",e); });
 
-  // claude: A=Fecha B=Estrategia C=Accion(2) D=Comprada E=Smart(4) F=Strength(5). Ultima aparicion por ticker.
+  // claude: ubicar columnas por encabezado (Acción/Smart/Strength). Última aparición por ticker.
   fetch(url(GID.claude)).then(function(r){return r.text();}).then(function(txt){
     var rows=parseCSV(txt);
+    var H=(rows[0]||[]).map(function(x){return (x||"").trim().toLowerCase();});
+    var iAcc=-1,iSm=-1,iSt=-1;
+    for(var h=0; h<H.length; h++){
+      if(H[h]==="acción"||H[h]==="accion") iAcc=h;
+      else if(H[h]==="smart") iSm=h;
+      else if(H[h]==="strength") iSt=h;
+    }
+    if(iAcc<0){ iAcc=2; iSm=4; iSt=5; } // respaldo a posición vieja
     for(var i=1;i<rows.length;i++){
-      var r=rows[i]; if(!r||r.length<6) continue;
-      var raw=(r[2]||"").trim(); if(!raw) continue;
+      var r=rows[i]; if(!r) continue;
+      var raw=(r[iAcc]||"").trim(); if(!raw) continue;
       var tk=raw.split(" ")[0].toUpperCase();
       if(!META[tk]) continue;
-      var sm=num(r[4]), st=num(r[5]);
+      var sm=(iSm>=0?num(r[iSm]):NaN), st=(iSt>=0?num(r[iSt]):NaN);
       if(isNaN(sm)&&isNaN(st)) continue;
       LIVE[tk]=LIVE[tk]||{};
       if(!isNaN(sm)) LIVE[tk].smart=sm;
@@ -1014,11 +1049,14 @@ function updateCount(){
   function cargar(){
     fetch(URL_HIST).then(function(r){return r.text();}).then(function(t){
       var rows=csv(t); HISTX=[];
-      for(var i=1;i<rows.length;i++){var r=rows[i];if(!r||r.length<13)continue;
-        var invNueva=n(r[3]); var esNuevo=(!isNaN(invNueva)&&Math.abs(invNueva)>1000);
-        var q=esNuevo?n(r[14]):n(r[12]); var sm=esNuevo?n(r[24]):n(r[22]);
+      var H=(rows[0]||[]).map(function(x){return (x||"").trim().toLowerCase();});
+      var iFecha=H.indexOf("fecha"), iQT=H.indexOf("cuant_trim"), iST=H.indexOf("smart_trim");
+      for(var i=1;i<rows.length;i++){var r=rows[i];if(!r)continue;
+        var fch=(iFecha>=0?(r[iFecha]||"").trim():"");
+        var dd=pf(fch); if(dd){ var wd=dd.getDay(); if(wd===0||wd===6) continue; } // salta sáb/dom
+        var q=(iQT>=0?n(r[iQT]):NaN), sm=(iST>=0?n(r[iST]):NaN);
         if(isNaN(q)&&isNaN(sm))continue;var vv;if(!isNaN(q)&&!isNaN(sm))vv=(q+sm)/2;else vv=isNaN(q)?sm:q;
-        HISTX.push({fecha:(r[0]||"").trim(),val:vv,q:q,sm:sm});}
+        HISTX.push({fecha:fch,val:vv,q:q,sm:sm});}
     }).catch(function(e){console.log("histX err",e);});
   }
   cargar();
