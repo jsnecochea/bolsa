@@ -178,7 +178,7 @@
   .an-strat.on{background:rgba(58,160,255,.16);color:#8fc4ff;border-color:transparent;font-weight:600}
   .an-short{flex:1;text-align:center;padding:6px 0;font-size:12px;color:var(--dim);border:1px solid rgba(255,255,255,.09);border-radius:8px;cursor:pointer}
   .an-short.on{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.2);color:#fff;font-weight:600}
-  .an-handle{position:absolute;top:8px;width:18px;height:18px;border-radius:50%;background:#12121a;border:2px solid #3aa0ff;transform:translateX(-50%);cursor:grab;touch-action:none}
+  .an-handle{position:absolute;top:4px;width:26px;height:26px;border-radius:50%;background:#12121a;border:2px solid #3aa0ff;transform:translateX(-50%);cursor:grab;touch-action:none;box-shadow:0 2px 8px rgba(0,0,0,.5);z-index:5}
   .an-bubble{position:absolute;top:-14px;transform:translateX(-50%);background:#fff;color:#000;font-size:10px;font-weight:600;padding:2px 6px;border-radius:4px;white-space:nowrap;display:none}
   .an-row{display:flex;align-items:center;gap:8px;margin-bottom:11px}
   .an-tk{width:44px;font-size:12px;font-weight:600}
@@ -504,7 +504,7 @@
   <div class="foot" id="anFoot">Desliza las manijas o usa los atajos · no es asesoría de inversión</div>
 </div>
 
-<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v56</div>
+<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v57</div>
 <div class="tabbar">
   <button class="tab on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l9-8 9 8"/><path d="M5 10v10h14V10"/></svg><span>Resumen</span></button>
   <button class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><rect x="7" y="12" width="3" height="6"/><rect x="12" y="8" width="3" height="10"/><rect x="17" y="5" width="3" height="13"/></svg><span>Estrategias</span></button>
@@ -647,7 +647,7 @@ function updateCount(){
   };
 
   var got = { precios:false, hist:false, claude:false };
-  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-56";
+  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-57";
   var estado={precios:false,historial:false,claude:false};
   function pinta(){
     var chip=document.getElementById('liveChip'); if(!chip) return;
@@ -978,7 +978,7 @@ function updateCount(){
       if(isNaN(q)||isNaN(sm)) continue;
       serie.push({fecha:fchS, val:(q+sm)/2});
       var yq=(iYQ>=0?num(r[iYQ]):NaN), ys=(iYS>=0?num(r[iYS]):NaN);
-      estrat.push({fecha:fchS, algoQ:q, algoS:sm, algo:(q+sm)/2, miQ:yq, miS:ys,
+      estrat.push({fecha:fchS, hora:(ix('hora')>=0?(r[ix('hora')]||'').trim():''), algoQ:q, algoS:sm, algo:(q+sm)/2, miQ:yq, miS:ys,
                    mi:((!isNaN(yq)&&!isNaN(ys))?(yq+ys)/2:(isNaN(yq)?ys:yq))});
       var d=(iIQ>=0?num(r[iIQ]):NaN), e=(iIS>=0?num(r[iIS]):NaN);
       if(!isNaN(d)||!isNaN(e)){ ultInv=(isNaN(d)?0:d)+(isNaN(e)?0:e); }
@@ -1297,7 +1297,8 @@ function updateCount(){
   window.dibujarAnalisis=function(){
     // ARRIBA: usa HISTORIAL (todo el trimestre). ABAJO: usa RENDIMIENTO (se va llenando).
     var hs=(window.HISTSTRAT||[]).filter(function(x){return esHabil(x.fecha);});
-    var porF={}; hs.forEach(function(x){ porF[x.fecha]=x; });
+    hs.sort(function(a,b){ return (a.fecha+(a.hora||"")).localeCompare(b.fecha+(b.hora||"")); });
+    var porF={}; hs.forEach(function(x){ porF[x.fecha]=x; }); // último del día = cierre
     var fechas=Object.keys(porF).sort();
     window.REND_FECHAS=fechas.map(function(f){return porF[f];});
     var N=window.REND_FECHAS.length;
@@ -1356,7 +1357,9 @@ function updateCount(){
 
     // ABAJO: desglose por acción desde RENDIMIENTO (si hay datos para esas fechas)
     document.getElementById('anListLbl').textContent='Quién movió la aguja · '+lblMap[stratSel].toLowerCase();
-    var rendMap={}; (window.REND||[]).filter(function(x){return esHabil(x.fecha);}).forEach(function(x){ rendMap[x.fecha]=x; });
+    var rendArr=(window.REND||[]).filter(function(x){return esHabil(x.fecha);});
+    rendArr.sort(function(a,b){ return (a.fecha+(a.hora||"")).localeCompare(b.fecha+(b.hora||"")); });
+    var rendMap={}; rendArr.forEach(function(x){ rendMap[x.fecha]=x; }); // último del día = cierre
     var rA=rendMap[recA.fecha], rB=rendMap[recB.fecha];
     if(!rA || !rB){
       document.getElementById('anList').innerHTML='<div style="text-align:center;color:var(--dim2);padding:20px 0;font-size:13px">El desglose por acción se activa cuando el robot de rendimiento tenga esas dos fechas.<br>Se va llenando con los días.</div>';
