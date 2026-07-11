@@ -581,7 +581,7 @@ function updateCount(){
   };
 
   var got = { precios:false, hist:false, claude:false };
-  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-49";
+  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-50";
   var estado={precios:false,historial:false,claude:false};
   function pinta(){
     var chip=document.getElementById('liveChip'); if(!chip) return;
@@ -902,7 +902,10 @@ function updateCount(){
     for(var i=1;i<rows.length;i++){
       var r=rows[i]; if(!r) continue;
       var fchS=(iFecha>=0?(r[iFecha]||"").trim():"");
-      var dS=parseFecha(fchS); if(dS){ var wS=dS.getDay(); if(wS===0||wS===6) continue; } // salta sáb/dom
+      if(fchS){ var pS=null;
+        if(fchS.indexOf("-")>0){ var aS=fchS.split("-"); pS=new Date(+aS[0],+aS[1]-1,+aS[2]); }
+        else if(fchS.indexOf("/")>0){ var bS=fchS.split("/"); pS=new Date(+bS[2],+bS[1]-1,+bS[0]); }
+        if(pS){ var wS=pS.getDay(); if(wS===0||wS===6) continue; } } // salta sáb/dom
       var q=(iQT>=0?num(r[iQT]):NaN), sm=(iST>=0?num(r[iST]):NaN);
       if(isNaN(q)||isNaN(sm)) continue;
       serie.push({fecha:fchS, val:(q+sm)/2});
