@@ -200,6 +200,8 @@
   .st-hero{margin-top:22px;margin-bottom:6px}
   .st-hero h1{font-size:26px;font-weight:700;letter-spacing:-0.03em}
   .st-hero p{font-size:13px;color:var(--dim);font-weight:500;margin-top:6px;line-height:1.4}
+  .lab-trim{padding:6px 12px;font-size:12px;border-radius:8px;border:1px solid rgba(255,255,255,.1);color:var(--dim);cursor:pointer}
+  .lab-trim.on{background:rgba(58,160,255,.16);color:#8fc4ff;border-color:transparent;font-weight:600}
   .rk-card{border-radius:24px;padding:22px;margin-top:16px;background:linear-gradient(165deg,#17171E,#111116);border:1px solid rgba(255,255,255,.055);box-shadow:0 20px 40px -28px rgba(0,0,0,.8), inset 0 1px 0 rgba(255,255,255,.04)}
   .rk-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
   .rk-name{font-size:19px;font-weight:700}
@@ -318,8 +320,9 @@
 <div class="wrap view" id="viewEstrategias">
   <div class="st-hero">
     <h1>Laboratorio</h1>
-    <p>Cómo va cada variante de selección compitiendo con datos reales, sin arriesgar dinero. Ordenadas de mejor a peor este mes.</p>
   </div>
+
+  <div id="labTrims" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:4px;"></div>
 
   <div class="rk-card">
     <div class="rk-top"><div class="rk-name q">Quant</div><div class="rk-tag">desde inicio de mes</div></div>
@@ -505,7 +508,7 @@
   <div class="foot" id="anFoot">Desliza las manijas o usa los atajos · no es asesoría de inversión</div>
 </div>
 
-<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v59</div>
+<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v65</div>
 <div class="tabbar">
   <button class="tab on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l9-8 9 8"/><path d="M5 10v10h14V10"/></svg><span>Resumen</span></button>
   <button class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><rect x="7" y="12" width="3" height="6"/><rect x="12" y="8" width="3" height="10"/><rect x="17" y="5" width="3" height="13"/></svg><span>Estrategias</span></button>
@@ -526,6 +529,7 @@ tabs.forEach(function(t,i){
     document.querySelectorAll('.view').forEach(function(v){v.classList.remove('on');});
     var id=views[i];
     if(id){document.getElementById(id).classList.add('on');}
+    if(id==='viewEstrategias' && window.renderTrimBtns){ try{window.renderTrimBtns();}catch(e){} }
     if(id==='viewAlgoritmo' && window.dibujarAlgo){ try{window.dibujarAlgo();}catch(e){} }
     if(id==='viewAnalisis' && window.dibujarAnalisis){ try{window.dibujarAnalisis();}catch(e){} }
     window.scrollTo(0,0);
@@ -648,7 +652,7 @@ function updateCount(){
   };
 
   var got = { precios:false, hist:false, claude:false };
-  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-59";
+  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-65";
   var estado={precios:false,historial:false,claude:false};
   function pinta(){
     var chip=document.getElementById('liveChip'); if(!chip) return;
@@ -797,8 +801,101 @@ function updateCount(){
   }
 
 
+
+  // ---- Selección de trimestres para el laboratorio (acumulado) ----
+  function numL(x){ var v=parseFloat(String(x).replace(/[%$,\s]/g,"")); return isNaN(v)?NaN:v; }
+  function quarterDe(fecha){ // "YYYY-MM-..." -> "YYYY-Qn"
+    var a=fecha.split("-"); if(a.length<2) return null;
+    var y=+a[0], m=+a[1]; if(!y||!m) return null;
+    return y+"-Q"+Math.ceil(m/3);
+  }
+  function quarterActual(){ var d=new Date(); return d.getFullYear()+"-Q"+Math.ceil((d.getMonth()+1)/3); }
+  // Mapa lab_key -> columna del historial
+  var LAB2HIST={ q_chicas:"chicas", q_viejas:"viejas", q_str20:"str20", q_str22:"str22",
+    q_8smart:"mej8_smart", q_claude:"sel_ind_cuant", q_sm26:"sm26", q_sm25:"sm25", q_mes:"cuant_mes",
+    s_arranque:"arranque_30_29", s_mes:"smart_mes", s_claude:"sel_ind_smart",
+    q_trim:"cuant_trim", s_trim:"smart_trim", sem_trim:"semilla_trim", sem_mes:"semilla_mes" };
+  window.LAB_HIST={}; // { "YYYY-Qn": {lab_key:valor_cierre} }
+  window.selQuarters=null;
+
+  window.construirLabHist=function(rowsHist, H){
+    // rowsHist: filas del historial; H: encabezados en minúscula
+    function ix(n){ return H.indexOf(n); }
+    var porQ={}; // quarter -> ultima fila hábil
+    for(var i=1;i<rowsHist.length;i++){
+      var r=rowsHist[i]; if(!r) continue;
+      var fch=((ix("fecha")>=0?r[ix("fecha")]:"")||"").trim(); if(!fch) continue;
+      // saltar fines de semana
+      var p=null; if(fch.indexOf("-")>0){var a=fch.split("-");p=new Date(+a[0],+a[1]-1,+a[2]);}
+      if(p){var wd=p.getDay(); if(wd===0||wd===6) continue;}
+      var q=quarterDe(fch); if(!q) continue;
+      porQ[q]=r; // último del trimestre (van en orden)
+    }
+    var res={};
+    Object.keys(porQ).forEach(function(q){
+      var r=porQ[q]; var o={};
+      Object.keys(LAB2HIST).forEach(function(k){ var c=ix(LAB2HIST[k]); o[k]=(c>=0?numL(r[c]):NaN); });
+      res[q]=o;
+    });
+    window.LAB_HIST=res;
+    window.renderTrimBtns();
+  };
+
+  function trimestresDisponibles(){
+    var qs=Object.keys(window.LAB_HIST||{});
+    var d=new Date(), y=d.getFullYear(), qact=Math.ceil((d.getMonth()+1)/3);
+    for(var i=1;i<=qact;i++){ var k=y+"-Q"+i; if(qs.indexOf(k)<0) qs.push(k); }
+    qs.sort(); return qs;
+  }
+  function fmtQ(q){ var a=q.split("-Q"); return "T"+a[1]+" "+a[0].slice(2); }
+
+  window.renderTrimBtns=function(){
+    var cont=document.getElementById('labTrims'); if(!cont) return;
+    var qs=trimestresDisponibles();
+    var act=quarterActual();
+    if(window.selQuarters===null){ window.selQuarters={}; window.selQuarters[act]=true; }
+    cont.innerHTML=qs.slice().map(function(q){
+      var on=window.selQuarters[q]?' on':'';
+      return '<div class="lab-trim'+on+'" data-q="'+q+'">'+fmtQ(q)+'</div>';
+    }).join('');
+    cont.querySelectorAll('.lab-trim').forEach(function(b){
+      b.addEventListener('click',function(){
+        var q=b.getAttribute('data-q');
+        window.selQuarters[q]=!window.selQuarters[q];
+        if(!window.selQuarters[q]) delete window.selQuarters[q];
+        window.renderTrimBtns(); window.dibujarLab();
+      });
+    });
+  }
+
+  function labEfectivo(){
+    var act=quarterActual();
+    if(window.selQuarters===null) return window.LAB; // aún no cargan botones: en vivo
+    var sel=Object.keys(window.selQuarters||{});
+    if(!sel.length) return window.LAB;
+    // Solo actual seleccionado -> en vivo (window.LAB tal cual)
+    if(sel.length===1 && sel[0]===act) return window.LAB;
+    // Acumulado: sumar por lab_key sobre trimestres seleccionados
+    var keys=["q_chicas","q_viejas","q_str20","q_str22","q_8smart","q_claude","q_sm26","q_sm25","q_mes","s_arranque","s_mes","s_claude","q_trim","s_trim","sem_trim","sem_mes"];
+    var out={};
+    keys.forEach(function(k){
+      var suma=0, hay=false;
+      sel.forEach(function(q){
+        var val;
+        if(q===act){ val=window.LAB?window.LAB[k]:NaN; }
+        else { val=(window.LAB_HIST[q]?window.LAB_HIST[q][k]:NaN); }
+        if(!isNaN(val)){ suma+=val; hay=true; }
+      });
+      out[k]=hay?suma:NaN;
+    });
+    return out;
+  }
+
+  if(document.readyState!=="loading"){ setTimeout(function(){try{window.renderTrimBtns();}catch(e){}},60); } else { document.addEventListener("DOMContentLoaded",function(){try{window.renderTrimBtns();}catch(e){}}); }
+
   window.dibujarLab=function(){
-    var L=window.LAB; if(!L) return;
+    if(window.renderTrimBtns){ try{window.renderTrimBtns();}catch(e){} }
+    var L=labEfectivo(); if(!L) return;
     function fp(v){ return (v>=0?'+':'\u2212')+Math.abs(v).toFixed(1)+'%'; }
     function card(items, contId){
       var cont=document.getElementById(contId); if(!cont) return;
@@ -986,6 +1083,7 @@ function updateCount(){
     }
     window.HIST=serie;
     window.HISTSTRAT=estrat;
+    if(window.construirLabHist){ try{ window.construirLabHist(rows, H); }catch(e){ console.log("labhist err",e); } }
     if(ultInv!=null){ window.INVERTIDO=ultInv; }
     got.hist=true; estado.historial=true; pinta(); tryUpdateAll();
     if(window.dibujarAnalisis && document.getElementById("viewAnalisis") && document.getElementById("viewAnalisis").classList.contains("on")){ try{window.dibujarAnalisis();}catch(e){} }
