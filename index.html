@@ -205,7 +205,7 @@
   .rk-card{border-radius:24px;padding:22px;margin-top:16px;background:linear-gradient(165deg,#17171E,#111116);border:1px solid rgba(255,255,255,.055);box-shadow:0 20px 40px -28px rgba(0,0,0,.8), inset 0 1px 0 rgba(255,255,255,.04)}
   .rk-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
   .rk-name{font-size:19px;font-weight:700}
-  .rk-name.q{color:var(--blue)} .rk-name.s{color:var(--purple)}
+  .rk-name.q{color:var(--blue)} .rk-name.s{color:var(--purple)} .rk-name.z{color:#BF5AF2}
   .rk-tag{font-size:11px;color:var(--dim2);font-weight:600}
   .rk-row{display:flex;align-items:center;gap:11px;margin-bottom:11px}
   .rk-rank{font-size:12px;font-weight:700;color:var(--dim2);width:16px;flex:none;text-align:center}
@@ -333,6 +333,11 @@
   <div class="rk-card">
     <div class="rk-top"><div class="rk-name s">Smart</div><div class="rk-tag">desde inicio de mes</div></div>
     <div id="labSmart"></div>
+  </div>
+
+  <div class="rk-card">
+    <div class="rk-top"><div class="rk-name z">Chica</div><div class="rk-tag">desde inicio de mes</div></div>
+    <div id="labChica"></div>
   </div>
 
   <div class="rk-card">
@@ -519,7 +524,7 @@
   <div class="foot" id="anFoot">Desliza las manijas o usa los atajos · no es asesoría de inversión</div>
 </div>
 
-<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v73</div>
+<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v74</div>
 <div class="tabbar">
   <button class="tab on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l9-8 9 8"/><path d="M5 10v10h14V10"/></svg><span>Resumen</span></button>
   <button class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><rect x="7" y="12" width="3" height="6"/><rect x="12" y="8" width="3" height="10"/><rect x="17" y="5" width="3" height="13"/></svg><span>Estrategias</span></button>
@@ -683,7 +688,7 @@ function updateCount(){
   };
 
   var got = { precios:false, hist:false, claude:false };
-  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-73";
+  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-74";
   var estado={precios:false,historial:false,claude:false};
   function pinta(){
     var chip=document.getElementById('liveChip'); if(!chip) return;
@@ -952,6 +957,7 @@ function updateCount(){
         if(it.tag==='mia'){ mine='<span class="mine">MÍA</span>'; rowcls=' rk-mine-row'; }
         else if(it.tag==='quant'){ mine='<span class="mine" style="background:var(--blue);color:#fff">QUANT</span>'; }
         else if(it.tag==='smart'){ mine='<span class="mine" style="background:var(--purple);color:#fff">SMART</span>'; }
+        else if(it.tag==='chica'){ mine='<span class="mine" style="background:#BF5AF2;color:#fff">CHICA</span>'; }
         var cls=it.v>=0?'g':'r';
         html+='<div class="rk-row'+rowcls+'"><div class="rk-rank">'+(i+1)+'</div>'+
           '<div class="rk-mid"><div class="rk-lbl">'+it.lbl+mine+'</div>'+
@@ -976,6 +982,10 @@ function updateCount(){
       {lbl:'Todo el Smart', v:L.s_mes, tag:'smart'},
       {lbl:'Mi selección (industria)', v:L.s_claude, tag:'mia'}
     ], 'labSmart');
+    card([
+      {lbl:'Todo el Chica', v:L.sem_mes, tag:'chica'},
+      {lbl:'Chica desde inicio trim', v:L.sem_trim, tag:''}
+    ], 'labChica');
   };
 
   window.heroShotSel='all';
