@@ -138,8 +138,59 @@
   .bar .cap{position:absolute;top:-3px;bottom:-3px;left:50%;width:2px;background:rgba(255,255,255,.5)}
   .conc-foot{display:flex;justify-content:space-between;margin-top:9px;font-size:11px;color:var(--dim2);font-weight:600}
   .foot{text-align:center;font-size:11px;color:#4A4A52;font-weight:500;margin-top:30px;margin-bottom:80px}
-  .tabbar{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);display:flex;gap:4px;background:rgba(28,28,34,.74);backdrop-filter:blur(20px) saturate(1.4);border:1px solid rgba(255,255,255,.09);border-radius:100px;padding:4px;box-shadow:0 18px 44px -12px rgba(0,0,0,.8), inset 0 1px 0 rgba(255,255,255,.08);z-index:90}
-  .tab{display:flex;align-items:center;gap:7px;padding:8px 16px;border-radius:100px;cursor:pointer;border:none;background:none;color:var(--dim2);transition:all .2s ease}
+  .hist-bg{position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(6px);z-index:200;display:none;align-items:flex-end;justify-content:center}
+  .hist-bg.open{display:flex}
+  .hist-modal{background:linear-gradient(180deg,#16161d,#0e0e13);border:1px solid rgba(255,255,255,.08);border-radius:26px 26px 0 0;width:100%;max-width:640px;padding:22px 20px 34px;max-height:88vh;overflow-y:auto}
+  .hist-grip{width:38px;height:4px;background:rgba(255,255,255,.2);border-radius:100px;margin:0 auto 16px}
+  .hist-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}
+  .hist-h h2{font-size:19px;font-weight:700}
+  .hist-x{background:rgba(255,255,255,.08);border:none;color:#fff;width:30px;height:30px;border-radius:50%;font-size:16px;cursor:pointer}
+  .hist-sel{display:flex;gap:7px;margin-bottom:16px;flex-wrap:wrap}
+  .hist-sb{font-size:12px;font-weight:600;color:var(--dim);background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.07);border-radius:100px;padding:7px 15px;cursor:pointer}
+  .hist-sb.on{background:rgba(255,69,58,.16);color:#ff8079;border-color:rgba(255,69,58,.35)}
+  .hist-mm{display:flex;gap:11px}
+  .hist-card{flex:1;min-width:0;background:rgba(255,255,255,.04);border-radius:14px;padding:11px 12px}
+  .hist-card .l{font-size:10px;color:var(--dim2);font-weight:700;text-transform:uppercase;letter-spacing:.03em}
+  .hist-card .v{font-size:18px;font-weight:800;margin:3px 0;font-variant-numeric:tabular-nums}
+  .hist-card .d{font-size:11px;color:var(--dim)}
+  .hist-card.min .v{color:#ff6b60} .hist-card.max .v{color:#7ee89f} .hist-card.now .v{color:#fff}
+  .strat-cards{display:flex;flex-direction:column;gap:9px;margin-top:18px}
+  .strat-card{position:relative;overflow:hidden;border-radius:16px;padding:11px 16px;display:flex;align-items:center;gap:14px;
+    background:linear-gradient(100deg, color-mix(in srgb, var(--acc) 15%, #0d0d12), #0b0b10 55%);
+    border:1px solid color-mix(in srgb, var(--acc) 20%, rgba(255,255,255,.04));
+    box-shadow:0 8px 24px -16px rgba(0,0,0,.9), inset 0 1px 0 rgba(255,255,255,.05)}
+  .strat-card::before{content:"";position:absolute;top:-60%;left:-8%;width:45%;height:220%;
+    background:radial-gradient(circle, var(--acc), transparent 65%);opacity:.16;pointer-events:none;filter:blur(4px)}
+  .sc-name{display:flex;align-items:center;gap:7px;font-size:12px;font-weight:800;color:#fff;letter-spacing:.02em;
+    width:82px;flex:none;position:relative;z-index:1}
+  .sc-dot{width:8px;height:8px;border-radius:50%;background:var(--acc);box-shadow:0 0 10px 1px var(--acc);flex:none}
+  .sc-vals{display:flex;justify-content:space-between;gap:6px;position:relative;z-index:1;flex:1}
+  .sc-v{flex:1;text-align:center}
+  .sc-l{font-size:8px;color:var(--dim2);font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px}
+  .sc-n{font-size:16px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1;letter-spacing:-.01em}
+  .sc-n.up{color:#7ee89f} .sc-n.down{color:#ff6b60} .sc-n.now{color:#fff}
+  .sc-v.mid{background:rgba(255,255,255,.06);border-radius:10px;padding:4px 2px;margin:0 1px}
+  .sc-d{font-size:9px;color:var(--dim2);margin-top:4px;font-weight:500}
+  .hist-lbl{font-size:12px;font-weight:700;margin:16px 0 8px;letter-spacing:.01em}
+  .hist-now{text-align:center;font-size:12.5px;color:var(--dim);margin-top:14px}
+  .hist-now b{color:#E8E8EE}
+  .an-strat{flex:1;text-align:center;padding:7px 0;font-size:13px;color:var(--dim);border:1px solid rgba(255,255,255,.09);border-radius:9px;cursor:pointer}
+  .an-strat.on{background:rgba(58,160,255,.16);color:#8fc4ff;border-color:transparent;font-weight:600}
+  .an-short{flex:1;text-align:center;padding:6px 0;font-size:12px;color:var(--dim);border:1px solid rgba(255,255,255,.09);border-radius:8px;cursor:pointer}
+  .an-short.on{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.2);color:#fff;font-weight:600}
+  .an-handle{position:absolute;top:4px;width:26px;height:26px;border-radius:50%;background:#12121a;border:2px solid #3aa0ff;transform:translateX(-50%);cursor:grab;touch-action:none;box-shadow:0 2px 8px rgba(0,0,0,.5);z-index:5}
+  .an-bubble{position:absolute;top:-14px;transform:translateX(-50%);background:#fff;color:#000;font-size:10px;font-weight:600;padding:2px 6px;border-radius:4px;white-space:nowrap;display:none}
+  .an-row{display:flex;align-items:center;gap:8px;margin-bottom:11px}
+  .an-tk{width:44px;font-size:12px;font-weight:600}
+  .an-track{flex:1;position:relative;height:16px}
+  .an-zero{position:absolute;left:50%;top:0;bottom:0;width:1px;background:rgba(255,255,255,.18)}
+  .an-bar{position:absolute;top:2px;height:12px}
+  .an-chg{width:44px;text-align:right;font-size:12px;font-weight:600}
+  .an-apt{width:38px;text-align:right;font-size:11px;color:var(--dim2)}
+  .tabbar{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);display:flex;gap:2px;max-width:94vw;background:rgba(28,28,34,.74);backdrop-filter:blur(20px) saturate(1.4);border:1px solid rgba(255,255,255,.09);border-radius:100px;padding:4px;box-shadow:0 18px 44px -12px rgba(0,0,0,.8), inset 0 1px 0 rgba(255,255,255,.08);z-index:90}
+  .tab{display:flex;align-items:center;gap:6px;padding:8px 11px;border-radius:100px;cursor:pointer;border:none;background:none;color:var(--dim2);transition:all .2s ease}
+  .tab span{display:none;font-size:12px}
+  .tab.on span{display:inline}
   .tab svg{width:16px;height:16px}
   .tab span{font-size:12px;font-weight:600}
   .tab.on{background:rgba(255,255,255,.1);color:var(--txt)}
@@ -149,6 +200,8 @@
   .st-hero{margin-top:22px;margin-bottom:6px}
   .st-hero h1{font-size:26px;font-weight:700;letter-spacing:-0.03em}
   .st-hero p{font-size:13px;color:var(--dim);font-weight:500;margin-top:6px;line-height:1.4}
+  .lab-trim{padding:6px 12px;font-size:12px;border-radius:8px;border:1px solid rgba(255,255,255,.1);color:var(--dim);cursor:pointer}
+  .lab-trim.on{background:rgba(58,160,255,.16);color:#8fc4ff;border-color:transparent;font-weight:600}
   .rk-card{border-radius:24px;padding:22px;margin-top:16px;background:linear-gradient(165deg,#17171E,#111116);border:1px solid rgba(255,255,255,.055);box-shadow:0 20px 40px -28px rgba(0,0,0,.8), inset 0 1px 0 rgba(255,255,255,.04)}
   .rk-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
   .rk-name{font-size:19px;font-weight:700}
@@ -230,13 +283,13 @@
     <div class="duel-hero">
       <div class="dh-col">
         <div class="label">Mi rendimiento del mes</div>
-        <div class="pct" id="hMio">+4.9%</div>
-        <div class="dh-chip" id="hMioChip">&uarr; $6,921</div>
+        <div class="pct" id="hMio">+3.1%</div>
+        <div class="dh-chip" id="hMioChip">&uarr; $4,181</div>
       </div>
-      <div class="dh-col">
+      <div class="dh-col" id="algoOpen" style="cursor:pointer" onclick="if(window.abrirHist)window.abrirHist();">
         <div class="label">Algoritmo del mes</div>
-        <div class="pct algo" id="hAlgo" style="cursor:pointer">&minus;9.9%</div>
-        <div class="dh-chip algo">Trim <b id="hAlgoTrim">&minus;9.9%</b></div>
+        <div class="pct algo" id="hAlgo">&minus;10.4%</div>
+        <div class="dh-chip algo">Trim <b id="hAlgoTrim">&minus;10.4%</b></div>
       </div>
     </div>
     <div class="statgrid">
@@ -252,326 +305,39 @@
   <!-- ALERTAS -->
   <div class="section-cap">Alertas &middot; requieren atención</div>
   <div class="card">
-    <div class="a-head"><div><div class="card-title">Requieren atención</div><div style="font-size:11px;color:var(--dim2);font-weight:500;margin-top:2px">Score al 8 jul</div></div>
+    <div class="a-head"><div><div class="card-title">Requieren atención</div><div style="font-size:11px;color:var(--dim2);font-weight:500;margin-top:2px" id="aScoreDate">Scores en vivo</div></div>
       <div class="a-head-right"><div class="a-count" id="aCount">6</div>
         <button class="rules-btn" onclick="document.getElementById('rulesModal').classList.add('open')"><span></span><span></span><span></span></button>
       </div>
     </div>
-    <div id="alertList">
-      <div class="alert-wrap"><div class="alert-del">&#128465;</div><div class="alert sell-row">
-        <div class="a-ic sell"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a8 8 0 0 0-8 8c0 2.5 1.1 4.2 2.5 5.3.3.24.5.6.5 1V18a1.5 1.5 0 0 0 1.5 1.5h.3a1.2 1.2 0 0 1 1.2-1.5 1.2 1.2 0 0 1 1.2 1.5h1.6a1.2 1.2 0 0 1 1.2-1.5 1.2 1.2 0 0 1 1.2 1.5h.3A1.5 1.5 0 0 0 19 18v-1.7c0-.4.2-.76.5-1C20.9 14.2 22 12.5 22 10a8 8 0 0 0-8-8zm-3 9.5a1.6 1.6 0 1 1 0-3.2 1.6 1.6 0 0 1 0 3.2zm6 0a1.6 1.6 0 1 1 0-3.2 1.6 1.6 0 0 1 0 3.2z"/><rect x="9.2" y="19.4" width="1.4" height="2.4" rx="0.6"/><rect x="11.3" y="19.4" width="1.4" height="2.4" rx="0.6"/><rect x="13.4" y="19.4" width="1.4" height="2.4" rx="0.6"/></svg></div>
-        <div class="a-body"><div class="a-tx">EJEMPLO <span class="a-strat s">SMART</span></div><div class="a-vals">Smart 2.40 / St 24.0</div><div class="a-obs">Smart momentum rompió el 2.5<br>Salida por regla</div></div>
-        <div class="a-tag sell">VENDER</div>
-      </div></div>
-      <div class="alert-wrap"><div class="alert-del">&#128465;</div><div class="alert">
-        <div class="a-ic warn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.2 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.2a2 2 0 0 0-3.4 0z"/><line x1="12" y1="9" x2="12" y2="13"/><circle cx="12" cy="17" r="0.6" fill="currentColor" stroke="none"/></svg></div>
-        <div class="a-body"><div class="a-tx">KRYS <span class="a-strat q">QUANT</span></div>
-        <div class="a-scoreline ini"><span class="lbl">Inicio</span><span class="num">Sm 2.49 / St 17.6</span></div>
-        <div class="a-scoreline now"><span class="lbl">Ahora</span><span class="num">Sm 2.49 / St 17.6</span></div>
-        <div class="a-obs am">Smart bajo 2.5 y strength bajo 18</div></div>
-        <div class="a-boxes">
-          <div class="a-box"><div class="bx-lbl">Trim</div><div class="bx-val g">+1.0%</div></div>
-          <div class="a-box"><div class="bx-lbl">Mío</div><div class="bx-val g">+0.3%</div></div>
-        </div>
-      </div></div>
-      <div class="alert-wrap"><div class="alert-del">&#128465;</div><div class="alert">
-        <div class="a-ic warn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.2 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.2a2 2 0 0 0-3.4 0z"/><line x1="12" y1="9" x2="12" y2="13"/><circle cx="12" cy="17" r="0.6" fill="currentColor" stroke="none"/></svg></div>
-        <div class="a-body"><div class="a-tx">SEI &middot; Solaris <span class="a-strat q">QUANT</span></div>
-        <div class="a-scoreline ini"><span class="lbl">Inicio</span><span class="num">Sm 2.43 / St 20.4</span></div>
-        <div class="a-scoreline now"><span class="lbl">Ahora</span><span class="num">Sm 2.43 / St 20.4</span></div>
-        <div class="a-obs am">Smart bajo 2.5</div></div>
-        <div class="a-boxes">
-          <div class="a-box"><div class="bx-lbl">Trim</div><div class="bx-val r">&minus;17.7%</div></div>
-          <div class="a-box"><div class="bx-lbl">Mío</div><div class="bx-val g">+0.9%</div></div>
-        </div>
-      </div></div>
-      <div class="alert-wrap"><div class="alert-del">&#128465;</div><div class="alert">
-        <div class="a-ic orange"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="18"/><polyline points="6 12 12 18 18 12"/></svg></div>
-        <div class="a-body"><div class="a-tx">STRL &middot; Sterling <span class="a-strat q">QUANT</span></div>
-        <div class="a-scoreline ini"><span class="lbl">Inicio</span><span class="num">Sm 3.00 / St 19.4</span></div>
-        <div class="a-scoreline now"><span class="lbl">Ahora</span><span class="num">Sm 3.00 / St 19.4</span></div>
-        <div class="a-obs am">Bajó del 20% desde inicio de trimestre</div></div>
-        <div class="a-boxes">
-          <div class="a-box"><div class="bx-lbl">Trim</div><div class="bx-val r">&minus;21.2%</div></div>
-          <div class="a-box"><div class="bx-lbl">Mío</div><div class="bx-val r">&minus;0.9%</div></div>
-        </div>
-      </div></div>
-      <div class="alert-wrap"><div class="alert-del">&#128465;</div><div class="alert">
-        <div class="a-ic warn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="18"/><polyline points="6 12 12 18 18 12"/></svg></div>
-        <div class="a-body"><div class="a-tx">CIEN <span class="a-strat q">QUANT</span></div>
-        <div class="a-scoreline ini"><span class="lbl">Inicio</span><span class="num">Sm 3.00 / St 24.0</span></div>
-        <div class="a-scoreline now"><span class="lbl">Ahora</span><span class="num">Sm 3.00 / St 18.4</span></div>
-        <div class="a-obs am">Tocó mínimo de 3 meses<br>Strength cayendo</div></div>
-        <div class="a-boxes">
-          <div class="a-box"><div class="bx-lbl">Trim</div><div class="bx-val r">&minus;10.0%</div></div>
-          <div class="a-box"><div class="bx-lbl">Mío</div><div class="bx-val g">+4.5%</div></div>
-        </div>
-      </div></div>
-      <div class="alert-wrap"><div class="alert-del">&#128465;</div><div class="alert">
-        <div class="a-ic warn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.2 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.2a2 2 0 0 0-3.4 0z"/><line x1="12" y1="9" x2="12" y2="13"/><circle cx="12" cy="17" r="0.6" fill="currentColor" stroke="none"/></svg></div>
-        <div class="a-body"><div class="a-tx">AXTI <span class="a-strat s">SMART</span></div>
-        <div class="a-scoreline ini"><span class="lbl">Inicio</span><span class="num">Sm 3.00 / St 25.2</span></div>
-        <div class="a-scoreline now"><span class="lbl">Ahora</span><span class="num">Sm 3.00 / St 25.2</span></div>
-        <div class="a-obs am">Strength bajo 26</div></div>
-        <div class="a-boxes">
-          <div class="a-box"><div class="bx-lbl">Trim</div><div class="bx-val g">+8.0%</div></div>
-          <div class="a-box"><div class="bx-lbl">Mío</div><div class="bx-val g">+0.5%</div></div>
-        </div>
-      </div></div>
-    </div>
+    <div id="alertList"></div>
   </div>
 
-  <!-- DESEMPEÑO -->
-  <div class="section-cap">Desempeño</div>
-  <div class="card">
-    <div class="chart-head"><div class="card-title">Algoritmo &middot; mes</div><div class="seg"><button class="on">10d</button><button>30d</button><button>60d</button></div></div>
-    <div class="legend"><div class="item"><span class="dot" style="background:var(--blue)"></span>Cuant <span class="lval cy">&minus;11.7%</span></div><div class="item"><span class="dot" style="background:var(--purple)"></span>Smart <span class="lval pu">&minus;14.4%</span></div></div>
-    <div class="plot">
-      <div class="yaxis" style="padding-bottom:6px"><span>+5%</span><span>0%</span><span>&minus;5%</span><span>&minus;10%</span><span>&minus;15%</span><span>&minus;20%</span></div>
-      <div class="chartbox">
-        <svg viewBox="0 0 440 150" preserveAspectRatio="none" style="width:100%;height:100%">
-          <line x1="0" y1="0" x2="440" y2="0" stroke="#20202A" stroke-width="1"/>
-          <line x1="0" y1="30" x2="440" y2="30" stroke="#3A3A46" stroke-width="1.3" stroke-dasharray="5 5"/>
-          <line x1="0" y1="60" x2="440" y2="60" stroke="#20202A" stroke-width="1" stroke-dasharray="2 6"/>
-          <line x1="0" y1="90" x2="440" y2="90" stroke="#20202A" stroke-width="1" stroke-dasharray="2 6"/>
-          <line x1="0" y1="120" x2="440" y2="120" stroke="#20202A" stroke-width="1" stroke-dasharray="2 6"/>
-          <line x1="0" y1="150" x2="440" y2="150" stroke="#20202A" stroke-width="1"/>
-          <line x1="352" y1="0" x2="352" y2="150" stroke="#FFD426" stroke-width="1" stroke-dasharray="3 4" opacity="0.5"/>
-          <path d="M0,30 L88,69 L176,64.2 L264,56.4 L352,72 L440,100.2" fill="none" stroke="#0A84FF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-          <path d="M0,30 L88,87 L176,78 L264,64.8 L352,84 L440,116.4" fill="none" stroke="#BF5AF2" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-      </div>
-    </div>
-    <div class="xlabels" style="margin-left:34px"><span>1 jul</span><span>2</span><span>3</span><span>6</span><span>7</span><span>8</span></div>
-    <div class="emptytag">Brinco el 8 jul por ajuste de base al cierre del 30 jun</div>
-  </div>
-
-  <!-- ESTRATEGIAS -->
-  <div class="section-cap">Estrategias</div>
-  <div class="card strat">
-    <div class="toprow"><div><div class="name">Quant</div><div class="inv">$70,000 &middot; 7 posiciones</div></div><div class="verdict">&uarr; le gano</div></div>
-    <div class="metrics">
-      <div class="metric"><div class="m-lbl">Directo</div><div class="m-val g">+0.4%</div></div>
-      <div class="sep"></div>
-      <div class="metric"><div class="m-lbl">Ponderado</div><div class="m-val calc">&middot;&middot;&middot;</div></div>
-      <div class="sep"></div>
-      <div class="metric"><div class="m-lbl">Algoritmo</div><div class="m-val r">&minus;11.7%</div></div>
-    </div>
-  </div>
-  <div class="card strat">
-    <div class="toprow"><div><div class="name">Smart</div><div class="inv">$70,000 &middot; 7 posiciones</div></div><div class="verdict">&uarr; le gano</div></div>
-    <div class="metrics">
-      <div class="metric"><div class="m-lbl">Directo</div><div class="m-val g">+1.3%</div></div>
-      <div class="sep"></div>
-      <div class="metric"><div class="m-lbl">Ponderado</div><div class="m-val calc">&middot;&middot;&middot;</div></div>
-      <div class="sep"></div>
-      <div class="metric"><div class="m-lbl">Algoritmo</div><div class="m-val r">&minus;14.4%</div></div>
-    </div>
-  </div>
-
-  <!-- MOVERS desde compra -->
-  <div class="section-cap">Mejor y peor desde mi compra</div>
-  <div class="movers">
-    <div class="mover best">
-      <div class="m-head best">&#9650; Mejor</div>
-      <div class="m-tickrow"><span class="m-ticker">CIEN</span>
-        <svg class="chipicon tech" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="7" width="10" height="10" rx="1.5"/><rect x="10" y="10" width="4" height="4" rx="0.5" fill="currentColor" stroke="none"/><path d="M10 3v2M14 3v2M10 19v2M14 19v2M3 10h2M3 14h2M19 10h2M19 14h2"/></svg>
-      </div>
-      <div class="m-ind">Comunicaciones</div>
-      <div class="twopct">
-        <div class="pctbox"><div class="p-lbl">Mi compra</div><div class="p-val g">+4.5%</div></div>
-        <div class="vline"></div>
-        <div class="pctbox"><div class="p-lbl">Trimestre</div><div class="p-val r">&minus;10.0%</div></div>
-      </div>
-      <div class="m-sub">Ciena</div>
-    </div>
-    <div class="mover worst">
-      <div class="m-head worst">&#9660; Peor</div>
-      <div class="m-tickrow"><span class="m-ticker">SPHR</span>
-        <svg class="chipicon notech" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="7" width="10" height="10" rx="1.5"/><path d="M10 3v2M14 3v2M10 19v2M14 19v2M3 10h2M3 14h2M19 10h2M19 14h2"/><line x1="3.5" y1="20.5" x2="20.5" y2="3.5" stroke-width="2"/></svg>
-      </div>
-      <div class="m-ind">Entretenimiento</div>
-      <div class="twopct">
-        <div class="pctbox"><div class="p-lbl">Mi compra</div><div class="p-val r">&minus;3.2%</div></div>
-        <div class="vline"></div>
-        <div class="pctbox"><div class="p-lbl">Trimestre</div><div class="p-val r">&minus;12.7%</div></div>
-      </div>
-      <div class="m-sub">Sphere Entr.</div>
-    </div>
-  </div>
-
-  <!-- MOVERS trimestre -->
-  <div class="section-cap">Mejor y peor del trimestre</div>
-  <div class="movers">
-    <div class="mover best">
-      <div class="m-head best">&#9650; Mejor</div>
-      <div class="m-tickrow"><span class="m-ticker">KRYS</span>
-        <svg class="chipicon notech" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="7" width="10" height="10" rx="1.5"/><path d="M10 3v2M14 3v2M10 19v2M14 19v2M3 10h2M3 14h2M19 10h2M19 14h2"/><line x1="3.5" y1="20.5" x2="20.5" y2="3.5" stroke-width="2"/></svg>
-      </div>
-      <div class="m-ind">Biotech</div>
-      <div class="twopct">
-        <div class="pctbox"><div class="p-lbl">Mi compra</div><div class="p-val g">+0.3%</div></div>
-        <div class="vline"></div>
-        <div class="pctbox"><div class="p-lbl">Trimestre</div><div class="p-val g">+1.0%</div></div>
-      </div>
-      <div class="m-sub">Krystal Biotech</div>
-    </div>
-    <div class="mover worst">
-      <div class="m-head worst">&#9660; Peor</div>
-      <div class="m-tickrow"><span class="m-ticker">STRL</span>
-        <svg class="chipicon notech" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="7" width="10" height="10" rx="1.5"/><path d="M10 3v2M14 3v2M10 19v2M14 19v2M3 10h2M3 14h2M19 10h2M19 14h2"/><line x1="3.5" y1="20.5" x2="20.5" y2="3.5" stroke-width="2"/></svg>
-      </div>
-      <div class="m-ind">Construcción</div>
-      <div class="twopct">
-        <div class="pctbox"><div class="p-lbl">Mi compra</div><div class="p-val r">&minus;0.9%</div></div>
-        <div class="vline"></div>
-        <div class="pctbox"><div class="p-lbl">Trimestre</div><div class="p-val r">&minus;21.2%</div></div>
-      </div>
-      <div class="m-sub">Sterling Infra.</div>
-    </div>
-  </div>
-
-  <!-- CONCENTRACIÓN -->
-  <div class="section-cap">Concentración</div>
-  <div class="card">
-    <div class="conc-top"><div class="card-title">Tecnología</div><div class="conc-val">50%</div></div>
-    <div class="bar"><div class="fill"></div><div class="cap"></div></div>
-    <div class="conc-foot"><span>7 tech &middot; 7 no-tech</span><span>tope 50%</span></div>
-  </div>
-
-  <div class="foot">Datos de tu hoja &middot; 8 jul 2026 &middot; no es asesoría de inversión</div>
+  <div class="foot">Datos de tu hoja &middot; en vivo &middot; no es asesoría de inversión</div>
 </div>
 
 
 <div class="wrap view" id="viewEstrategias">
   <div class="st-hero">
     <h1>Laboratorio</h1>
-    <p>Cómo va cada variante de selección compitiendo con datos reales, sin arriesgar dinero. Ordenadas de mejor a peor este mes.</p>
   </div>
+
+  <div id="labTrims" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:4px;"></div>
 
   <div class="rk-card">
     <div class="rk-top"><div class="rk-name q">Quant</div><div class="rk-tag">desde inicio de mes</div></div>
-    <div class="rk-row">
-      <div class="rk-rank">1</div>
-      <div class="rk-mid">
-        <div class="rk-lbl">Chicas (Sm2.6 St22)</div>
-        <div class="rk-barbg"><div class="rk-bar" style="width:100.0%"></div></div>
-      </div>
-      <div class="rk-val r">&minus;18.0%</div>
-    </div>
-    <div class="rk-row">
-      <div class="rk-rank">2</div>
-      <div class="rk-mid">
-        <div class="rk-lbl">Viejas (Sm2.6 St22)</div>
-        <div class="rk-barbg"><div class="rk-bar" style="width:97.8%"></div></div>
-      </div>
-      <div class="rk-val r">&minus;17.6%</div>
-    </div>
-    <div class="rk-row">
-      <div class="rk-rank">3</div>
-      <div class="rk-mid">
-        <div class="rk-lbl">Strength 20 o más</div>
-        <div class="rk-barbg"><div class="rk-bar" style="width:79.4%"></div></div>
-      </div>
-      <div class="rk-val r">&minus;14.3%</div>
-    </div>
-    <div class="rk-row">
-      <div class="rk-rank">4</div>
-      <div class="rk-mid">
-        <div class="rk-lbl">Strength 22 o más</div>
-        <div class="rk-barbg"><div class="rk-bar" style="width:76.7%"></div></div>
-      </div>
-      <div class="rk-val r">&minus;13.8%</div>
-    </div>
-    <div class="rk-row">
-      <div class="rk-rank">5</div>
-      <div class="rk-mid">
-        <div class="rk-lbl">8 mejores smart</div>
-        <div class="rk-barbg"><div class="rk-bar" style="width:72.8%"></div></div>
-      </div>
-      <div class="rk-val r">&minus;13.1%</div>
-    </div>
-    <div class="rk-row rk-mine-row">
-      <div class="rk-rank">6</div>
-      <div class="rk-mid">
-        <div class="rk-lbl">Mi selección (industria)<span class="mine">MÍA</span></div>
-        <div class="rk-barbg"><div class="rk-bar" style="width:70.6%"></div></div>
-      </div>
-      <div class="rk-val r">&minus;12.7%</div>
-    </div>
-    <div class="rk-row">
-      <div class="rk-rank">7</div>
-      <div class="rk-mid">
-        <div class="rk-lbl">Smart 2.6 o más</div>
-        <div class="rk-barbg"><div class="rk-bar" style="width:68.9%"></div></div>
-      </div>
-      <div class="rk-val r">&minus;12.4%</div>
-    </div>
-    <div class="rk-row">
-      <div class="rk-rank">8</div>
-      <div class="rk-mid">
-        <div class="rk-lbl">Todo el Cuant<span class="mine" style="background:var(--blue);color:#fff">QUANT</span></div>
-        <div class="rk-barbg"><div class="rk-bar" style="width:65.0%"></div></div>
-      </div>
-      <div class="rk-val r">&minus;11.7%</div>
-    </div>
-    <div class="rk-row">
-      <div class="rk-rank">9</div>
-      <div class="rk-mid">
-        <div class="rk-lbl">Smart 2.5 o más</div>
-        <div class="rk-barbg"><div class="rk-bar" style="width:63.9%"></div></div>
-      </div>
-      <div class="rk-val r">&minus;11.5%</div>
-    </div>
+    <div id="labQuant"></div>
   </div>
 
   <div class="rk-card">
     <div class="rk-top"><div class="rk-name s">Smart</div><div class="rk-tag">desde inicio de mes</div></div>
-    <div class="rk-row">
-      <div class="rk-rank">1</div>
-      <div class="rk-mid">
-        <div class="rk-lbl">Arranque 3.0 / 29</div>
-        <div class="rk-barbg"><div class="rk-bar" style="width:88.3%"></div></div>
-      </div>
-      <div class="rk-val r">&minus;15.9%</div>
-    </div>
-    <div class="rk-row">
-      <div class="rk-rank">2</div>
-      <div class="rk-mid">
-        <div class="rk-lbl">Todo el Smart<span class="mine" style="background:var(--purple);color:#fff">SMART</span></div>
-        <div class="rk-barbg"><div class="rk-bar" style="width:80.0%"></div></div>
-      </div>
-      <div class="rk-val r">&minus;14.4%</div>
-    </div>
-    <div class="rk-row rk-mine-row">
-      <div class="rk-rank">3</div>
-      <div class="rk-mid">
-        <div class="rk-lbl">Mi selección (industria)<span class="mine">MÍA</span></div>
-        <div class="rk-barbg"><div class="rk-bar" style="width:64.4%"></div></div>
-      </div>
-      <div class="rk-val r">&minus;11.6%</div>
-    </div>
+    <div id="labSmart"></div>
   </div>
 
   <div class="rk-card">
     <h3>Mi rendimiento vs el algoritmo</h3>
     <div class="rk-top" style="margin-bottom:14px"><div class="rk-name" style="font-size:15px">Por estrategia &middot; desde inicio de mes</div></div>
-    <div class="dv-row">
-      <div class="dv-lbl">Quant<small>yo</small></div>
-      <div class="dv-track"><div class="dv-zero"></div><div class="dv-bar g" style="left:50%;width:7.0%"></div><div class="dv-val" style="left:50%;width:7.0%;text-align:right;padding-right:5px">+0.4%</div></div>
-    </div>
-    <div class="dv-row">
-      <div class="dv-lbl">Quant<small>algoritmo</small></div>
-      <div class="dv-track"><div class="dv-zero"></div><div class="dv-bar r" style="left:calc(50% - 40.6%);width:40.6%"></div><div class="dv-val" style="left:calc(50% - 40.6%);width:40.6%;text-align:left;padding-left:5px">&minus;11.7%</div></div>
-    </div>
-    <div class="dv-row">
-      <div class="dv-lbl">Smart<small>yo</small></div>
-      <div class="dv-track"><div class="dv-zero"></div><div class="dv-bar g" style="left:50%;width:7.0%"></div><div class="dv-val" style="left:50%;width:7.0%;text-align:right;padding-right:5px">+1.3%</div></div>
-    </div>
-    <div class="dv-row">
-      <div class="dv-lbl">Smart<small>algoritmo</small></div>
-      <div class="dv-track"><div class="dv-zero"></div><div class="dv-bar r" style="left:calc(50% - 50.0%);width:50.0%"></div><div class="dv-val" style="left:calc(50% - 50.0%);width:50.0%;text-align:left;padding-left:5px">&minus;14.4%</div></div>
-    </div>
+    <div id="yvaList"></div>
   </div>
 
   <div class="rk-card">
@@ -580,62 +346,7 @@
       <div class="rk-name" style="font-size:15px">14 posiciones</div>
       <div class="rk-tag"><span class="dv-dot c" style="width:13px;height:13px">C</span> Quant &nbsp; <span class="dv-dot s" style="width:13px;height:13px">S</span> Smart</div>
     </div>
-    <div class="dv-row">
-      <div class="dv-lbl tick"><span class="tk">SNDK</span><span class="dv-dot s">S</span><svg class="dv-tech" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="7" width="10" height="10" rx="1.5"/><rect x="10.5" y="10.5" width="3" height="3" fill="currentColor" stroke="none"/><path d="M10 3v2M14 3v2M10 19v2M14 19v2M3 10h2M3 14h2M19 10h2M19 14h2"/></svg></div>
-      <div class="dv-track"><div class="dv-zero"></div><div class="dv-bar g" style="left:50%;width:50.0%"></div><div class="dv-val" style="left:50%;width:50.0%;text-align:right;padding-right:5px">+7.5%</div></div>
-    </div>
-    <div class="dv-row">
-      <div class="dv-lbl tick"><span class="tk">CIEN</span><span class="dv-dot c">C</span><svg class="dv-tech" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="7" width="10" height="10" rx="1.5"/><rect x="10.5" y="10.5" width="3" height="3" fill="currentColor" stroke="none"/><path d="M10 3v2M14 3v2M10 19v2M14 19v2M3 10h2M3 14h2M19 10h2M19 14h2"/></svg></div>
-      <div class="dv-track"><div class="dv-zero"></div><div class="dv-bar g" style="left:50%;width:30.1%"></div><div class="dv-val" style="left:50%;width:30.1%;text-align:right;padding-right:5px">+4.5%</div></div>
-    </div>
-    <div class="dv-row">
-      <div class="dv-lbl tick"><span class="tk">WDC</span><span class="dv-dot s">S</span><svg class="dv-tech" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="7" width="10" height="10" rx="1.5"/><rect x="10.5" y="10.5" width="3" height="3" fill="currentColor" stroke="none"/><path d="M10 3v2M14 3v2M10 19v2M14 19v2M3 10h2M3 14h2M19 10h2M19 14h2"/></svg></div>
-      <div class="dv-track"><div class="dv-zero"></div><div class="dv-bar g" style="left:50%;width:23.9%"></div><div class="dv-val" style="left:50%;width:23.9%;text-align:right;padding-right:5px">+3.6%</div></div>
-    </div>
-    <div class="dv-row">
-      <div class="dv-lbl tick"><span class="tk">TNGX</span><span class="dv-dot s">S</span><span style="width:16px;flex:none"></span></div>
-      <div class="dv-track"><div class="dv-zero"></div><div class="dv-bar g" style="left:50%;width:12.0%"></div><div class="dv-val" style="left:50%;width:12.0%;text-align:right;padding-right:5px">+1.8%</div></div>
-    </div>
-    <div class="dv-row">
-      <div class="dv-lbl tick"><span class="tk">SEI</span><span class="dv-dot c">C</span><span style="width:16px;flex:none"></span></div>
-      <div class="dv-track"><div class="dv-zero"></div><div class="dv-bar g" style="left:50%;width:7.0%"></div><div class="dv-val" style="left:50%;width:7.0%;text-align:right;padding-right:5px">+0.9%</div></div>
-    </div>
-    <div class="dv-row">
-      <div class="dv-lbl tick"><span class="tk">COHR</span><span class="dv-dot s">S</span><svg class="dv-tech" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="7" width="10" height="10" rx="1.5"/><rect x="10.5" y="10.5" width="3" height="3" fill="currentColor" stroke="none"/><path d="M10 3v2M14 3v2M10 19v2M14 19v2M3 10h2M3 14h2M19 10h2M19 14h2"/></svg></div>
-      <div class="dv-track"><div class="dv-zero"></div><div class="dv-bar g" style="left:50%;width:7.0%"></div><div class="dv-val" style="left:50%;width:7.0%;text-align:right;padding-right:5px">+0.7%</div></div>
-    </div>
-    <div class="dv-row">
-      <div class="dv-lbl tick"><span class="tk">FIX</span><span class="dv-dot c">C</span><span style="width:16px;flex:none"></span></div>
-      <div class="dv-track"><div class="dv-zero"></div><div class="dv-bar g" style="left:50%;width:7.0%"></div><div class="dv-val" style="left:50%;width:7.0%;text-align:right;padding-right:5px">+0.5%</div></div>
-    </div>
-    <div class="dv-row">
-      <div class="dv-lbl tick"><span class="tk">LSCC</span><span class="dv-dot c">C</span><svg class="dv-tech" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="7" width="10" height="10" rx="1.5"/><rect x="10.5" y="10.5" width="3" height="3" fill="currentColor" stroke="none"/><path d="M10 3v2M14 3v2M10 19v2M14 19v2M3 10h2M3 14h2M19 10h2M19 14h2"/></svg></div>
-      <div class="dv-track"><div class="dv-zero"></div><div class="dv-bar g" style="left:50%;width:7.0%"></div><div class="dv-val" style="left:50%;width:7.0%;text-align:right;padding-right:5px">+0.4%</div></div>
-    </div>
-    <div class="dv-row">
-      <div class="dv-lbl tick"><span class="tk">KRYS</span><span class="dv-dot c">C</span><span style="width:16px;flex:none"></span></div>
-      <div class="dv-track"><div class="dv-zero"></div><div class="dv-bar g" style="left:50%;width:7.0%"></div><div class="dv-val" style="left:50%;width:7.0%;text-align:right;padding-right:5px">+0.3%</div></div>
-    </div>
-    <div class="dv-row">
-      <div class="dv-lbl tick"><span class="tk">AXTI</span><span class="dv-dot s">S</span><svg class="dv-tech" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="7" width="10" height="10" rx="1.5"/><rect x="10.5" y="10.5" width="3" height="3" fill="currentColor" stroke="none"/><path d="M10 3v2M14 3v2M10 19v2M14 19v2M3 10h2M3 14h2M19 10h2M19 14h2"/></svg></div>
-      <div class="dv-track"><div class="dv-zero"></div><div class="dv-bar g" style="left:50%;width:7.0%"></div><div class="dv-val" style="left:50%;width:7.0%;text-align:right;padding-right:5px">+0.2%</div></div>
-    </div>
-    <div class="dv-row">
-      <div class="dv-lbl tick"><span class="tk">STRL</span><span class="dv-dot c">C</span><span style="width:16px;flex:none"></span></div>
-      <div class="dv-track"><div class="dv-zero"></div><div class="dv-bar r" style="left:calc(50% - 7.0%);width:7.0%"></div><div class="dv-val" style="left:calc(50% - 7.0%);width:7.0%;text-align:left;padding-left:5px">&minus;0.9%</div></div>
-    </div>
-    <div class="dv-row">
-      <div class="dv-lbl tick"><span class="tk">EXE</span><span class="dv-dot s">S</span><span style="width:16px;flex:none"></span></div>
-      <div class="dv-track"><div class="dv-zero"></div><div class="dv-bar r" style="left:calc(50% - 11.6%);width:11.6%"></div><div class="dv-val" style="left:calc(50% - 11.6%);width:11.6%;text-align:left;padding-left:5px">&minus;1.7%</div></div>
-    </div>
-    <div class="dv-row">
-      <div class="dv-lbl tick"><span class="tk">DOCN</span><span class="dv-dot s">S</span><svg class="dv-tech" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="7" width="10" height="10" rx="1.5"/><rect x="10.5" y="10.5" width="3" height="3" fill="currentColor" stroke="none"/><path d="M10 3v2M14 3v2M10 19v2M14 19v2M3 10h2M3 14h2M19 10h2M19 14h2"/></svg></div>
-      <div class="dv-track"><div class="dv-zero"></div><div class="dv-bar r" style="left:calc(50% - 19.8%);width:19.8%"></div><div class="dv-val" style="left:calc(50% - 19.8%);width:19.8%;text-align:left;padding-left:5px">&minus;3.0%</div></div>
-    </div>
-    <div class="dv-row">
-      <div class="dv-lbl tick"><span class="tk">SPHR</span><span class="dv-dot c">C</span><span style="width:16px;flex:none"></span></div>
-      <div class="dv-track"><div class="dv-zero"></div><div class="dv-bar r" style="left:calc(50% - 21.4%);width:21.4%"></div><div class="dv-val" style="left:calc(50% - 21.4%);width:21.4%;text-align:left;padding-left:5px">&minus;3.2%</div></div>
-    </div>
+    <div id="allMineList"></div>
 
   </div>
 
@@ -662,23 +373,49 @@
 </div>
 
 
-<div class="hist-bg" id="histBg">
-  <div class="hist-modal">
-    <div class="hist-grip"></div>
-    <div class="hist-h"><h2>Algoritmo del trimestre</h2><button class="hist-x" onclick="document.getElementById('histBg').classList.remove('open')">&times;</button></div>
-    <div class="hist-sub">Cómo se ha movido el algoritmo. Busca los mínimos para cronometrar tu siguiente entrada.</div>
-    <div class="hist-sel" id="histSel">
-      <button class="hist-sb" data-d="30">30 días</button>
-      <button class="hist-sb" data-d="60">60 días</button>
-      <button class="hist-sb on" data-d="0">Todo el trimestre</button>
-    </div>
-    <div id="histChart"></div>
-    <div class="hist-mm">
-      <div class="hist-card max"><div class="l">Máximo</div><div class="v" id="histMax">—</div><div class="d" id="histMaxD">—</div></div>
-      <div class="hist-card min"><div class="l">Mínimo</div><div class="v" id="histMin">—</div><div class="d" id="histMinD">—</div></div>
-    </div>
-    <div class="hist-now" id="histNow"></div>
+<div class="wrap view" id="viewAlgoritmo">
+  <div class="st-hero">
+    <h1>Algoritmo del trimestre</h1>
   </div>
+  <div class="hist-sel" id="histSel2" style="margin:16px 0 14px">
+    <button class="hist-sb" data-d="30">30 días</button>
+    <button class="hist-sb" data-d="60">60 días</button>
+    <button class="hist-sb on" data-d="0">Trimestre</button>
+  </div>
+  <div style="display:flex;gap:14px;margin-bottom:10px;flex-wrap:wrap;font-size:11.5px;color:var(--dim);font-weight:600">
+    <span style="display:flex;align-items:center;gap:5px"><span style="width:14px;height:3px;border-radius:2px;background:#ff6b60"></span>Algoritmo</span>
+    <span style="display:flex;align-items:center;gap:5px"><span style="width:14px;height:3px;border-radius:2px;background:#0A84FF"></span>Quant</span>
+    <span style="display:flex;align-items:center;gap:5px"><span style="width:14px;height:3px;border-radius:2px;background:#30D158"></span>Smart</span>
+  </div>
+  <div id="histChart2"></div>
+  <div class="strat-cards">
+    <div class="strat-card" style="--acc:#ff6b60">
+      <div class="sc-name"><span class="sc-dot"></span>Algoritmo</div>
+      <div class="sc-vals">
+        <div class="sc-v"><div class="sc-l">Máx</div><div class="sc-n up" id="histMax2">—</div></div>
+        <div class="sc-v mid"><div class="sc-l">Actual</div><div class="sc-n now" id="histNowV2">—</div></div>
+        <div class="sc-v"><div class="sc-l">Mín</div><div class="sc-n down" id="histMin2">—</div></div>
+      </div>
+    </div>
+    <div class="strat-card" style="--acc:#0A84FF">
+      <div class="sc-name"><span class="sc-dot"></span>Quant</div>
+      <div class="sc-vals">
+        <div class="sc-v"><div class="sc-l">Máx</div><div class="sc-n up" id="qMax">—</div></div>
+        <div class="sc-v mid"><div class="sc-l">Actual</div><div class="sc-n now" id="qNow">—</div></div>
+        <div class="sc-v"><div class="sc-l">Mín</div><div class="sc-n down" id="qMin">—</div></div>
+      </div>
+    </div>
+    <div class="strat-card" style="--acc:#30D158">
+      <div class="sc-name"><span class="sc-dot"></span>Smart</div>
+      <div class="sc-vals">
+        <div class="sc-v"><div class="sc-l">Máx</div><div class="sc-n up" id="sMax">—</div></div>
+        <div class="sc-v mid"><div class="sc-l">Actual</div><div class="sc-n now" id="sNow">—</div></div>
+        <div class="sc-v"><div class="sc-l">Mín</div><div class="sc-n down" id="sMin">—</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="hist-now" id="histNow2"></div>
+  <div class="foot" style="margin-bottom:80px">Datos de tu hoja · no es asesoría de inversión</div>
 </div>
 
 <!-- MODAL REGLAS -->
@@ -722,17 +459,69 @@
   </div>
 </div>
 
+
+<div class="wrap view" id="viewAnalisis">
+  <div class="section-cap">Análisis por tramo</div>
+
+  <div id="anSelStrat" style="display:flex;gap:6px;margin-bottom:14px;">
+    <div class="an-strat on" data-k="cartera">Cartera</div>
+    <div class="an-strat" data-k="quant">Quant</div>
+    <div class="an-strat" data-k="smart">Smart</div>
+    <div class="an-strat" data-k="algo">Algo</div>
+  </div>
+
+  <div id="anShort" style="display:flex;gap:6px;margin-bottom:16px;">
+    <div class="an-short" data-d="7">7 días</div>
+    <div class="an-short" data-d="15">15 días</div>
+    <div class="an-short" data-d="30">1 mes</div>
+    <div class="an-short on" data-d="9999">Todo</div>
+  </div>
+
+  <div style="position:relative;height:34px;margin-bottom:2px;">
+    <div id="anBubbleA" class="an-bubble"></div>
+    <div id="anBubbleB" class="an-bubble"></div>
+    <div style="position:absolute;top:15px;left:0;right:0;height:4px;background:rgba(255,255,255,.12);border-radius:2px;"></div>
+    <div id="anFill" style="position:absolute;top:15px;height:4px;background:#3aa0ff;border-radius:2px;"></div>
+    <div id="anHandleA" class="an-handle"></div>
+    <div id="anHandleB" class="an-handle"></div>
+  </div>
+  <div id="anDates" style="display:flex;justify-content:space-between;font-size:10px;color:var(--dim2);margin-bottom:16px;"></div>
+
+  <div class="card" style="margin-bottom:16px;">
+    <div style="font-size:12px;color:var(--dim2);margin-bottom:10px;" id="anHeroLbl">Movimiento en el tramo</div>
+    <div style="display:flex;align-items:flex-end;gap:12px;">
+      <div style="flex:0 0 auto;">
+        <div style="font-size:11px;color:#3aa0ff;margin-bottom:2px;" id="anMainLbl">Mi cartera</div>
+        <div style="font-size:32px;font-weight:700;line-height:1;" id="anMainVal">—</div>
+      </div>
+      <div style="flex:1;display:flex;gap:10px;justify-content:flex-end;opacity:.55;" id="anCompare"></div>
+    </div>
+  </div>
+
+  <div id="anNotaMio" style="display:none;background:rgba(120,160,255,.12);border:1px solid rgba(120,160,255,.28);color:#9fc4ff;font-size:11px;line-height:1.5;padding:9px 12px;border-radius:10px;margin-bottom:12px;"></div>
+  <div id="anAviso" style="display:none;background:rgba(240,180,40,.12);border:1px solid rgba(240,180,40,.3);color:#f0c040;font-size:11px;line-height:1.5;padding:9px 12px;border-radius:10px;margin-bottom:14px;"></div>
+  <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--dim2);margin-bottom:10px;">
+    <span id="anListLbl">Quién movió la aguja</span>
+    <span style="color:var(--dim2)">cambio · aporte</span>
+  </div>
+  <div id="anList"></div>
+  <div class="foot" id="anFoot">Desliza las manijas o usa los atajos · no es asesoría de inversión</div>
+</div>
+
+<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v67</div>
 <div class="tabbar">
   <button class="tab on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l9-8 9 8"/><path d="M5 10v10h14V10"/></svg><span>Resumen</span></button>
   <button class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><rect x="7" y="12" width="3" height="6"/><rect x="12" y="8" width="3" height="10"/><rect x="17" y="5" width="3" height="13"/></svg><span>Estrategias</span></button>
   <button class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.5" y2="6"/><line x1="3" y1="12" x2="3.5" y2="12"/><line x1="3" y1="18" x2="3.5" y2="18"/></svg><span>Acciones</span></button>
+  <button class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><polyline points="6 15 10 9 14 13 19 6"/></svg><span>Algoritmo</span></button>
+  <button class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span>Análisis</span></button>
 </div>
 
 <script>
 // Swipe-to-delete tipo Apple
 // Navegación de vistas
 var tabs=document.querySelectorAll('.tab');
-var views={0:'viewResumen',1:'viewEstrategias',2:'viewAcciones'};
+var views={0:'viewResumen',1:'viewEstrategias',2:'viewAcciones',3:'viewAlgoritmo',4:'viewAnalisis'};
 tabs.forEach(function(t,i){
   t.addEventListener('click',function(){
     tabs.forEach(function(x){x.classList.remove('on');});
@@ -740,11 +529,16 @@ tabs.forEach(function(t,i){
     document.querySelectorAll('.view').forEach(function(v){v.classList.remove('on');});
     var id=views[i];
     if(id){document.getElementById(id).classList.add('on');}
+    if(id==='viewEstrategias' && window.renderTrimBtns){ try{window.renderTrimBtns();}catch(e){} }
+    if(id==='viewAlgoritmo' && window.dibujarAlgo){ try{window.dibujarAlgo();}catch(e){} }
+    if(id==='viewAnalisis' && window.dibujarAnalisis){ try{window.dibujarAnalisis();}catch(e){} }
     window.scrollTo(0,0);
   });
 });
 
-document.querySelectorAll('.alert-wrap').forEach(function(wrap){
+window.enlazarSwipe=function(){
+ document.querySelectorAll('.alert-wrap').forEach(function(wrap){
+  if(wrap.__sw)return; wrap.__sw=true;
   var el = wrap.querySelector('.alert');
   var startX=0, curX=0, dragging=false;
   function start(x){startX=x;dragging=true;el.style.transition='none';}
@@ -765,7 +559,9 @@ document.querySelectorAll('.alert-wrap').forEach(function(wrap){
   el.addEventListener('mousedown',function(e){start(e.clientX);});
   window.addEventListener('mousemove',function(e){move(e.clientX);});
   window.addEventListener('mouseup',end);
-});
+ });
+};
+window.enlazarSwipe();
 
 // Vista Acciones: lista ordenable
 var ACC = [["CIEN","Ciena","c",true,3.0,18.4,11.0,-4.4,-4.4], ["FIX","Comfort Sys","c",false,2.94,25.4,6.4,-10.0,-10.0], ["KRYS","Krystal Bio","c",false,2.49,17.6,-2.3,-1.5,-1.5], ["LSCC","Lattice","c",true,3.0,22.3,7.4,-7.4,-7.4], ["SEI","Solaris","c",false,2.43,20.4,4.2,-15.0,-15.0], ["SPHR","Sphere","c",false,3.0,29.6,-0.6,-10.4,-10.4], ["STRL","Sterling","c",false,3.0,19.4,6.3,-15.5,-15.5], ["AXTI","AXT Inc","s",true,3.0,25.2,2.9,-14.2,-14.2], ["COHR","Coherent","s",true,3.0,28.7,5.7,-15.7,-15.7], ["DOCN","DigitalOcean","s",true,2.88,27.6,0.1,-7.7,-7.7], ["EXE","Extendicare","s",false,3.0,30.0,-0.7,6.4,6.4], ["SNDK","SanDisk","s",true,3.0,29.5,17.3,-17.1,-17.1], ["TNGX","Tango Tx","s",false,2.84,28.7,0.9,-2.8,-2.8], ["WDC","Western Dig","s",true,3.0,29.0,10.7,-7.9,-7.9]];
@@ -817,7 +613,7 @@ function updateCount(){
 /* ====== LECTURA EN VIVO DESDE GOOGLE SHEETS ====== */
 (function(){
   var BASE = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ1gnRj1TvcXXF66yAreWKo6RON27GE3K2pZWq8LSxb98SNZeKpFuYaeHgovJTO9zM1QSeHb-cxWJ2N/pub";
-  var GID = { precios:"1127250102", historial:"1844874580", claude:"1972938992" };
+  var GID = { precios:"288876761", historial:"1844874580", claude:"1972938992", rendimiento:"161922984" };
   function url(gid){ return BASE + "?gid=" + gid + "&single=true&output=csv"; }
 
   // Parser CSV que respeta comillas
@@ -856,7 +652,7 @@ function updateCount(){
   };
 
   var got = { precios:false, hist:false, claude:false };
-  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-11";
+  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-67";
   var estado={precios:false,historial:false,claude:false};
   function pinta(){
     var chip=document.getElementById('liveChip'); if(!chip) return;
@@ -871,6 +667,274 @@ function updateCount(){
   }
 
   function fmtPct(v){ return (v>=0?'+':'\u2212')+Math.abs(v).toFixed(1)+'%'; }
+  function fmtPct2(v){ return (v>=0?'+':'\u2212')+Math.abs(v).toFixed(2)+'%'; }
+
+
+  var INDU={CIEN:"Comunicaciones",FIX:"Construcción",KRYS:"Biotech",LSCC:"Semiconductores",SEI:"Energía",SPHR:"Entretenimiento",STRL:"Construcción",AXTI:"Semiconductores",COHR:"Electrónica",DOCN:"IT Services",EXE:"Salud",SNDK:"Tech Hardware",TNGX:"Biotech",WDC:"Tech Hardware"};
+  function colorPct(id,v){ var e=document.getElementById(id); if(!e)return; e.textContent=(v>=0?'+':'\u2212')+Math.abs(v).toFixed(1)+'%'; e.classList.remove('g','r'); e.classList.add(v>=0?'g':'r'); }
+  function setMover(pre,tk){
+    if(!tk)return; var L=LIVE[tk]||{}; var nm=(META[tk]?META[tk][0]:tk);
+    var t=document.getElementById(pre+'Tk'); if(t)t.textContent=tk;
+    var ind=document.getElementById(pre+'Ind'); if(ind)ind.textContent=INDU[tk]||'';
+    var nmE=document.getElementById(pre+'Name'); if(nmE)nmE.textContent=nm;
+    colorPct(pre+'Mio', isNaN(L.mio)?0:L.mio);
+    colorPct(pre+'Trim', isNaN(L.trim)?0:L.trim);
+  }
+  function actualizarMovers(){
+    var tks=Object.keys(LIVE).filter(function(t){return !isNaN(LIVE[t].mio)&&!isNaN(LIVE[t].trim);});
+    if(!tks.length)return;
+    var bMio=tks[0],wMio=tks[0],bTr=tks[0],wTr=tks[0];
+    tks.forEach(function(t){
+      if(LIVE[t].mio>LIVE[bMio].mio)bMio=t;
+      if(LIVE[t].mio<LIVE[wMio].mio)wMio=t;
+      if(LIVE[t].trim>LIVE[bTr].trim)bTr=t;
+      if(LIVE[t].trim<LIVE[wTr].trim)wTr=t;
+    });
+    setMover('mvBestMio',bMio); setMover('mvWorstMio',wMio);
+    setMover('mvBestTrim',bTr); setMover('mvWorstTrim',wTr);
+  }
+
+
+  // Scores de inicio de trimestre (fijos) para comparar Inicio vs Ahora
+  var INI={CIEN:[3.00,19],FIX:[3.00,26],KRYS:[2.5,18],LSCC:[2.60,27],SEI:[2.50,20],SPHR:[3.00,30],STRL:[3.00,20],AXTI:[3.00,26],COHR:[3.00,29],DOCN:[2.90,28],EXE:[3.00,30],SNDK:[3.00,29],TNGX:[3.00,28],WDC:[3.00,29]};
+  function esQuant(tk){ return META[tk] && META[tk][1]==='c'; }
+  function fpct(v){ return (v>=0?'+':'\u2212')+Math.abs(v).toFixed(1)+'%'; }
+  function evalua(tk){
+    var L=LIVE[tk]||{}; var sm=L.smart, st=L.stren; var trim=L.trim, mio=L.mio;
+    if(isNaN(sm)||isNaN(st)) return null;
+    var q=esQuant(tk); var nivel=0, obs=[]; // 0 nada,1 amarillo,2 naranja,3 vender
+    if(q){
+      if(!isNaN(mio)&&mio<=-25){ nivel=3; obs.push('Cayó 25% desde tu compra'); }
+      if(sm<2.4||st<16){ if(nivel<3){nivel=3;} obs.push('Score en zona de salida'); }
+      else if(sm<2.5||st<18){ if(nivel<1)nivel=1; obs.push('Smart bajo 2.5 o strength bajo 18'); }
+      if(!isNaN(trim)&&trim<=-20 && nivel<2){ if(nivel<1)nivel=1; obs.push('Bajó del 20% del trimestre'); }
+    } else {
+      if(sm<2.5){ nivel=3; obs.push('Smart rompió el 2.5'); }
+      else if(sm<2.6){ if(nivel<1)nivel=1; obs.push('Smart bajo 2.6'); }
+      if(st<25){ if(nivel<2)nivel=2; obs.push('Strength bajo 25'); }
+      else if(st<26){ if(nivel<1)nivel=1; obs.push('Strength bajo 26'); }
+      if(!isNaN(mio)){ if(mio<=-25){nivel=3;obs.push('Cayó 25% desde tu compra');} else if(mio<=-20){if(nivel<2)nivel=2;obs.push('Cayó 20% desde tu compra');} else if(mio<=-15){if(nivel<1)nivel=1;obs.push('Cayó 15% desde tu compra');} }
+    }
+    if(nivel===0) return null;
+    return {tk:tk,q:q,sm:sm,st:st,trim:trim,mio:mio,nivel:nivel,obs:obs};
+  }
+  var IC_SELL='<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a8 8 0 0 0-8 8c0 2.5 1.1 4.2 2.5 5.3.3.24.5.6.5 1V18a1.5 1.5 0 0 0 1.5 1.5h.3a1.2 1.2 0 0 1 1.2-1.5 1.2 1.2 0 0 1 1.2 1.5h1.6a1.2 1.2 0 0 1 1.2-1.5 1.2 1.2 0 0 1 1.2 1.5h.3A1.5 1.5 0 0 0 19 18v-1.7c0-.4.2-.76.5-1C20.9 14.2 22 12.5 22 10a8 8 0 0 0-8-8zm-3 9.5a1.6 1.6 0 1 1 0-3.2 1.6 1.6 0 0 1 0 3.2zm6 0a1.6 1.6 0 1 1 0-3.2 1.6 1.6 0 0 1 0 3.2z"/></svg>';
+  var IC_TRI='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.2 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.2a2 2 0 0 0-3.4 0z"/><line x1="12" y1="9" x2="12" y2="13"/><circle cx="12" cy="17" r="0.6" fill="currentColor" stroke="none"/></svg>';
+  function generaAlertas(){
+    var cont=document.getElementById('alertList'); if(!cont) return;
+    if(!got.claude) return;
+    var lista=[];
+    Object.keys(LIVE).forEach(function(tk){ var a=evalua(tk); if(a)lista.push(a); });
+    lista.sort(function(x,y){ return y.nivel-x.nivel; });
+    if(!lista.length){ cont.innerHTML='<div style="text-align:center;color:#7ee89f;padding:26px 0;font-size:13px">Todo en orden · ninguna acción requiere atención</div>'; var ac=document.getElementById('aCount'); if(ac)ac.textContent='0'; return; }
+    var html='';
+    lista.forEach(function(a){
+      var icCls=a.nivel===3?'sell':(a.nivel===2?'orange':'warn');
+      var ic=a.nivel===3?IC_SELL:IC_TRI;
+      var strat=a.q?'<span class="a-strat q">QUANT</span>':'<span class="a-strat s">SMART</span>';
+      var nm=META[a.tk]?META[a.tk][0]:a.tk;
+      var ini=INI[a.tk]||[a.sm,a.st];
+      var tag=a.nivel===3?'<div class="a-tag sell">VENDER</div>':'';
+      var obsCls=a.nivel===3?'':(a.nivel===2?'na':'am');
+      html+='<div class="alert-wrap"><div class="alert-del">&#128465;</div><div class="alert'+(a.nivel===3?' sell-row':'')+'">'+
+        '<div class="a-ic '+icCls+'">'+ic+'</div>'+
+        '<div class="a-body"><div class="a-tx">'+a.tk+' &middot; '+nm+' '+strat+'</div>'+
+        '<div class="a-scoreline ini"><span class="lbl">Inicio</span><span class="num">Sm '+ini[0].toFixed(2)+' / St '+ini[1].toFixed(1)+'</span></div>'+
+        '<div class="a-scoreline now"><span class="lbl">Ahora</span><span class="num">Sm '+a.sm.toFixed(2)+' / St '+a.st.toFixed(1)+'</span></div>'+
+        '<div class="a-obs '+obsCls+'">'+a.obs.join('<br>')+'</div></div>'+
+        '<div class="a-boxes">'+
+          '<div class="a-box"><div class="bx-lbl">Trim</div><div class="bx-val '+(a.trim>=0?'g':'r')+'">'+(isNaN(a.trim)?'—':fpct(a.trim))+'</div></div>'+
+          '<div class="a-box"><div class="bx-lbl">Mío</div><div class="bx-val '+(a.mio>=0?'g':'r')+'">'+(isNaN(a.mio)?'—':fpct(a.mio))+'</div></div>'+
+        '</div>'+
+        (a.nivel===3?'':'')+tag+
+      '</div></div>';
+    });
+    cont.innerHTML=html;
+    var ac=document.getElementById('aCount'); if(ac)ac.textContent=lista.length;
+    if(window.enlazarSwipe) window.enlazarSwipe();
+  }
+
+
+  var TECHSVG2='<svg class="dv-tech" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="7" width="10" height="10" rx="1.5"/><rect x="10.5" y="10.5" width="3" height="3" fill="currentColor" stroke="none"/><path d="M10 3v2M14 3v2M10 19v2M14 19v2M3 10h2M3 14h2M19 10h2M19 14h2"/></svg>';
+  function dvBar(v,maxAbs){
+    var w=maxAbs>0?Math.abs(v)/maxAbs*50:0; if(w>50)w=50;
+    var val=(v>=0?'+':'\u2212')+Math.abs(v).toFixed(1)+'%';
+    if(v>=0){
+      return '<div class="dv-track"><div class="dv-zero"></div><div class="dv-bar g" style="left:50%;width:'+w.toFixed(1)+'%"></div><div class="dv-val" style="left:50%;width:'+w.toFixed(1)+'%;text-align:right;padding-right:5px">'+val+'</div></div>';
+    } else {
+      return '<div class="dv-track"><div class="dv-zero"></div><div class="dv-bar r" style="left:calc(50% - '+w.toFixed(1)+'%);width:'+w.toFixed(1)+'%"></div><div class="dv-val" style="left:calc(50% - '+w.toFixed(1)+'%);width:'+w.toFixed(1)+'%;text-align:left;padding-left:5px">'+val+'</div></div>';
+    }
+  }
+  function actualizarEstrategias(){
+    var tks=Object.keys(LIVE).filter(function(t){return !isNaN(LIVE[t].mio);});
+    if(!tks.length) return;
+    // --- Yo vs algoritmo (promedio mío por estrategia + algoritmo del mes por estrategia) ---
+    var yva=document.getElementById('yvaList');
+    if(yva){
+      var qs=tks.filter(function(t){return META[t]&&META[t][1]==='c';});
+      var ss=tks.filter(function(t){return META[t]&&META[t][1]==='s';});
+      function prom(a){ if(!a.length)return 0; var s=0; a.forEach(function(t){s+=LIVE[t].mio;}); return s/a.length; }
+      var yoQ=prom(qs), yoS=prom(ss);
+      var alQ=(window.ALGO_MES_Q!=null&&!isNaN(window.ALGO_MES_Q))?window.ALGO_MES_Q:0;
+      var alS=(window.ALGO_MES_S!=null&&!isNaN(window.ALGO_MES_S))?window.ALGO_MES_S:0;
+      var mx=Math.max(Math.abs(yoQ),Math.abs(yoS),Math.abs(alQ),Math.abs(alS),1);
+      yva.innerHTML=
+        '<div class="dv-row"><div class="dv-lbl">Quant<small>yo</small></div>'+dvBar(yoQ,mx)+'</div>'+
+        '<div class="dv-row"><div class="dv-lbl">Quant<small>algoritmo</small></div>'+dvBar(alQ,mx)+'</div>'+
+        '<div class="dv-row"><div class="dv-lbl">Smart<small>yo</small></div>'+dvBar(yoS,mx)+'</div>'+
+        '<div class="dv-row"><div class="dv-lbl">Smart<small>algoritmo</small></div>'+dvBar(alS,mx)+'</div>';
+    }
+    // --- Todas mis acciones desde mi compra (ordenadas desc por mío) ---
+    var aml=document.getElementById('allMineList');
+    if(aml){
+      var arr=tks.slice().sort(function(a,b){return LIVE[b].mio-LIVE[a].mio;});
+      var mx2=1; arr.forEach(function(t){ if(Math.abs(LIVE[t].mio)>mx2)mx2=Math.abs(LIVE[t].mio); });
+      var html='';
+      arr.forEach(function(t){
+        var st=META[t][1], tech=META[t][2];
+        var dot='<span class="dv-dot '+st+'">'+(st==='c'?'C':'S')+'</span>';
+        var techi=tech?TECHSVG2:'<span style="width:16px;flex:none"></span>';
+        html+='<div class="dv-row"><div class="dv-lbl tick"><span class="tk">'+t+'</span>'+dot+techi+'</div>'+dvBar(LIVE[t].mio,mx2)+'</div>';
+      });
+      aml.innerHTML=html;
+    }
+  }
+
+
+
+  // ---- Selección de trimestres para el laboratorio (acumulado) ----
+  function numL(x){ var v=parseFloat(String(x).replace(/[%$,\s]/g,"")); return isNaN(v)?NaN:v; }
+  function quarterDe(fecha){ // "YYYY-MM-..." -> "YYYY-Qn"
+    var a=fecha.split("-"); if(a.length<2) return null;
+    var y=+a[0], m=+a[1]; if(!y||!m) return null;
+    return y+"-Q"+Math.ceil(m/3);
+  }
+  function quarterActual(){ var d=new Date(); return d.getFullYear()+"-Q"+Math.ceil((d.getMonth()+1)/3); }
+  // Mapa lab_key -> columna del historial
+  var LAB2HIST={ q_chicas:"chicas", q_viejas:"viejas", q_str20:"str20", q_str22:"str22",
+    q_8smart:"mej8_smart", q_claude:"sel_ind_cuant", q_sm26:"sm26", q_sm25:"sm25", q_mes:"cuant_mes",
+    s_arranque:"arranque_30_29", s_mes:"smart_mes", s_claude:"sel_ind_smart",
+    q_trim:"cuant_trim", s_trim:"smart_trim", sem_trim:"semilla_trim", sem_mes:"semilla_mes" };
+  window.LAB_HIST={}; // { "YYYY-Qn": {lab_key:valor_cierre} }
+  window.selQuarters=null;
+
+  window.construirLabHist=function(rowsHist, H){
+    // rowsHist: filas del historial; H: encabezados en minúscula
+    function ix(n){ return H.indexOf(n); }
+    var porQ={}; // quarter -> ultima fila hábil
+    for(var i=1;i<rowsHist.length;i++){
+      var r=rowsHist[i]; if(!r) continue;
+      var fch=((ix("fecha")>=0?r[ix("fecha")]:"")||"").trim(); if(!fch) continue;
+      // saltar fines de semana
+      var p=null; if(fch.indexOf("-")>0){var a=fch.split("-");p=new Date(+a[0],+a[1]-1,+a[2]);}
+      if(p){var wd=p.getDay(); if(wd===0||wd===6) continue;}
+      var q=quarterDe(fch); if(!q) continue;
+      porQ[q]=r; // último del trimestre (van en orden)
+    }
+    var res={};
+    Object.keys(porQ).forEach(function(q){
+      var r=porQ[q]; var o={};
+      Object.keys(LAB2HIST).forEach(function(k){ var c=ix(LAB2HIST[k]); o[k]=(c>=0?numL(r[c]):NaN); });
+      res[q]=o;
+    });
+    window.LAB_HIST=res;
+    window.renderTrimBtns();
+  };
+
+  function trimestresDisponibles(){
+    var qs=Object.keys(window.LAB_HIST||{});
+    var d=new Date(), y=d.getFullYear(), qact=Math.ceil((d.getMonth()+1)/3);
+    for(var i=1;i<=qact;i++){ var k=y+"-Q"+i; if(qs.indexOf(k)<0) qs.push(k); }
+    qs.sort(); return qs;
+  }
+  function fmtQ(q){ var a=q.split("-Q"); return "T"+a[1]+" "+a[0].slice(2); }
+
+  window.renderTrimBtns=function(){
+    var cont=document.getElementById('labTrims'); if(!cont) return;
+    var qs=trimestresDisponibles();
+    var act=quarterActual();
+    if(window.selQuarters===null){ window.selQuarters={}; window.selQuarters[act]=true; }
+    cont.innerHTML=qs.slice().map(function(q){
+      var on=window.selQuarters[q]?' on':'';
+      return '<div class="lab-trim'+on+'" data-q="'+q+'">'+fmtQ(q)+'</div>';
+    }).join('');
+    cont.querySelectorAll('.lab-trim').forEach(function(b){
+      b.addEventListener('click',function(){
+        var q=b.getAttribute('data-q');
+        window.selQuarters[q]=!window.selQuarters[q];
+        if(!window.selQuarters[q]) delete window.selQuarters[q];
+        window.renderTrimBtns(); window.dibujarLab();
+      });
+    });
+  }
+
+  function labEfectivo(){
+    var act=quarterActual();
+    if(window.selQuarters===null) return window.LAB; // aún no cargan botones: en vivo
+    var sel=Object.keys(window.selQuarters||{});
+    if(!sel.length) return window.LAB;
+    // Solo actual seleccionado -> en vivo (window.LAB tal cual)
+    if(sel.length===1 && sel[0]===act) return window.LAB;
+    // Acumulado: sumar por lab_key sobre trimestres seleccionados
+    var keys=["q_chicas","q_viejas","q_str20","q_str22","q_8smart","q_claude","q_sm26","q_sm25","q_mes","s_arranque","s_mes","s_claude","q_trim","s_trim","sem_trim","sem_mes"];
+    var out={};
+    keys.forEach(function(k){
+      var suma=0, hay=false;
+      sel.forEach(function(q){
+        var val;
+        if(q===act){ val=window.LAB?window.LAB[k]:NaN; }
+        else { val=(window.LAB_HIST[q]?window.LAB_HIST[q][k]:NaN); }
+        if(!isNaN(val)){ suma+=val; hay=true; }
+      });
+      out[k]=hay?suma:NaN;
+    });
+    return out;
+  }
+
+  if(document.readyState!=="loading"){ setTimeout(function(){try{window.renderTrimBtns();}catch(e){}},60); } else { document.addEventListener("DOMContentLoaded",function(){try{window.renderTrimBtns();}catch(e){}}); }
+
+  window.dibujarLab=function(){
+    if(window.renderTrimBtns){ try{window.renderTrimBtns();}catch(e){} }
+    var L=labEfectivo(); if(!L) return;
+    function fp(v){ return (v>=0?'+':'\u2212')+Math.abs(v).toFixed(1)+'%'; }
+    function card(items, contId){
+      var cont=document.getElementById(contId); if(!cont) return;
+      var vals=items.map(function(it){return it.v;}).filter(function(v){return !isNaN(v);});
+      if(!vals.length){ cont.innerHTML='<div style="color:#777;font-size:12px;text-align:center;padding:16px 0">Sin datos</div>'; return; }
+      var arr=items.filter(function(it){return !isNaN(it.v);}).slice().sort(function(a,b){return a.v-b.v;});
+      var mx=Math.max.apply(null,arr.map(function(it){return Math.abs(it.v);}))||1;
+      var html='';
+      arr.forEach(function(it,i){
+        var w=(Math.abs(it.v)/mx*100).toFixed(1);
+        var mine=''; var rowcls='';
+        if(it.tag==='mia'){ mine='<span class="mine">MÍA</span>'; rowcls=' rk-mine-row'; }
+        else if(it.tag==='quant'){ mine='<span class="mine" style="background:var(--blue);color:#fff">QUANT</span>'; }
+        else if(it.tag==='smart'){ mine='<span class="mine" style="background:var(--purple);color:#fff">SMART</span>'; }
+        var cls=it.v>=0?'g':'r';
+        html+='<div class="rk-row'+rowcls+'"><div class="rk-rank">'+(i+1)+'</div>'+
+          '<div class="rk-mid"><div class="rk-lbl">'+it.lbl+mine+'</div>'+
+          '<div class="rk-barbg"><div class="rk-bar" style="width:'+w+'%"></div></div></div>'+
+          '<div class="rk-val '+cls+'">'+fp(it.v)+'</div></div>';
+      });
+      cont.innerHTML=html;
+    }
+    card([
+      {lbl:'Chicas (Sm2.6 St22)', v:L.q_chicas, tag:''},
+      {lbl:'Viejas (Sm2.6 St22)', v:L.q_viejas, tag:''},
+      {lbl:'Strength 20 o más', v:L.q_str20, tag:''},
+      {lbl:'Strength 22 o más', v:L.q_str22, tag:''},
+      {lbl:'8 mejores smart', v:L.q_8smart, tag:''},
+      {lbl:'Mi selección (industria)', v:L.q_claude, tag:'mia'},
+      {lbl:'Smart 2.6 o más', v:L.q_sm26, tag:''},
+      {lbl:'Smart 2.5 o más', v:L.q_sm25, tag:''},
+      {lbl:'Todo el Cuant', v:L.q_mes, tag:'quant'}
+    ], 'labQuant');
+    card([
+      {lbl:'Arranque 3.0 / 29', v:L.s_arranque, tag:''},
+      {lbl:'Todo el Smart', v:L.s_mes, tag:'smart'},
+      {lbl:'Mi selección (industria)', v:L.s_claude, tag:'mia'}
+    ], 'labSmart');
+  };
 
   function tryUpdateAll(){
     // Actualizar hero MIO (promedio de mio de las 14)
@@ -883,9 +947,12 @@ function updateCount(){
         var el=document.getElementById('hMio');
         if(el){ el.textContent=fmtPct(avg); }
         var pos=document.getElementById('hPos'); if(pos) pos.textContent=n;
+        // desglose para diagnóstico
+        window.MIOS={}; tickers.forEach(function(t){ window.MIOS[t]=LIVE[t].mio; });
+        window.MIOS_SUMA=sum; window.MIOS_N=n; window.MIOS_PROM=avg;
         // Monto ganado/perdido en vivo = invertido * rendimiento
-        var inv=window.INVERTIDO;
-        if(inv==null){ inv=n*10000; } // respaldo: 10,000 por posición
+        var inv=n*10000; // cada posición es $10,000
+        if(window.INVERTIDO!=null && window.INVERTIDO>0){ inv=window.INVERTIDO; }
         var gan=inv*avg/100;
         var chip=document.getElementById('hMioChip');
         if(chip){
@@ -897,7 +964,10 @@ function updateCount(){
         // Invertido en el hero
         var invEl=document.getElementById('hInv');
         if(invEl){ invEl.innerHTML='$'+Math.round(inv).toLocaleString('es-MX'); }
+        actualizarMovers();
       }
+      try{ generaAlertas(); }catch(e){ console.log("alertas err",e); }
+      try{ actualizarEstrategias(); }catch(e){ console.log("estrategias err",e); }
     }
     // Reconstruir ACC (vista Acciones) con datos vivos
     if(got.precios && got.claude && typeof ACC!=='undefined' && tickers.length){
@@ -920,25 +990,79 @@ function updateCount(){
   // precios: col16=Q Ticker,17=R Trim,18=S Mes,19=T Mio
   fetch(url(GID.precios)).then(function(r){return r.text();}).then(function(txt){
     var rows=parseCSV(txt);
-    for(var i=1;i<rows.length;i++){
-      var r=rows[i]; if(!r||r.length<21) continue;
-      var raw=(r[17]||"").trim(); if(!raw) continue;
+    // Mapa etiqueta -> valor (escanea toda la hoja; etiqueta en una celda, valor en la de al lado)
+    window.ESPEJO = {};
+    for (var ri=0; ri<rows.length; ri++){
+      var rr=rows[ri]; if(!rr) continue;
+      for (var ci=0; ci<rr.length; ci++){
+        var celda=(rr[ci]||"").trim();
+        if(celda && /^[a-z][a-z0-9_]+$/.test(celda)){ // parece etiqueta (minúsculas_guionbajo)
+          window.ESPEJO[celda]=(rr[ci+1]!==undefined?rr[ci+1]:"");
+        }
+      }
+    }
+    function esp(et){ return (window.ESPEJO && window.ESPEJO[et]!==undefined)? num(window.ESPEJO[et]) : NaN; }
+    // Ubicar columnas del bloque de acciones por su encabezado (Ticker/Trim/Mes/Mío)
+    var cTk=-1,cTrim=-1,cMes=-1,cMio=-1,cCompra=-1;
+    for(var hr=0; hr<rows.length && cTk<0; hr++){
+      var hh=rows[hr]||[];
+      for(var hc=0; hc<hh.length; hc++){
+        var v=(hh[hc]||"").trim().toLowerCase();
+        if(v==="ticker"){ cTk=hc; }
+        else if(v==="trim"){ cTrim=hc; }
+        else if(v==="mes"){ cMes=hc; }
+        else if(v==="mío"||v==="mio"){ cMio=hc; }
+        else if(v==="compra"){ cCompra=hc; }
+      }
+      if(cTk<0){ cTrim=cMes=cMio=cCompra=-1; } // no era la fila correcta
+    }
+    if(cTk<0){ cTk=17; cTrim=18; cMes=19; cMio=20; } // respaldo a posición vieja
+    var shotsDetectadas={};
+    for(var i=0;i<rows.length;i++){
+      var r=rows[i]; if(!r) continue;
+      var raw=(r[cTk]||"").trim(); if(!raw) continue;
       var tk=raw.split(" ")[0].toUpperCase();
       if(!META[tk]) continue;
       LIVE[tk]=LIVE[tk]||{};
-      LIVE[tk].trim=num(r[18]); LIVE[tk].mes=num(r[19]); LIVE[tk].mio=num(r[20]);
+      if(cCompra>=0){
+        var fc=(r[cCompra]||"").trim();
+        if(fc){
+          var iso=null;
+          if(fc.indexOf("/")>0){ var pp=fc.split("/"); if(pp.length===3){ var dd=("0"+pp[0]).slice(-2), mm=("0"+pp[1]).slice(-2), yy=pp[2]; iso=yy+"-"+mm+"-"+dd; } }
+          else if(fc.indexOf("-")>0){ iso=fc.slice(0,10); }
+          if(iso) shotsDetectadas[iso]=true;
+        }
+      }
+      LIVE[tk].trim=num(r[cTrim]); LIVE[tk].mes=num(r[cMes]); LIVE[tk].mio=num(r[cMio]);
     }
+    // Fechas de compra detectadas -> marcas en la gráfica
+    var _sk=Object.keys(shotsDetectadas);
+    if(_sk.length){ window.SHOTS=_sk.sort(); if(window.dibujarAlgo){ try{window.dibujarAlgo();}catch(e){} } }
+    // Laboratorio: columna Z (índice 25), filas 2-17
+    try{
+      window.LAB={
+        q_trim:esp('q_trim'), q_mes:esp('q_mes'), q_claude:esp('q_claude'), q_8smart:esp('q_8smart'),
+        q_sm26:esp('q_sm26'), q_sm25:esp('q_sm25'), q_str22:esp('q_str22'), q_str20:esp('q_str20'),
+        q_chicas:esp('q_chicas'), q_viejas:esp('q_viejas'),
+        s_trim:esp('s_trim'), s_mes:esp('s_mes'), s_claude:esp('s_claude'), s_arranque:esp('s_arranque'),
+        sem_trim:esp('sem_trim'), sem_mes:esp('sem_mes')
+      };
+      if(window.dibujarLab) window.dibujarLab();
+    }catch(e){ console.log("lab err",e); }
     // Algoritmo desde columna W (índice 22): filas 2-5 (rows[1]..rows[4])
     try{
-      var aMesQ=num(rows[1]&&rows[1][22]), aMesS=num(rows[2]&&rows[2][22]);
-      var aTrimQ=num(rows[3]&&rows[3][22]), aTrimS=num(rows[4]&&rows[4][22]);
+      var aMesQ=esp('algo_mes_quant'), aMesS=esp('algo_mes_smart');
+      var aTrimQ=esp('algo_trim_quant'), aTrimS=esp('algo_trim_smart');
       if(!isNaN(aMesQ)&&!isNaN(aMesS)){
         var algoMes=(aMesQ+aMesS)/2;
         var el=document.getElementById('hAlgo'); if(el) el.textContent=fmtPct(algoMes);
+        window.ALGO_MES_Q=aMesQ; window.ALGO_MES_S=aMesS;
       }
       if(!isNaN(aTrimQ)&&!isNaN(aTrimS)){
         var algoTrim=(aTrimQ+aTrimS)/2;
         var tel=document.getElementById('hAlgoTrim'); if(tel) tel.textContent=fmtPct(algoTrim);
+        window.ALGO_TRIM_LIVE=algoTrim; window.ALGO_TRIM_Q=aTrimQ; window.ALGO_TRIM_S=aTrimS;
+        if(window.pintarActualAlgo) window.pintarActualAlgo();
       }
     }catch(e){ console.log("algo err",e); }
     got.precios=true; estado.precios=(Object.keys(LIVE).length>0); pinta(); tryUpdateAll();
@@ -947,31 +1071,55 @@ function updateCount(){
   // historial: ultima fila; M(12)=algoQuantTrim N(13)=algoQuantMes W(22)=algoSmartTrim X(23)=algoSmartMes
   fetch(url(GID.historial)).then(function(r){return r.text();}).then(function(txt){
     var rows=parseCSV(txt);
-    // Construir serie del algoritmo del trimestre: promedio de col M(12) y W(22) por fila
+    // Ubicar columnas por encabezado (a prueba de cambios)
+    var H=(rows[0]||[]).map(function(x){return (x||"").trim().toLowerCase();});
+    function ix(nombre){ return H.indexOf(nombre); }
+    var iFecha=ix("fecha"), iQT=ix("cuant_trim"), iST=ix("smart_trim"), iIQ=ix("inv_cuant"), iIS=ix("inv_smart");
+    var iYQ=ix("yo_mes_cuant"), iYS=ix("yo_mes_smart");
     var serie=[];
+    var estrat=[];
     var ultInv=null;
     for(var i=1;i<rows.length;i++){
-      var r=rows[i]; if(!r||r.length<23) continue;
-      var q=num(r[12]), sm=num(r[22]);
+      var r=rows[i]; if(!r) continue;
+      var fchS=(iFecha>=0?(r[iFecha]||"").trim():"");
+      if(fchS){ var pS=null;
+        if(fchS.indexOf("-")>0){ var aS=fchS.split("-"); pS=new Date(+aS[0],+aS[1]-1,+aS[2]); }
+        else if(fchS.indexOf("/")>0){ var bS=fchS.split("/"); pS=new Date(+bS[2],+bS[1]-1,+bS[0]); }
+        if(pS){ var wS=pS.getDay(); if(wS===0||wS===6) continue; } } // salta sáb/dom
+      var q=(iQT>=0?num(r[iQT]):NaN), sm=(iST>=0?num(r[iST]):NaN);
       if(isNaN(q)||isNaN(sm)) continue;
-      serie.push({fecha:(r[0]||"").trim(), val:(q+sm)/2});
-      var d=num(r[3]), e=num(r[4]);
+      serie.push({fecha:fchS, val:(q+sm)/2});
+      var yq=(iYQ>=0?num(r[iYQ]):NaN), ys=(iYS>=0?num(r[iYS]):NaN);
+      estrat.push({fecha:fchS, hora:(ix('hora')>=0?(r[ix('hora')]||'').trim():''), algoQ:q, algoS:sm, algo:(q+sm)/2, miQ:yq, miS:ys,
+                   mi:((!isNaN(yq)&&!isNaN(ys))?(yq+ys)/2:(isNaN(yq)?ys:yq))});
+      var d=(iIQ>=0?num(r[iIQ]):NaN), e=(iIS>=0?num(r[iIS]):NaN);
       if(!isNaN(d)||!isNaN(e)){ ultInv=(isNaN(d)?0:d)+(isNaN(e)?0:e); }
     }
     window.HIST=serie;
+    window.HISTSTRAT=estrat;
+    if(window.construirLabHist){ try{ window.construirLabHist(rows, H); }catch(e){ console.log("labhist err",e); } }
     if(ultInv!=null){ window.INVERTIDO=ultInv; }
     got.hist=true; estado.historial=true; pinta(); tryUpdateAll();
+    if(window.dibujarAnalisis && document.getElementById("viewAnalisis") && document.getElementById("viewAnalisis").classList.contains("on")){ try{window.dibujarAnalisis();}catch(e){} }
   }).catch(function(e){ estado.historial=false; pinta(); console.log("historial err",e); });
 
-  // claude: A=Fecha B=Estrategia C=Accion(2) D=Comprada E=Smart(4) F=Strength(5). Ultima aparicion por ticker.
+  // claude: ubicar columnas por encabezado (Acción/Smart/Strength). Última aparición por ticker.
   fetch(url(GID.claude)).then(function(r){return r.text();}).then(function(txt){
     var rows=parseCSV(txt);
+    var H=(rows[0]||[]).map(function(x){return (x||"").trim().toLowerCase();});
+    var iAcc=-1,iSm=-1,iSt=-1;
+    for(var h=0; h<H.length; h++){
+      if(H[h]==="acción"||H[h]==="accion") iAcc=h;
+      else if(H[h]==="smart") iSm=h;
+      else if(H[h]==="strength") iSt=h;
+    }
+    if(iAcc<0){ iAcc=2; iSm=4; iSt=5; } // respaldo a posición vieja
     for(var i=1;i<rows.length;i++){
-      var r=rows[i]; if(!r||r.length<6) continue;
-      var raw=(r[2]||"").trim(); if(!raw) continue;
+      var r=rows[i]; if(!r) continue;
+      var raw=(r[iAcc]||"").trim(); if(!raw) continue;
       var tk=raw.split(" ")[0].toUpperCase();
       if(!META[tk]) continue;
-      var sm=num(r[4]), st=num(r[5]);
+      var sm=(iSm>=0?num(r[iSm]):NaN), st=(iSt>=0?num(r[iSt]):NaN);
       if(isNaN(sm)&&isNaN(st)) continue;
       LIVE[tk]=LIVE[tk]||{};
       if(!isNaN(sm)) LIVE[tk].smart=sm;
@@ -989,7 +1137,7 @@ function updateCount(){
     if(f.indexOf('/')>0){ var q=f.split('/'); return new Date(+q[2],+q[1]-1,+q[0]); }
     return null;
   }
-  function renderHist(dias){
+  window.renderHist=function(dias){
     var cont=document.getElementById('histChart'); if(!cont) return;
     var data=(window.HIST||[]).slice();
     if(!data.length){ cont.innerHTML='<div style="text-align:center;color:#777;padding:40px 0;font-size:13px">Aún no hay historial guardado.<br>El robot lo va llenando 3 veces al día.</div>'; 
@@ -1008,7 +1156,13 @@ function updateCount(){
     var W=600,H=220,padL=8,padR=8,padT=16,padB=16;
     function X(i){ return padL + (data.length<=1?0:i/(data.length-1))*(W-padL-padR); }
     function Y(v){ return padT + (1-(v-mn)/range)*(H-padT-padB); }
+    // rango considerando las 3 series
+    var allv=[];
+    data.forEach(function(p){ allv.push(p.val); if(!isNaN(p.q))allv.push(p.q); if(!isNaN(p.sm))allv.push(p.sm); });
+    mn=Math.min.apply(null,allv); mx=Math.max.apply(null,allv); rg=(mx-mn)||1;
     var pts=data.map(function(p,i){return X(i)+','+Y(p.val);}).join(' ');
+    var ptsQ=data.filter(function(p){return !isNaN(p.q);}).map(function(p,i,arr){return X(data.indexOf(p))+','+Y(p.q);}).join(' ');
+    var ptsS=data.filter(function(p){return !isNaN(p.sm);}).map(function(p,i){return X(data.indexOf(p))+','+Y(p.sm);}).join(' ');
     // índices de min y max
     var iMin=vals.indexOf(mn), iMax=vals.indexOf(mx);
     // línea del cero si cabe
@@ -1019,7 +1173,7 @@ function updateCount(){
       '<defs><linearGradient id="hgrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="rgba(255,69,58,.28)"/><stop offset="1" stop-color="rgba(255,69,58,0)"/></linearGradient></defs>'+
       zeroLine+
       '<path d="'+area+'" fill="url(#hgrad)"/>'+
-      '<polyline points="'+pts+'" fill="none" stroke="#ff6b60" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>'+
+      '<polyline points="'+ptsQ+'" fill="none" stroke="#0A84FF" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" opacity="0.9"/><polyline points="'+ptsS+'" fill="none" stroke="#30D158" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" opacity="0.9"/><polyline points="'+pts+'" fill="none" stroke="#ff6b60" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>'+(window.marcasCompra?window.marcasCompra(data,X,padT,padB,H):'')+
       '<circle cx="'+X(iMax)+'" cy="'+Y(mx)+'" r="4.5" fill="#30D158"/>'+
       '<circle cx="'+X(iMin)+'" cy="'+Y(mn)+'" r="4.5" fill="#ff453a"/>'+
       '<circle cx="'+X(data.length-1)+'" cy="'+Y(data[data.length-1].val)+'" r="4" fill="#fff"/>'+
@@ -1034,11 +1188,17 @@ function updateCount(){
     var hoy=data[data.length-1].val;
     document.getElementById('histNow').innerHTML='Hoy el algoritmo está en <b>'+fmt(hoy)+'</b> &middot; '+data.length+' registros';
   }
-  var histDias=0;
+  window.histDias=0;
+  window.abrirHist=function(){
+    var bg=document.getElementById('histBg');
+    if(bg){ bg.classList.add('open'); }
+    try{ if(typeof window.renderHist==='function'){ window.renderHist(window.histDias||0); } }catch(e){ console.log('renderHist err',e); }
+  };
+  var histDias=window.histDias;
   document.querySelectorAll('#histSel .hist-sb').forEach(function(b){
     b.addEventListener('click',function(){
       document.querySelectorAll('#histSel .hist-sb').forEach(function(x){x.classList.remove('on');});
-      b.classList.add('on'); histDias=parseInt(b.getAttribute('data-d')); renderHist(histDias);
+      b.classList.add('on'); window.histDias=parseInt(b.getAttribute('data-d')); window.renderHist(window.histDias);
     });
   });
   // Abrir histórico al picar el algoritmo (robusto por delegación)
@@ -1047,7 +1207,6 @@ function updateCount(){
     if(ev.target && ev.target.id==='histBg'){ ev.target.classList.remove('open'); return; }
     var t=ev.target;
     while(t && t!==document){
-      if(t.id==='hAlgo'){ var bg=document.getElementById('histBg'); if(bg){ bg.classList.add('open'); renderHist(histDias); } return; }
       t=t.parentNode;
     }
   });
@@ -1064,6 +1223,357 @@ function updateCount(){
     var fe=document.getElementById('hDate');
     if(fe) fe.textContent=dias[d.getDay()]+" "+d.getDate()+" "+mes[d.getMonth()];
   }catch(e){}
+})();
+</script>
+
+
+<script>
+/* ==== HISTORICO INDEPENDIENTE (autónomo) ==== */
+(function(){
+  var URL_HIST="https://docs.google.com/spreadsheets/d/e/2PACX-1vQ1gnRj1TvcXXF66yAreWKo6RON27GE3K2pZWq8LSxb98SNZeKpFuYaeHgovJTO9zM1QSeHb-cxWJ2N/pub?gid=1844874580&single=true&output=csv";
+  var HISTX=[]; var diasSel=0;
+  function csv(t){var R=[],r=[],c="",q=false;for(var i=0;i<t.length;i++){var ch=t[i];if(q){if(ch=='"'){if(t[i+1]=='"'){c+='"';i++;}else q=false;}else c+=ch;}else{if(ch=='"')q=true;else if(ch==','){r.push(c);c="";}else if(ch=='\n'){r.push(c);R.push(r);r=[];c="";}else if(ch=='\r'){}else c+=ch;}}if(c.length||r.length){r.push(c);R.push(r);}return R;}
+  function n(v){if(v==null)return NaN;v=String(v).replace(/[%$,\s]/g,'');var x=parseFloat(v);return isNaN(x)?NaN:x;}
+  function pf(f){if(!f)return null;if(f.indexOf('-')>0){var p=f.split('-');return new Date(+p[0],+p[1]-1,+p[2]);}if(f.indexOf('/')>0){var q=f.split('/');return new Date(+q[2],+q[1]-1,+q[0]);}return null;}
+  function cargar(){
+    fetch(URL_HIST).then(function(r){return r.text();}).then(function(t){
+      var rows=csv(t); HISTX=[];
+      var H=(rows[0]||[]).map(function(x){return (x||"").trim().toLowerCase();});
+      var iFecha=H.indexOf("fecha"), iQT=H.indexOf("cuant_trim"), iST=H.indexOf("smart_trim");
+      for(var i=1;i<rows.length;i++){var r=rows[i];if(!r)continue;
+        var fch=(iFecha>=0?(r[iFecha]||"").trim():"");
+        var dd=pf(fch); if(dd){ var wd=dd.getDay(); if(wd===0||wd===6) continue; } // salta sáb/dom
+        var q=(iQT>=0?n(r[iQT]):NaN), sm=(iST>=0?n(r[iST]):NaN);
+        if(isNaN(q)&&isNaN(sm))continue;var vv;if(!isNaN(q)&&!isNaN(sm))vv=(q+sm)/2;else vv=isNaN(q)?sm:q;
+        HISTX.push({fecha:fch,val:vv,q:q,sm:sm});}
+    }).catch(function(e){console.log("histX err",e);});
+  }
+  cargar();
+  setTimeout(function(){ if(window.pintarActualAlgo) window.pintarActualAlgo(); },1500);
+
+  function fmt(v){return (v>=0?'+':'\u2212')+Math.abs(v).toFixed(1)+'%';}
+  function fd(f){var d=pf(f);if(!d)return f||'';var m=["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"];return d.getDate()+" "+m[d.getMonth()];}
+
+  window.SHOTS = window.SHOTS || ["2026-07-07"]; // fechas de tus shots de compra
+  window.marcasCompra=function(data, X, pT, pB, H){
+    if(!window.SHOTS || !window.SHOTS.length || !data.length) return "";
+    function toD(f){ if(!f)return null; if(f.indexOf("-")>0){var a=f.split("-");return new Date(+a[0],+a[1]-1,+a[2]);} if(f.indexOf("/")>0){var b=f.split("/");return new Date(+b[2],+b[1]-1,+b[0]);} return null; }
+    var out="";
+    window.SHOTS.forEach(function(sf){
+      var sd=toD(sf); if(!sd) return;
+      // índice del dato más cercano a la fecha de compra
+      var best=-1, bestDiff=1e15;
+      data.forEach(function(p,i){ var d=toD(p.fecha); if(!d)return; var diff=Math.abs(d-sd); if(diff<bestDiff){bestDiff=diff;best=i;} });
+      if(best<0) return;
+      var x=X(best);
+      out+='<line x1="'+x+'" y1="'+pT+'" x2="'+x+'" y2="'+(H-pB)+'" stroke="#f5c518" stroke-width="1.3" stroke-dasharray="4 3" opacity="0.85"/>'+
+           '<polygon points="'+(x-4)+','+(pT-1)+' '+(x+4)+','+(pT-1)+' '+x+','+(pT+5)+'" fill="#f5c518"/>';
+    });
+    return out;
+  };
+  function dibujarEn(sfx){
+    var cont=document.getElementById('histChart'+sfx);if(!cont)return;
+    var data=HISTX.slice();
+    if(!data.length){cont.innerHTML='<div style="text-align:center;color:#777;padding:44px 0;font-size:13px">Aún no hay historial guardado.<br>El robot lo va llenando 3 veces al día.</div>';
+      setTxt('histMax'+sfx,'—');setTxt('histMin'+sfx,'—');setTxt('histMaxD'+sfx,'');setTxt('histMinD'+sfx,'');setHTML('histNow'+sfx,'');return;}
+    if(diasSel>0){var lim=new Date(Date.now()-diasSel*86400000);var fdata=data.filter(function(p){var d=pf(p.fecha);return !d||d>=lim;});if(fdata.length)data=fdata;}
+    var vals=data.map(function(p){return p.val;});
+    var W=600,H=220,pL=8,pR=8,pT=16,pB=16;
+    // Escala Y: considera las 3 series para que todas quepan
+    var allv=[];
+    data.forEach(function(p){ allv.push(p.val); if(!isNaN(p.q))allv.push(p.q); if(!isNaN(p.sm))allv.push(p.sm); });
+    var mn=Math.min.apply(null,allv), mx=Math.max.apply(null,allv), rg=(mx-mn)||1;
+    function X(i){return pL+(data.length<=1?0:i/(data.length-1))*(W-pL-pR);}
+    function Y(v){return pT+(1-(v-mn)/rg)*(H-pT-pB);}
+    // Máximo/mínimo del ALGORITMO = solo de la serie promedio (val), no de las 3 mezcladas
+    var mnV=Math.min.apply(null,vals), mxV=Math.max.apply(null,vals);
+    var pts=data.map(function(p,i){return X(i)+','+Y(p.val);}).join(' ');
+    var ptsQ=data.filter(function(p){return !isNaN(p.q);}).map(function(p,i,arr){return X(data.indexOf(p))+','+Y(p.q);}).join(' ');
+    var ptsS=data.filter(function(p){return !isNaN(p.sm);}).map(function(p,i){return X(data.indexOf(p))+','+Y(p.sm);}).join(' ');
+    var iMin=vals.indexOf(mnV),iMax=vals.indexOf(mxV);
+    var zero='';if(mn<0&&mx>0){var zy=Y(0);zero='<line x1="'+pL+'" y1="'+zy+'" x2="'+(W-pR)+'" y2="'+zy+'" stroke="rgba(255,255,255,.12)" stroke-dasharray="3 3"/>';}
+    var area='M '+X(0)+' '+Y(data[0].val)+' L '+data.map(function(p,i){return X(i)+' '+Y(p.val);}).join(' L ')+' L '+X(data.length-1)+' '+(H-pB)+' L '+X(0)+' '+(H-pB)+' Z';
+    cont.innerHTML='<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto;display:block"><defs><linearGradient id="hgX'+sfx+'" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="rgba(255,69,58,.28)"/><stop offset="1" stop-color="rgba(255,69,58,0)"/></linearGradient></defs>'+zero+'<path d="'+area+'" fill="url(#hgX'+sfx+')"/><polyline points="'+ptsQ+'" fill="none" stroke="#0A84FF" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" opacity="0.9"/><polyline points="'+ptsS+'" fill="none" stroke="#30D158" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" opacity="0.9"/><polyline points="'+pts+'" fill="none" stroke="#ff6b60" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/><circle cx="'+X(iMax)+'" cy="'+Y(mx)+'" r="4.5" fill="#30D158"/><circle cx="'+X(iMin)+'" cy="'+Y(mn)+'" r="4.5" fill="#ff453a"/><circle cx="'+X(data.length-1)+'" cy="'+Y(data[data.length-1].val)+'" r="4" fill="#fff"/>'+window.marcasCompra(data,X,pT,pB,H)+'</svg>';
+    var mxA=mxV,mnA=mnV; if(window.ALGO_TRIM_LIVE!=null&&!isNaN(window.ALGO_TRIM_LIVE)){ mxA=Math.max(mxV,window.ALGO_TRIM_LIVE); mnA=Math.min(mnV,window.ALGO_TRIM_LIVE); }
+    setTxt('histMax'+sfx,fmt(mxA));setTxt('histMin'+sfx,fmt(mnA));
+    if(sfx!=='2'){var ult=data[data.length-1];setTxt('histNowV'+sfx,fmt(ult.val));}
+    if(sfx==='2'){
+      var qs=data.filter(function(p){return !isNaN(p.q);});
+      var ss=data.filter(function(p){return !isNaN(p.sm);});
+      function llena(arr,key,idMax,idMin,idNow,live){
+        if(!arr.length){
+          if(live!=null&&!isNaN(live)){ setTxt(idMax,fmt(live));setTxt(idMin,fmt(live)); }
+          return;
+        }
+        var vv=arr.map(function(p){return p[key];});
+        if(live!=null&&!isNaN(live)) vv=vv.concat([live]);
+        var Mx=Math.max.apply(null,vv), Mn=Math.min.apply(null,vv);
+        setTxt(idMax,fmt(Mx));
+        setTxt(idMin,fmt(Mn));
+      }
+      llena(qs,'q','qMax','qMin','qNow', window.ALGO_TRIM_Q);
+      llena(ss,'sm','sMax','sMin','sNow', window.ALGO_TRIM_S);
+      window.__DIAG='Q:'+qs.length+' S:'+ss.length;
+    }
+    setHTML('histNow'+sfx,data.length+' registros'+(sfx==='2'&&window.__DIAG?' · '+window.__DIAG:''));
+  }
+  function setTxt(id,v){var e=document.getElementById(id);if(e)e.textContent=v;}
+  function setHTML(id,v){var e=document.getElementById(id);if(e)e.innerHTML=v;}
+
+  function dibujar(){ dibujarEn(''); dibujarEn('2'); }
+  window.abrirHist=function(){dibujar();};
+  window.pintarActualAlgo=function(){
+    var v=window.ALGO_TRIM_LIVE;
+    if(v==null||isNaN(v)) return;
+    var e=document.getElementById('histNowV2'); if(e) e.textContent=(v>=0?'+':'\u2212')+Math.abs(v).toFixed(1)+'%';
+    var d=document.getElementById('histNowD2');
+    if(d){ var ah=new Date(); var m=["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"]; d.textContent=ah.getDate()+" "+m[ah.getMonth()]+" · ahora"; }
+  };
+  window.dibujarAlgo=function(){ dibujarEn('2'); if(window.pintarActualAlgo) window.pintarActualAlgo(); };
+  window.cerrarHist=function(){var bg=document.getElementById('histBg');if(bg)bg.classList.remove('open');};
+
+  document.addEventListener('DOMContentLoaded',function(){
+    ['#histSel','#histSel2'].forEach(function(selId){
+      var sel=document.querySelectorAll(selId+' .hist-sb');
+      sel.forEach(function(b){b.addEventListener('click',function(){sel.forEach(function(x){x.classList.remove('on');});b.classList.add('on');diasSel=parseInt(b.getAttribute('data-d'));dibujar();});});
+    });
+  });
+})();
+</script>
+
+
+<script>
+/* Sincroniza la tarjeta Actual del algoritmo con el número del home */
+(function(){
+  function ft(v){ return (v>=0?'+':'\u2212')+Math.abs(v).toFixed(1)+'%'; }
+  function fechaHoy(){ var a=new Date(); var m=["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"]; return a.getDate()+" "+m[a.getMonth()]+" · ahora"; }
+  function put(idV,idD,txt){ var e=document.getElementById(idV); if(e&&txt){e.textContent=txt;} var d=document.getElementById(idD); if(d){d.textContent=fechaHoy();} }
+  function sync(){
+    var src=document.getElementById('hAlgo');
+    if(src){ var t=(src.textContent||'').trim(); if(t&&t!=='—'){ var e=document.getElementById('histNowV2'); if(e)e.textContent=t; } }
+    var dd=document.getElementById('histNowD2'); if(dd){ dd.textContent=fechaHoy(); }
+    if(window.ALGO_TRIM_Q!=null && !isNaN(window.ALGO_TRIM_Q)){ put('qNow','qNowD',ft(window.ALGO_TRIM_Q)); var qm=document.getElementById('qMax'); if(qm&&qm.textContent==='—')qm.textContent=ft(window.ALGO_TRIM_Q); var qn=document.getElementById('qMin'); if(qn&&qn.textContent==='—')qn.textContent=ft(window.ALGO_TRIM_Q); }
+    if(window.ALGO_TRIM_S!=null && !isNaN(window.ALGO_TRIM_S)){ put('sNow','sNowD',ft(window.ALGO_TRIM_S)); var sm2=document.getElementById('sMax'); if(sm2&&sm2.textContent==='—')sm2.textContent=ft(window.ALGO_TRIM_S); var sn2=document.getElementById('sMin'); if(sn2&&sn2.textContent==='—')sn2.textContent=ft(window.ALGO_TRIM_S); }
+  }
+  setInterval(sync, 1000);
+  document.addEventListener('DOMContentLoaded',sync);
+  setTimeout(sync,500); setTimeout(sync,2000); setTimeout(sync,4000);
+})();
+</script>
+
+
+<script>
+/* ====== ANÁLISIS POR TRAMO (lee RENDIMIENTO) ====== */
+(function(){
+  var BASE_R="https://docs.google.com/spreadsheets/d/e/2PACX-1vQ1gnRj1TvcXXF66yAreWKo6RON27GE3K2pZWq8LSxb98SNZeKpFuYaeHgovJTO9zM1QSeHb-cxWJ2N/pub";
+  function urlR(gid){ return BASE_R+"?gid="+gid+"&single=true&output=csv"; }
+  function n(x){ var v=parseFloat(String(x).replace(/[%$,\s]/g,"")); return isNaN(v)?NaN:v; }
+  function csvR(t){ var out=[],row=[],cur="",q=false;
+    for(var i=0;i<t.length;i++){var c=t[i];
+      if(q){ if(c==='"'){ if(t[i+1]==='"'){cur+='"';i++;} else q=false; } else cur+=c; }
+      else { if(c==='"')q=true; else if(c===','){row.push(cur);cur="";} else if(c==='\n'||c==='\r'){ if(cur!==""||row.length){row.push(cur);out.push(row);row=[];cur="";} if(c==='\r'&&t[i+1]==='\n')i++; } else cur+=c; } }
+    if(cur!==""||row.length){row.push(cur);out.push(row);} return out;
+  }
+
+  window.REND=[];      // registros parseados
+  window.REND_FECHAS=[]; // fechas hábiles únicas (índices seleccionables)
+
+  function esHabil(f){ if(!f)return false; var p=null;
+    if(f.indexOf("-")>0){var a=f.split("-");p=new Date(+a[0],+a[1]-1,+a[2]);}
+    else if(f.indexOf("/")>0){var b=f.split("/");p=new Date(+b[2],+b[1]-1,+b[0]);}
+    if(!p)return false; var d=p.getDay(); return d!==0 && d!==6;
+  }
+
+  function parseRend(rows){
+    var recs=[];
+    for(var i=0;i<rows.length;i++){
+      var r=rows[i]; if(!r||r.length<5) continue;
+      var fecha=(r[0]||"").trim();
+      if(!/\d{4}-\d{2}-\d{2}|\d{1,2}\/\d{1,2}\/\d{4}/.test(fecha)) continue;
+      // localizar mi_total, |MIAS|, |ALGO|
+      var miTotal=NaN, mias={}, algo={}, modo="";
+      for(var c=2;c<r.length;c++){
+        var cel=(r[c]||"").trim();
+        if(cel==="mi_total"){ miTotal=n(r[c+1]); c++; continue; }
+        if(cel==="|MIAS|"){ modo="mias"; continue; }
+        if(cel==="|ALGO|"){ modo="algo"; continue; }
+        if(!cel) continue;
+        if(/^[A-Z]{1,5}$/.test(cel)){ // ticker
+          var val=n(r[c+1]);
+          if(modo==="mias") mias[cel]=val;
+          else if(modo==="algo") algo[cel]=val;
+          c++;
+        }
+      }
+      recs.push({fecha:fecha, hora:(r[1]||"").trim(), miTotal:miTotal, mias:mias, algo:algo});
+    }
+    return recs;
+  }
+
+  // Estado de la vista
+  var stratSel="cartera", idxA=0, idxB=0;
+
+  function metaStrat(tk){ return (window.META&&META[tk])?META[tk][1]:null; }
+
+  function tickersDe(rec, strat){
+    if(strat==="algo") return Object.keys(rec.algo||{});
+    var ks=Object.keys(rec.mias||{});
+    if(strat==="quant") return ks.filter(function(t){return metaStrat(t)==="c";});
+    if(strat==="smart") return ks.filter(function(t){return metaStrat(t)==="s";});
+    return ks; // cartera
+  }
+  function valDe(rec, strat, tk){ return strat==="algo" ? (rec.algo?rec.algo[tk]:NaN) : (rec.mias?rec.mias[tk]:NaN); }
+
+  window.dibujarAnalisis=function(){
+    // ARRIBA: usa HISTORIAL (todo el trimestre). ABAJO: usa RENDIMIENTO (se va llenando).
+    var hs=(window.HISTSTRAT||[]).filter(function(x){return esHabil(x.fecha);});
+    hs.sort(function(a,b){ return (a.fecha+(a.hora||"")).localeCompare(b.fecha+(b.hora||"")); });
+    var porF={}; hs.forEach(function(x){ porF[x.fecha]=x; }); // último del día = cierre
+    var fechas=Object.keys(porF).sort();
+    window.REND_FECHAS=fechas.map(function(f){return porF[f];});
+    var N=window.REND_FECHAS.length;
+    var foot=document.getElementById('anFoot');
+    if(N<2){
+      document.getElementById('anMainVal').textContent='—';
+      document.getElementById('anList').innerHTML='<div style="text-align:center;color:var(--dim2);padding:24px 0;font-size:13px">Aún no hay suficiente historial.</div>';
+      document.getElementById('anCompare').innerHTML='';
+      document.getElementById('anDates').innerHTML='';
+      if(foot) foot.textContent=N+' registro(s)';
+      return;
+    }
+    if(idxB<=idxA){ idxA=0; idxB=N-1; }
+    if(idxB>N-1) idxB=N-1; if(idxA>N-2) idxA=N-2; if(idxA<0)idxA=0;
+    render();
+  };
+
+  function fmtFecha(f){ if(!f)return""; var a=f.split("-"); if(a.length===3){var m=["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"];return (+a[2])+" "+m[(+a[1])-1];} return f; }
+  function fp(v){ if(isNaN(v))return "—"; return (v>=0?'+':'\u2212')+Math.abs(v).toFixed(1)+'%'; }
+
+  function render(){
+    var F=window.REND_FECHAS, N=F.length;
+    var recA=F[idxA], recB=F[idxB];
+    var pa=(idxA/(N-1))*100, pb=(idxB/(N-1))*100;
+    document.getElementById('anHandleA').style.left=pa+'%';
+    document.getElementById('anHandleB').style.left=pb+'%';
+    document.getElementById('anFill').style.left=pa+'%';
+    document.getElementById('anFill').style.width=(pb-pa)+'%';
+    var bA=document.getElementById('anBubbleA'), bB=document.getElementById('anBubbleB');
+    bA.style.display='block'; bB.style.display='block';
+    bA.style.left=pa+'%'; bB.style.left=pb+'%';
+    bA.textContent=fmtFecha(recA.fecha); bB.textContent=fmtFecha(recB.fecha);
+    document.getElementById('anDates').innerHTML='<span>'+fmtFecha(F[0].fecha)+'</span><span>'+fmtFecha(F[N-1].fecha)+'</span>';
+
+    // Valor de cada estrategia en el tramo (diferencia entre las dos fechas) desde HISTSTRAT
+    function campo(strat, rec){
+      if(strat==="cartera") return rec.mi;         // mi rendimiento total
+      if(strat==="quant") return rec.algoQ;        // algoritmo Quant (desde inicio trim)
+      if(strat==="smart") return rec.algoS;        // algoritmo Smart (desde inicio trim)
+      if(strat==="algo") return rec.algo;          // algoritmo combinado
+      return NaN;
+    }
+    function movStrat(strat){ var a=campo(strat,recA), b=campo(strat,recB); return (isNaN(a)||isNaN(b))?NaN:(b-a); }
+
+    var lblMap={cartera:'Mi cartera',quant:'Quant',smart:'Smart',algo:'Algoritmo'};
+    var mainVal=movStrat(stratSel);
+    var mainEl=document.getElementById('anMainVal');
+    mainEl.textContent=fp(mainVal); mainEl.style.color = (isNaN(mainVal)||mainVal>=0)?'#4ade80':'#ff5a5a';
+    document.getElementById('anMainLbl').textContent=lblMap[stratSel];
+    // Nota si falta dato personal en alguna de las dos fechas (solo aplica a cartera/quant/smart)
+    var faltaMio = (stratSel==='cartera') && (isNaN(campo(stratSel,recA)) || isNaN(campo(stratSel,recB)));
+    var notaEl=document.getElementById('anNotaMio');
+    if(notaEl){
+      if(faltaMio){ notaEl.style.display='block'; notaEl.innerHTML='En alguna de estas fechas no se guardó tu rendimiento personal (registros viejos). Tus datos están completos desde el 8 jul; el Algoritmo sí es confiable en todo el tramo.'; }
+      else { notaEl.style.display='none'; }
+    }
+
+    var comps=[]; ['algo','quant','smart','cartera'].forEach(function(k){ if(k===stratSel) return; comps.push({k:k,v:movStrat(k)}); });
+    document.getElementById('anCompare').innerHTML=comps.map(function(c){
+      var col=(isNaN(c.v)||c.v>=0)?'#4ade80':'#ff5a5a';
+      return '<div style="text-align:right"><div style="font-size:10px;color:var(--dim2)">'+lblMap[c.k]+'</div><div style="font-size:15px;font-weight:600;color:'+col+'">'+fp(c.v)+'</div></div>';
+    }).join('');
+
+    // ABAJO: desglose por acción desde RENDIMIENTO (si hay datos para esas fechas)
+    document.getElementById('anListLbl').textContent='Quién movió la aguja · '+lblMap[stratSel].toLowerCase();
+    var rendArr=(window.REND||[]).filter(function(x){return esHabil(x.fecha);});
+    rendArr.sort(function(a,b){ return (a.fecha+(a.hora||"")).localeCompare(b.fecha+(b.hora||"")); });
+    var rendMap={}; rendArr.forEach(function(x){ rendMap[x.fecha]=x; }); // último del día = cierre
+    var rA=rendMap[recA.fecha], rB=rendMap[recB.fecha];
+    if(!rA || !rB){
+      document.getElementById('anList').innerHTML='<div style="text-align:center;color:var(--dim2);padding:20px 0;font-size:13px">El desglose por acción se activa cuando el robot de rendimiento tenga esas dos fechas.<br>Se va llenando con los días.</div>';
+    } else {
+      var tks=tickersDe(rB, stratSel), filas=[];
+      tks.forEach(function(tk){ var a=valDe(rA,stratSel,tk), b=valDe(rB,stratSel,tk); if(isNaN(a)||isNaN(b))return; filas.push({tk:tk,chg:(b-a)*100}); });
+      filas.sort(function(a,b){return b.chg-a.chg;});
+      var nF=filas.length||1, mx=1; filas.forEach(function(x){ if(Math.abs(x.chg)>mx)mx=Math.abs(x.chg); });
+      var html='';
+      filas.forEach(function(x){
+        var w=(Math.abs(x.chg)/mx*50).toFixed(1), apt=(x.chg/nF), pos=x.chg>=0;
+        var bar= pos?'<div class="an-bar" style="left:50%;width:'+w+'%;background:#1baf7a;border-radius:0 3px 3px 0"></div>'
+                     :'<div class="an-bar" style="right:50%;width:'+w+'%;background:#e24b4a;border-radius:3px 0 0 3px"></div>';
+        html+='<div class="an-row"><div class="an-tk">'+x.tk+'</div><div class="an-track"><div class="an-zero"></div>'+bar+'</div>'+
+          '<div class="an-chg" style="color:'+(pos?'#4ade80':'#ff5a5a')+'">'+fp(x.chg)+'</div>'+
+          '<div class="an-apt">'+(apt>=0?'+':'\u2212')+Math.abs(apt).toFixed(1)+'</div></div>';
+      });
+      document.getElementById('anList').innerHTML=html||'<div style="text-align:center;color:var(--dim2);padding:20px 0;font-size:13px">Sin acciones en esta selección</div>';
+    }
+    // Aviso si el tramo cruza cambio de mes (afecta métricas mensuales: cartera/quant/smart)
+    var mesA=(recA.fecha||'').slice(0,7), mesB=(recB.fecha||'').slice(0,7);
+    var cruzaMes = mesA && mesB && (mesA!==mesB);
+    var avEl=document.getElementById('anAviso');
+    if(avEl){
+      if(cruzaMes && stratSel==='cartera'){
+        avEl.style.display='block';
+        avEl.innerHTML='&#9888; El tramo cruza un cambio de mes. Tu rendimiento mensual se reinicia el día 1, así que este número no es exacto para Cartera, Quant y Smart. El Algoritmo (desde inicio de trimestre) sí es confiable.';
+      } else { avEl.style.display='none'; }
+    }
+    var foot=document.getElementById('anFoot'); if(foot) foot.textContent=N+' días hábiles · arriba todo el trimestre · no es asesoría';
+  }
+
+  // Interacción: selector estrategia
+  document.querySelectorAll('#anSelStrat .an-strat').forEach(function(b){
+    b.addEventListener('click',function(){
+      document.querySelectorAll('#anSelStrat .an-strat').forEach(function(x){x.classList.remove('on');});
+      b.classList.add('on'); stratSel=b.getAttribute('data-k'); if(window.REND_FECHAS&&window.REND_FECHAS.length>=2) render();
+    });
+  });
+  // Atajos
+  document.querySelectorAll('#anShort .an-short').forEach(function(b){
+    b.addEventListener('click',function(){
+      document.querySelectorAll('#anShort .an-short').forEach(function(x){x.classList.remove('on');});
+      b.classList.add('on');
+      var d=parseInt(b.getAttribute('data-d')), N=(window.REND_FECHAS||[]).length;
+      if(N>=2){ idxB=N-1; idxA=Math.max(0, N-1-d); render(); }
+    });
+  });
+  // Arrastre de manijas
+  function arrastrar(handle, cual){
+    var barra=handle.parentElement;
+    function pos(clientX){
+      var rect=barra.getBoundingClientRect();
+      var pct=Math.min(1,Math.max(0,(clientX-rect.left)/rect.width));
+      var N=(window.REND_FECHAS||[]).length; if(N<2)return;
+      var idx=Math.round(pct*(N-1));
+      if(cual==="A"){ idxA=Math.min(idx, idxB-1); if(idxA<0)idxA=0; }
+      else { idxB=Math.max(idx, idxA+1); if(idxB>N-1)idxB=N-1; }
+      render();
+    }
+    function down(e){ e.preventDefault(); var mv=function(ev){ pos((ev.touches?ev.touches[0]:ev).clientX); };
+      var up=function(){ document.removeEventListener('mousemove',mv); document.removeEventListener('mouseup',up); document.removeEventListener('touchmove',mv); document.removeEventListener('touchend',up); };
+      document.addEventListener('mousemove',mv); document.addEventListener('mouseup',up);
+      document.addEventListener('touchmove',mv,{passive:false}); document.addEventListener('touchend',up);
+    }
+    handle.addEventListener('mousedown',down); handle.addEventListener('touchstart',down,{passive:false});
+  }
+  arrastrar(document.getElementById('anHandleA'),"A");
+  arrastrar(document.getElementById('anHandleB'),"B");
+
+  // Fetch RENDIMIENTO
+  if(GID.rendimiento && GID.rendimiento!=="PENDIENTE_GID"){
+    fetch(urlR(GID.rendimiento)).then(function(r){return r.text();}).then(function(txt){
+      window.REND=parseRend(csvR(txt));
+      if(document.getElementById('viewAnalisis').classList.contains('on')) window.dibujarAnalisis();
+    }).catch(function(e){ console.log("rend err",e); });
+  }
 })();
 </script>
 
