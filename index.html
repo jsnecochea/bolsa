@@ -280,9 +280,10 @@
   <!-- HERO -->
   <div class="hero">
     <div class="hrow"><div class="brand" id="brandRefresh" style="cursor:pointer"><span class="dot"></span><span>Mi Cartera</span></div><div class="date" id="liveChip">actualizando…</div></div>
+    <div id="heroShotSel" style="display:flex;gap:5px;margin:2px 0 12px"></div>
     <div class="duel-hero">
       <div class="dh-col">
-        <div class="label">Mi rendimiento del mes</div>
+        <div class="label" id="hMioLabel">Mi rendimiento del mes</div>
         <div class="pct" id="hMio">+3.1%</div>
         <div class="dh-chip" id="hMioChip">&uarr; $4,181</div>
       </div>
@@ -296,7 +297,6 @@
       <div class="stat"><div class="s-lbl">Invertido</div><div class="s-val" id="hInv">$140,000</div></div>
       <div class="stat"><div class="s-lbl">Posiciones</div><div class="s-val" id="hPos">14</div></div>
     </div>
-    <div id="heroShotSel" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:2px"></div>
     <div class="strip">
       <div class="pill-card"><div class="pulse"></div><div><div class="pc-lbl">Mercado</div><div class="pc-val green">Verde</div></div></div>
       <div class="pill-card"><div><div class="pc-lbl">Días para rotar</div><div class="pc-val">84</div></div></div>
@@ -519,7 +519,7 @@
   <div class="foot" id="anFoot">Desliza las manijas o usa los atajos · no es asesoría de inversión</div>
 </div>
 
-<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v72</div>
+<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v73</div>
 <div class="tabbar">
   <button class="tab on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l9-8 9 8"/><path d="M5 10v10h14V10"/></svg><span>Resumen</span></button>
   <button class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><rect x="7" y="12" width="3" height="6"/><rect x="12" y="8" width="3" height="10"/><rect x="17" y="5" width="3" height="13"/></svg><span>Estrategias</span></button>
@@ -683,7 +683,7 @@ function updateCount(){
   };
 
   var got = { precios:false, hist:false, claude:false };
-  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-72";
+  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-73";
   var estado={precios:false,historial:false,claude:false};
   function pinta(){
     var chip=document.getElementById('liveChip'); if(!chip) return;
@@ -990,8 +990,8 @@ function updateCount(){
       return;
     }
     function fmtF(iso){ var p=iso.split("-"); if(p.length!==3)return iso; var m=["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"]; return (+p[2])+" "+m[(+p[1])-1]; }
-    var b='<button class="ac-sbtn'+(window.heroShotSel==='all'?' on':'')+'" data-s="all" style="padding:5px 11px;font-size:11px">Todas</button>';
-    ds.forEach(function(d,i){ b+='<button class="ac-sbtn'+(window.heroShotSel===d?' on':'')+'" data-s="'+d+'" style="padding:5px 11px;font-size:11px">C'+(i+1)+' · '+fmtF(d)+'</button>'; });
+    var b='<button class="ac-sbtn'+(window.heroShotSel==='all'?' on':'')+'" data-s="all" style="flex:1;padding:5px 0;font-size:11px;text-align:center">Todas</button>';
+    ds.forEach(function(d,i){ b+='<button class="ac-sbtn'+(window.heroShotSel===d?' on':'')+'" data-s="'+d+'" style="flex:1;padding:5px 0;font-size:11px;text-align:center">C'+(i+1)+'</button>'; });
     cont.innerHTML=b;
     cont.querySelectorAll('.ac-sbtn').forEach(function(bt){
       bt.addEventListener('click',function(){ window.heroShotSel=bt.getAttribute('data-s'); window.renderHeroShotSel(); try{tryUpdateAll();}catch(e){} });
@@ -1020,6 +1020,11 @@ function updateCount(){
         var avg=invSum>0?(ponSum/invSum):0; // rendimiento ponderado
         var el=document.getElementById('hMio');
         if(el){ el.textContent=fmtPct(avg); }
+        var lbl=document.getElementById('hMioLabel');
+        if(lbl){
+          if(sel==='all'){ lbl.textContent='Mi rendimiento del mes'; }
+          else { var pp=sel.split("-"); var mm=["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"]; var idxC=(window.HERO_SHOTS||[]).indexOf(sel); lbl.innerHTML='Rendimiento · C'+(idxC+1)+' <span style="opacity:.6">('+(+pp[2])+' '+mm[(+pp[1])-1]+')</span>'; }
+        }
         var pos=document.getElementById('hPos'); if(pos) pos.textContent=n;
         window.MIOS_N=n; window.MIOS_PROM=avg;
         // Monto ganado/perdido en vivo (usa la suma real de montos del espejo)
