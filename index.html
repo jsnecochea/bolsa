@@ -344,19 +344,23 @@
     <div id="labChica"></div>
   </div>
 
-  <div class="rk-card">
-    <h3>Mi rendimiento vs el algoritmo</h3>
-    <div class="rk-top" style="margin-bottom:14px"><div class="rk-name" style="font-size:15px">Por estrategia &middot; desde inicio de mes</div></div>
-    <div id="yvaList"></div>
-  </div>
+  <div class="rk-card" style="background:linear-gradient(165deg,#141419,#0e0e12);padding:16px">
+    <div id="estShotSel" style="display:flex;gap:5px;margin-bottom:14px"></div>
 
-  <div class="rk-card">
-    <h3>Todas mis acciones desde mi compra</h3>
-    <div class="rk-top" style="margin-bottom:14px">
-      <div class="rk-name" style="font-size:15px">14 posiciones</div>
-      <div class="rk-tag"><span class="dv-dot c" style="width:13px;height:13px">C</span> Quant &nbsp; <span class="dv-dot s" style="width:13px;height:13px">S</span> Smart</div>
+    <div class="rk-card" style="margin-top:0">
+      <h3>Mi rendimiento vs el algoritmo</h3>
+      <div class="rk-top" style="margin-bottom:14px"><div class="rk-name" style="font-size:15px">Por estrategia &middot; desde inicio de mes</div></div>
+      <div id="yvaList"></div>
     </div>
-    <div id="allMineList"></div>
+
+    <div class="rk-card">
+      <h3>Todas mis acciones desde mi compra</h3>
+      <div class="rk-top" style="margin-bottom:14px">
+        <div class="rk-name" style="font-size:15px" id="allMineCount">14 posiciones</div>
+        <div class="rk-tag"><span class="dv-dot c" style="width:13px;height:13px">C</span> Quant &nbsp; <span class="dv-dot s" style="width:13px;height:13px">S</span> Smart</div>
+      </div>
+      <div id="allMineList"></div>
+    </div>
 
   </div>
 
@@ -528,7 +532,7 @@
   <div class="foot" id="anFoot">Desliza las manijas o usa los atajos · no es asesoría de inversión</div>
 </div>
 
-<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v78</div>
+<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v79</div>
 <div class="tabbar">
   <button class="tab on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l9-8 9 8"/><path d="M5 10v10h14V10"/></svg><span>Resumen</span></button>
   <button class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><rect x="7" y="12" width="3" height="6"/><rect x="12" y="8" width="3" height="10"/><rect x="17" y="5" width="3" height="13"/></svg><span>Estrategias</span></button>
@@ -692,7 +696,7 @@ function updateCount(){
   };
 
   var got = { precios:false, hist:false, claude:false };
-  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-78";
+  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-79";
   var estado={precios:false,historial:false,claude:false};
   function pinta(){
     var chip=document.getElementById('liveChip'); if(!chip) return;
@@ -805,17 +809,29 @@ function updateCount(){
       return '<div class="dv-track"><div class="dv-zero"></div><div class="dv-bar r" style="left:calc(50% - '+w.toFixed(1)+'%);width:'+w.toFixed(1)+'%"></div><div class="dv-val" style="left:calc(50% - '+w.toFixed(1)+'%);width:'+w.toFixed(1)+'%;text-align:left;padding-left:5px">'+val+'</div></div>';
     }
   }
+  window.estShotSel='all';
+  window.renderEstShotSel=function(){
+    var cont=document.getElementById('estShotSel'); if(!cont) return;
+    var ds=window.HERO_SHOTS||[];
+    if(ds.length<2){ cont.innerHTML=''; return; }
+    var b='<button class="ac-sbtn'+(window.estShotSel==='all'?' on':'')+'" data-s="all" style="flex:1;padding:5px 0;font-size:11px;text-align:center">Todas</button>';
+    ds.forEach(function(d,i){ b+='<button class="ac-sbtn'+(window.estShotSel===d?' on':'')+'" data-s="'+d+'" style="flex:1;padding:5px 0;font-size:11px;text-align:center">C'+(i+1)+'</button>'; });
+    cont.innerHTML=b;
+    cont.querySelectorAll('.ac-sbtn').forEach(function(bt){
+      bt.addEventListener('click',function(){ window.estShotSel=bt.getAttribute('data-s'); window.renderEstShotSel(); try{actualizarEstrategias();}catch(e){} });
+    });
+  };
+
   function actualizarEstrategias(){
+    if(window.renderEstShotSel) window.renderEstShotSel();
+    var sel=window.estShotSel||'all';
+    var POS=(window.POSICIONES||[]).filter(function(p){ return sel==='all' || p.compra===sel; });
+    if(!POS.length && sel!=='all'){ POS=[]; }
     var tks=Object.keys(LIVE).filter(function(t){return !isNaN(LIVE[t].mio);});
-    if(!tks.length) return;
-    // --- Yo vs algoritmo (promedio mío por estrategia + algoritmo del mes por estrategia) ---
+    if(!POS.length && !tks.length) return;
+    // --- Yo vs algoritmo (promedio mío por estrategia, filtrado por shot) ---
     var yva=document.getElementById('yvaList');
     if(yva){
-      var qs=tks.filter(function(t){return META[t]&&META[t][1]==='c';});
-      var ss=tks.filter(function(t){return META[t]&&META[t][1]==='s';});
-      var zs=tks.filter(function(t){return META[t]&&META[t][1]==='z';});
-      // promedio por estrategia contando cada shot (todas las posiciones)
-      var POS=window.POSICIONES||[];
       function promEstrat(letra){
         var arr=POS.filter(function(p){return p.estrat===letra && !isNaN(p.mio);});
         if(!arr.length) return 0;
@@ -825,7 +841,7 @@ function updateCount(){
       var alQ=(window.ALGO_MES_Q!=null&&!isNaN(window.ALGO_MES_Q))?window.ALGO_MES_Q:0;
       var alS=(window.ALGO_MES_S!=null&&!isNaN(window.ALGO_MES_S))?window.ALGO_MES_S:0;
       var alZ=(window.ALGO_MES_SEM!=null&&!isNaN(window.ALGO_MES_SEM))?window.ALGO_MES_SEM:0;
-      var hayZ=(zs.length>0)||(window.ALGO_MES_SEM!=null&&!isNaN(window.ALGO_MES_SEM));
+      var hayZ=(POS.filter(function(p){return p.estrat==='z';}).length>0)||(window.ALGO_MES_SEM!=null&&!isNaN(window.ALGO_MES_SEM));
       var mx=Math.max(Math.abs(yoQ),Math.abs(yoS),Math.abs(alQ),Math.abs(alS),Math.abs(yoZ),Math.abs(alZ),1);
       yva.innerHTML=
         '<div class="dv-row"><div class="dv-lbl">Quant<small>yo</small></div>'+dvBar(yoQ,mx)+'</div>'+
@@ -835,17 +851,20 @@ function updateCount(){
         (hayZ?('<div class="dv-row"><div class="dv-lbl">Chica<small>yo</small></div>'+dvBar(yoZ,mx)+'</div>'+
         '<div class="dv-row"><div class="dv-lbl">Chica<small>algoritmo</small></div>'+dvBar(alZ,mx)+'</div>'):'');
     }
-    // --- Todas mis acciones desde mi compra (ordenadas desc por mío) ---
+    // --- Todas mis acciones desde mi compra (una fila por posición del shot) ---
     var aml=document.getElementById('allMineList');
     if(aml){
-      var arr=tks.slice().sort(function(a,b){return LIVE[b].mio-LIVE[a].mio;});
-      var mx2=1; arr.forEach(function(t){ if(Math.abs(LIVE[t].mio)>mx2)mx2=Math.abs(LIVE[t].mio); });
+      var lista = POS.slice().filter(function(p){return !isNaN(p.mio);}).sort(function(a,b){return b.mio-a.mio;});
+      var cnt=document.getElementById('allMineCount'); if(cnt) cnt.textContent=lista.length+' posiciones';
+      var mx2=1; lista.forEach(function(p){ if(Math.abs(p.mio)>mx2)mx2=Math.abs(p.mio); });
+      function fmtSF(iso){ if(!iso)return''; var pp=iso.split("-"); if(pp.length!==3)return''; var m=["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"]; return (+pp[2])+' '+m[(+pp[1])-1]; }
       var html='';
-      arr.forEach(function(t){
-        var st=META[t][1], tech=META[t][2];
-        var dot='<span class="dv-dot '+st+'">'+(st==='c'?'C':'S')+'</span>';
+      lista.forEach(function(p){
+        var st=p.estrat, tech=META[p.tk]?META[p.tk][2]:false;
+        var dot='<span class="dv-dot '+st+'">'+(st==='c'?'C':(st==='s'?'S':'Ch'))+'</span>';
         var techi=tech?TECHSVG2:'<span style="width:16px;flex:none"></span>';
-        html+='<div class="dv-row"><div class="dv-lbl tick"><span class="tk">'+t+'</span>'+dot+techi+'</div>'+dvBar(LIVE[t].mio,mx2)+'</div>';
+        var fb=(sel==='all'&&p.compra)?'<span style="font-size:9px;color:var(--dim2);margin-left:4px">'+fmtSF(p.compra)+'</span>':'';
+        html+='<div class="dv-row"><div class="dv-lbl tick"><span class="tk">'+p.tk+'</span>'+dot+techi+fb+'</div>'+dvBar(p.mio,mx2)+'</div>';
       });
       aml.innerHTML=html;
     }
