@@ -206,6 +206,10 @@
   .rk-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
   .rk-name{font-size:19px;font-weight:700}
   .rk-name.q{color:var(--blue)} .rk-name.s{color:#30D158} .rk-name.z{color:#BF5AF2}
+  .rk-mm{display:flex;flex-direction:column;align-items:flex-end;justify-content:center;min-width:52px;margin-left:8px;line-height:1.25}
+  .rk-mm-v{font-size:11px;font-weight:600}
+  .rk-mm-v.g{color:#4ade80} .rk-mm-v.r{color:#ff6b60}
+  .rk-mmhead{display:flex;justify-content:flex-end;gap:0;font-size:9px;color:var(--dim2);margin:-4px 0 6px;padding-right:2px}
   .rk-tag{font-size:11px;color:var(--dim2);font-weight:600}
   .rk-row{display:flex;align-items:center;gap:11px;margin-bottom:11px}
   .rk-rank{font-size:12px;font-weight:700;color:var(--dim2);width:16px;flex:none;text-align:center}
@@ -326,17 +330,17 @@
   <div id="labTrims" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:4px;"></div>
 
   <div class="rk-card">
-    <div class="rk-top"><div class="rk-name q">Quant</div><div class="rk-tag">desde inicio de mes</div></div>
+    <div class="rk-top"><div class="rk-name q">Quant</div><div class="rk-tag">trimestre</div></div>
     <div id="labQuant"></div>
   </div>
 
   <div class="rk-card">
-    <div class="rk-top"><div class="rk-name s">Smart</div><div class="rk-tag">desde inicio de mes</div></div>
+    <div class="rk-top"><div class="rk-name s">Smart</div><div class="rk-tag">trimestre</div></div>
     <div id="labSmart"></div>
   </div>
 
   <div class="rk-card">
-    <div class="rk-top"><div class="rk-name z">Chica</div><div class="rk-tag">desde inicio de mes</div></div>
+    <div class="rk-top"><div class="rk-name z">Chica</div><div class="rk-tag">trimestre</div></div>
     <div id="labChica"></div>
   </div>
 
@@ -524,7 +528,7 @@
   <div class="foot" id="anFoot">Desliza las manijas o usa los atajos · no es asesoría de inversión</div>
 </div>
 
-<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v76</div>
+<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v78</div>
 <div class="tabbar">
   <button class="tab on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l9-8 9 8"/><path d="M5 10v10h14V10"/></svg><span>Resumen</span></button>
   <button class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><rect x="7" y="12" width="3" height="6"/><rect x="12" y="8" width="3" height="10"/><rect x="17" y="5" width="3" height="13"/></svg><span>Estrategias</span></button>
@@ -688,7 +692,7 @@ function updateCount(){
   };
 
   var got = { precios:false, hist:false, claude:false };
-  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-76";
+  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-78";
   var estado={precios:false,historial:false,claude:false};
   function pinta(){
     var chip=document.getElementById('liveChip'); if(!chip) return;
@@ -885,7 +889,22 @@ function updateCount(){
       res[q]=o;
     });
     window.LAB_HIST=res;
+    // Min/Max por variante durante el trimestre ACTUAL
+    var qAct=quarterActual();
+    var mm={};
+    Object.keys(LAB2HIST).forEach(function(k){ mm[k]={min:Infinity,max:-Infinity}; });
+    for(var j=1;j<rowsHist.length;j++){
+      var rr=rowsHist[j]; if(!rr) continue;
+      var fc=((ix("fecha")>=0?rr[ix("fecha")]:"")||"").trim(); if(!fc) continue;
+      var pp2=null; if(fc.indexOf("-")>0){var aa=fc.split("-");pp2=new Date(+aa[0],+aa[1]-1,+aa[2]);}
+      if(pp2){var w2=pp2.getDay(); if(w2===0||w2===6) continue;}
+      if(quarterDe(fc)!==qAct) continue;
+      Object.keys(LAB2HIST).forEach(function(k){ var c=ix(LAB2HIST[k]); if(c<0)return; var v=numL(rr[c]); if(isNaN(v))return; if(v<mm[k].min)mm[k].min=v; if(v>mm[k].max)mm[k].max=v; });
+    }
+    Object.keys(mm).forEach(function(k){ if(mm[k].min===Infinity)mm[k]={min:NaN,max:NaN}; });
+    window.LAB_MINMAX=mm;
     window.renderTrimBtns();
+    if(window.dibujarLab){ try{window.dibujarLab();}catch(e){} }
   };
 
   function trimestresDisponibles(){
@@ -950,7 +969,7 @@ function updateCount(){
       if(!vals.length){ cont.innerHTML='<div style="color:#777;font-size:12px;text-align:center;padding:16px 0">Sin datos</div>'; return; }
       var arr=items.filter(function(it){return !isNaN(it.v);}).slice().sort(function(a,b){return a.v-b.v;});
       var mx=mxG||(Math.max.apply(null,arr.map(function(it){return Math.abs(it.v);}))||1);
-      var html='';
+      var html='<div class="rk-mmhead"><span>máx / mín trim</span></div>';
       arr.forEach(function(it,i){
         var w=(Math.abs(it.v)/mx*100).toFixed(1);
         var mine=''; var rowcls='';
@@ -959,32 +978,36 @@ function updateCount(){
         else if(it.tag==='smart'){ mine='<span class="mine" style="background:var(--purple);color:#fff">SMART</span>'; }
         else if(it.tag==='chica'){ mine='<span class="mine" style="background:#BF5AF2;color:#fff">CHICA</span>'; }
         var cls=it.v>=0?'g':'r';
+        var mm=(window.LAB_MINMAX&&it.key)?window.LAB_MINMAX[it.key]:null;
+        var mmHtml='';
+        if(mm && !isNaN(mm.max)){
+          mmHtml='<div class="rk-mm"><div class="rk-mm-v g">'+fp(mm.max)+'</div><div class="rk-mm-v r">'+fp(mm.min)+'</div></div>';
+        } else { mmHtml='<div class="rk-mm"><div class="rk-mm-v" style="color:var(--dim2)">—</div></div>'; }
         html+='<div class="rk-row'+rowcls+'"><div class="rk-rank">'+(i+1)+'</div>'+
           '<div class="rk-mid"><div class="rk-lbl">'+it.lbl+mine+'</div>'+
           '<div class="rk-barbg"><div class="rk-bar" style="width:'+w+'%"></div></div></div>'+
-          '<div class="rk-val '+cls+'">'+fp(it.v)+'</div></div>';
+          '<div class="rk-val '+cls+'">'+fp(it.v)+'</div>'+mmHtml+'</div>';
       });
       cont.innerHTML=html;
     }
     var itemsQ=[
-      {lbl:'Chicas (Sm2.6 St22)', v:L.q_chicas, tag:''},
-      {lbl:'Viejas (Sm2.6 St22)', v:L.q_viejas, tag:''},
-      {lbl:'Strength 20 o más', v:L.q_str20, tag:''},
-      {lbl:'Strength 22 o más', v:L.q_str22, tag:''},
-      {lbl:'8 mejores smart', v:L.q_8smart, tag:''},
-      {lbl:'Mi selección (industria)', v:L.q_claude, tag:'mia'},
-      {lbl:'Smart 2.6 o más', v:L.q_sm26, tag:''},
-      {lbl:'Smart 2.5 o más', v:L.q_sm25, tag:''},
-      {lbl:'Todo el Cuant', v:L.q_mes, tag:'quant'}
+      {lbl:'Chicas (Sm2.6 St22)', v:L.q_chicas, tag:'', key:'q_chicas'},
+      {lbl:'Viejas (Sm2.6 St22)', v:L.q_viejas, tag:'', key:'q_viejas'},
+      {lbl:'Strength 20 o más', v:L.q_str20, tag:'', key:'q_str20'},
+      {lbl:'Strength 22 o más', v:L.q_str22, tag:'', key:'q_str22'},
+      {lbl:'8 mejores smart', v:L.q_8smart, tag:'', key:'q_8smart'},
+      {lbl:'Mi selección (industria)', v:L.q_claude, tag:'mia', key:'q_claude'},
+      {lbl:'Smart 2.6 o más', v:L.q_sm26, tag:'', key:'q_sm26'},
+      {lbl:'Smart 2.5 o más', v:L.q_sm25, tag:'', key:'q_sm25'},
+      {lbl:'Todo el Cuant', v:L.q_trim, tag:'quant', key:'q_trim'}
     ];
     var itemsS=[
-      {lbl:'Arranque 3.0 / 29', v:L.s_arranque, tag:''},
-      {lbl:'Todo el Smart', v:L.s_mes, tag:'smart'},
-      {lbl:'Mi selección (industria)', v:L.s_claude, tag:'mia'}
+      {lbl:'Arranque 3.0 / 29', v:L.s_arranque, tag:'', key:'s_arranque'},
+      {lbl:'Todo el Smart', v:L.s_trim, tag:'smart', key:'s_trim'},
+      {lbl:'Mi selección (industria)', v:L.s_claude, tag:'mia', key:'s_claude'}
     ];
     var itemsC=[
-      {lbl:'Todo el Chica', v:L.sem_mes, tag:'chica'},
-      {lbl:'Chica desde inicio trim', v:L.sem_trim, tag:''}
+      {lbl:'Todo el Chica', v:L.sem_trim, tag:'chica', key:'sem_trim'}
     ];
     // Escala compartida: el valor más extremo de las TRES estrategias
     var mxGlobal=Math.max.apply(null, itemsQ.concat(itemsS).concat(itemsC)
@@ -993,7 +1016,7 @@ function updateCount(){
     card(itemsS, 'labSmart', mxGlobal);
     card(itemsC, 'labChica', mxGlobal);
     // Diagnóstico: si Chica viene sin datos, mostrar qué etiquetas relacionadas ve la app
-    if((isNaN(L.sem_mes)||L.sem_mes===0) && (isNaN(L.sem_trim)||L.sem_trim===0)){
+    if(isNaN(L.sem_trim)||L.sem_trim===0){
       var lc=document.getElementById('labChica');
       if(lc && window.ESPEJO){
         var rel=Object.keys(window.ESPEJO).filter(function(k){return /sem|chic|semil/i.test(k);});
