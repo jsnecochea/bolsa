@@ -367,6 +367,7 @@
     <button class="ac-sbtn" data-k="smart">Smart</button>
     <button class="ac-sbtn" data-k="stren">Strength</button>
   </div>
+  <div id="acShotSel" style="display:flex;flex-wrap:wrap;gap:6px;margin:2px 0 12px"></div>
   <div id="acList"></div>
   <div class="st-note">Scores al 8 jul &middot; rendimiento desde tu compra &middot; no es asesoría de inversión</div>
   <div class="foot" style="margin-bottom:80px">Datos de tu hoja &middot; 8 jul 2026</div>
@@ -517,7 +518,7 @@
   <div class="foot" id="anFoot">Desliza las manijas o usa los atajos · no es asesoría de inversión</div>
 </div>
 
-<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v69</div>
+<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v70</div>
 <div class="tabbar">
   <button class="tab on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l9-8 9 8"/><path d="M5 10v10h14V10"/></svg><span>Resumen</span></button>
   <button class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><rect x="7" y="12" width="3" height="6"/><rect x="12" y="8" width="3" height="10"/><rect x="17" y="5" width="3" height="13"/></svg><span>Estrategias</span></button>
@@ -575,8 +576,11 @@ window.enlazarSwipe();
 // Vista Acciones: lista ordenable
 var ACC = [["CIEN","Ciena","c",true,3.0,18.4,11.0,-4.4,-4.4], ["FIX","Comfort Sys","c",false,2.94,25.4,6.4,-10.0,-10.0], ["KRYS","Krystal Bio","c",false,2.49,17.6,-2.3,-1.5,-1.5], ["LSCC","Lattice","c",true,3.0,22.3,7.4,-7.4,-7.4], ["SEI","Solaris","c",false,2.43,20.4,4.2,-15.0,-15.0], ["SPHR","Sphere","c",false,3.0,29.6,-0.6,-10.4,-10.4], ["STRL","Sterling","c",false,3.0,19.4,6.3,-15.5,-15.5], ["AXTI","AXT Inc","s",true,3.0,25.2,2.9,-14.2,-14.2], ["COHR","Coherent","s",true,3.0,28.7,5.7,-15.7,-15.7], ["DOCN","DigitalOcean","s",true,2.88,27.6,0.1,-7.7,-7.7], ["EXE","Extendicare","s",false,3.0,30.0,-0.7,6.4,6.4], ["SNDK","SanDisk","s",true,3.0,29.5,17.3,-17.1,-17.1], ["TNGX","Tango Tx","s",false,2.84,28.7,0.9,-2.8,-2.8], ["WDC","Western Dig","s",true,3.0,29.0,10.7,-7.9,-7.9]];
 var TECHSVG = '<svg class="ac-tech" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="7" width="10" height="10" rx="1.5"/><rect x="10.5" y="10.5" width="3" height="3" fill="currentColor" stroke="none"/><path d="M10 3v2M14 3v2M10 19v2M14 19v2M3 10h2M3 14h2M19 10h2M19 14h2"/></svg>';
+function fmtShotFecha(iso){ if(!iso)return''; var p=iso.split("-"); if(p.length!==3)return iso; var m=["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"]; return (+p[2])+" "+m[(+p[1])-1]; }
+window.shotSel = 'all';
 function renderAcc(key){
   var arr = ACC.slice();
+  if(window.shotSel && window.shotSel!=='all'){ arr = arr.filter(function(a){ return a[9]===window.shotSel; }); }
   var idx = {ret:6, mes:8, trim:7, smart:4, stren:5};
   var i = idx[key];
   arr.sort(function(a,b){ return b[i]-a[i]; });
@@ -585,11 +589,12 @@ function renderAcc(key){
   var html = '';
   for(var j=0;j<arr.length;j++){
     var a=arr[j];
-    var tk=a[0], nm=a[1], st=a[2], tech=a[3], sm=a[4], sr=a[5], ret=a[6], trim=a[7], mes=a[8];
+    var tk=a[0], nm=a[1], st=a[2], tech=a[3], sm=a[4], sr=a[5], ret=a[6], trim=a[7], mes=a[8], fcompra=a[9];
     var dot='<span class="ac-dot '+st+'">'+(st==='c'?'C':'S')+'</span>';
     var chip=tech?TECHSVG:'';
+    var fbadge=(window.shotSel==='all'&&fcompra)?'<span style="font-size:9px;color:var(--dim2);margin-left:5px">'+fmtShotFecha(fcompra)+'</span>':'';
     html += '<div class="ac-item">'+dot+
-      '<div class="ac-info"><div class="ac-tk">'+tk+chip+'</div><div class="ac-sub">'+nm+'</div></div>'+
+      '<div class="ac-info"><div class="ac-tk">'+tk+chip+fbadge+'</div><div class="ac-sub">'+nm+'</div></div>'+
       '<div class="ac-rets">'+
         '<div class="ac-r"><div class="l">M\u00edo</div><div class="n '+cl(ret)+'">'+pct(ret)+'</div></div>'+
         '<div class="ac-r"><div class="l">Mes</div><div class="n '+cl(mes)+'">'+pct(mes)+'</div></div>'+
@@ -601,6 +606,22 @@ function renderAcc(key){
   }
   document.getElementById('acList').innerHTML = html;
 }
+window.renderShotSel=function(){
+  var cont=document.getElementById('acShotSel'); if(!cont) return;
+  var dates=window.SHOT_DATES||[];
+  if(dates.length<2){ cont.innerHTML=''; return; } // solo un shot: no hace falta selector
+  var btns='<button class="ac-sbtn'+(window.shotSel==='all'?' on':'')+'" data-s="all">Todas</button>';
+  dates.forEach(function(d,ix){ btns+='<button class="ac-sbtn'+(window.shotSel===d?' on':'')+'" data-s="'+d+'">'+(ix+1)+'\u00aa compra</button>'; });
+  cont.innerHTML=btns;
+  cont.querySelectorAll('.ac-sbtn').forEach(function(b){
+    b.addEventListener('click',function(){
+      window.shotSel=b.getAttribute('data-s');
+      window.renderShotSel();
+      var on=document.querySelector('#acSort .ac-sbtn.on');
+      renderAcc(on?on.getAttribute('data-k'):'ret');
+    });
+  });
+};
 document.querySelectorAll('#acSort .ac-sbtn').forEach(function(b){
   b.addEventListener('click',function(){
     document.querySelectorAll('#acSort .ac-sbtn').forEach(function(x){x.classList.remove('on');});
@@ -661,7 +682,7 @@ function updateCount(){
   };
 
   var got = { precios:false, hist:false, claude:false };
-  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-69";
+  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-70";
   var estado={precios:false,historial:false,claude:false};
   function pinta(){
     var chip=document.getElementById('liveChip'); if(!chip) return;
@@ -989,18 +1010,28 @@ function updateCount(){
       try{ generaAlertas(); }catch(e){ console.log("alertas err",e); }
       try{ actualizarEstrategias(); }catch(e){ console.log("estrategias err",e); }
     }
-    // Reconstruir ACC (vista Acciones) con datos vivos
-    if(got.precios && got.claude && typeof ACC!=='undefined' && tickers.length){
+    // Reconstruir ACC (vista Acciones) con datos vivos — cada shot es una entrada
+    if(got.precios && got.claude && typeof ACC!=='undefined'){
+      var POSA=window.POSICIONES||[];
       var nuevo=[];
-      tickers.forEach(function(t){
-        var m=META[t]; if(!m) return;
-        var d=LIVE[t];
-        nuevo.push([t, m[0], m[1], m[2],
-          isNaN(d.smart)?0:d.smart, isNaN(d.stren)?0:d.stren,
-          isNaN(d.mio)?0:d.mio, isNaN(d.trim)?0:d.trim, isNaN(d.mes)?0:d.mes]);
-      });
+      if(POSA.length){
+        POSA.forEach(function(p){
+          var m=META[p.tk]; if(!m) return; var d=LIVE[p.tk]||{};
+          nuevo.push([p.tk, m[0], m[1], m[2],
+            isNaN(d.smart)?0:d.smart, isNaN(d.stren)?0:d.stren,
+            isNaN(p.mio)?0:p.mio, isNaN(p.trim)?0:p.trim, isNaN(p.mes)?0:p.mes, p.compra||'']);
+        });
+      } else {
+        tickers.forEach(function(t){ var m=META[t]; if(!m) return; var d=LIVE[t];
+          nuevo.push([t, m[0], m[1], m[2], isNaN(d.smart)?0:d.smart, isNaN(d.stren)?0:d.stren,
+            isNaN(d.mio)?0:d.mio, isNaN(d.trim)?0:d.trim, isNaN(d.mes)?0:d.mes, '']); });
+      }
       if(nuevo.length){
         ACC.length=0; nuevo.forEach(function(r){ACC.push(r);});
+        // Fechas de compra distintas -> shots ordenados
+        var setD={}; ACC.forEach(function(r){ if(r[9]) setD[r[9]]=true; });
+        window.SHOT_DATES=Object.keys(setD).sort();
+        if(window.renderShotSel) window.renderShotSel();
         var on=document.querySelector('#acSort .ac-sbtn.on');
         if(typeof renderAcc==='function') renderAcc(on?on.getAttribute('data-k'):'ret');
       }
