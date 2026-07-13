@@ -205,7 +205,7 @@
   .rk-card{border-radius:24px;padding:22px;margin-top:16px;background:linear-gradient(165deg,#17171E,#111116);border:1px solid rgba(255,255,255,.055);box-shadow:0 20px 40px -28px rgba(0,0,0,.8), inset 0 1px 0 rgba(255,255,255,.04)}
   .rk-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
   .rk-name{font-size:19px;font-weight:700}
-  .rk-name.q{color:var(--blue)} .rk-name.s{color:var(--purple)} .rk-name.z{color:#BF5AF2}
+  .rk-name.q{color:var(--blue)} .rk-name.s{color:#30D158} .rk-name.z{color:#BF5AF2}
   .rk-tag{font-size:11px;color:var(--dim2);font-weight:600}
   .rk-row{display:flex;align-items:center;gap:11px;margin-bottom:11px}
   .rk-rank{font-size:12px;font-weight:700;color:var(--dim2);width:16px;flex:none;text-align:center}
@@ -524,7 +524,7 @@
   <div class="foot" id="anFoot">Desliza las manijas o usa los atajos · no es asesoría de inversión</div>
 </div>
 
-<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v75</div>
+<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v76</div>
 <div class="tabbar">
   <button class="tab on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l9-8 9 8"/><path d="M5 10v10h14V10"/></svg><span>Resumen</span></button>
   <button class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><rect x="7" y="12" width="3" height="6"/><rect x="12" y="8" width="3" height="10"/><rect x="17" y="5" width="3" height="13"/></svg><span>Estrategias</span></button>
@@ -688,7 +688,7 @@ function updateCount(){
   };
 
   var got = { precios:false, hist:false, claude:false };
-  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-75";
+  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-76";
   var estado={precios:false,historial:false,claude:false};
   function pinta(){
     var chip=document.getElementById('liveChip'); if(!chip) return;
@@ -944,12 +944,12 @@ function updateCount(){
     if(window.renderTrimBtns){ try{window.renderTrimBtns();}catch(e){} }
     var L=labEfectivo(); if(!L) return;
     function fp(v){ return (v>=0?'+':'\u2212')+Math.abs(v).toFixed(1)+'%'; }
-    function card(items, contId){
+    function card(items, contId, mxG){
       var cont=document.getElementById(contId); if(!cont) return;
       var vals=items.map(function(it){return it.v;}).filter(function(v){return !isNaN(v);});
       if(!vals.length){ cont.innerHTML='<div style="color:#777;font-size:12px;text-align:center;padding:16px 0">Sin datos</div>'; return; }
       var arr=items.filter(function(it){return !isNaN(it.v);}).slice().sort(function(a,b){return a.v-b.v;});
-      var mx=Math.max.apply(null,arr.map(function(it){return Math.abs(it.v);}))||1;
+      var mx=mxG||(Math.max.apply(null,arr.map(function(it){return Math.abs(it.v);}))||1);
       var html='';
       arr.forEach(function(it,i){
         var w=(Math.abs(it.v)/mx*100).toFixed(1);
@@ -966,7 +966,7 @@ function updateCount(){
       });
       cont.innerHTML=html;
     }
-    card([
+    var itemsQ=[
       {lbl:'Chicas (Sm2.6 St22)', v:L.q_chicas, tag:''},
       {lbl:'Viejas (Sm2.6 St22)', v:L.q_viejas, tag:''},
       {lbl:'Strength 20 o más', v:L.q_str20, tag:''},
@@ -976,16 +976,22 @@ function updateCount(){
       {lbl:'Smart 2.6 o más', v:L.q_sm26, tag:''},
       {lbl:'Smart 2.5 o más', v:L.q_sm25, tag:''},
       {lbl:'Todo el Cuant', v:L.q_mes, tag:'quant'}
-    ], 'labQuant');
-    card([
+    ];
+    var itemsS=[
       {lbl:'Arranque 3.0 / 29', v:L.s_arranque, tag:''},
       {lbl:'Todo el Smart', v:L.s_mes, tag:'smart'},
       {lbl:'Mi selección (industria)', v:L.s_claude, tag:'mia'}
-    ], 'labSmart');
-    card([
+    ];
+    var itemsC=[
       {lbl:'Todo el Chica', v:L.sem_mes, tag:'chica'},
       {lbl:'Chica desde inicio trim', v:L.sem_trim, tag:''}
-    ], 'labChica');
+    ];
+    // Escala compartida: el valor más extremo de las TRES estrategias
+    var mxGlobal=Math.max.apply(null, itemsQ.concat(itemsS).concat(itemsC)
+      .map(function(it){return isNaN(it.v)?0:Math.abs(it.v);}))||1;
+    card(itemsQ, 'labQuant', mxGlobal);
+    card(itemsS, 'labSmart', mxGlobal);
+    card(itemsC, 'labChica', mxGlobal);
     // Diagnóstico: si Chica viene sin datos, mostrar qué etiquetas relacionadas ve la app
     if((isNaN(L.sem_mes)||L.sem_mes===0) && (isNaN(L.sem_trim)||L.sem_trim===0)){
       var lc=document.getElementById('labChica');
