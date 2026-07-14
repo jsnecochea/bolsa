@@ -63,7 +63,8 @@
   .a-tx{font-size:15px;font-weight:700;display:flex;align-items:center;gap:8px}
   .a-strat{font-size:10px;font-weight:700;padding:2px 7px;border-radius:6px}
   .a-strat.q{color:var(--blue);background:rgba(10,132,255,.15)}
-  .a-strat.s{color:var(--purple);background:rgba(191,90,242,.15)}
+  .a-strat.z{color:#BF5AF2;background:rgba(191,90,242,.15)}
+  .a-strat.s{color:#30D158;background:rgba(48,209,88,.15)}
   .a-why{font-size:12.5px;color:var(--dim);font-weight:500;margin-top:3px}
   .a-vals{font-size:13px;font-weight:700;color:#C9C9D2;margin-top:4px;font-variant-numeric:tabular-nums}
   .a-obs{font-size:12px;color:var(--dim);font-weight:500;margin-top:3px}
@@ -216,6 +217,8 @@
   .yv-cell.me{border:1px solid rgba(255,255,255,.09)}
   .yv-lbl{font-size:10px;color:var(--dim2);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px}
   .yv-num{font-size:19px;font-weight:700;letter-spacing:-.5px}
+  .yv-track{height:3px;border-radius:2px;background:rgba(255,255,255,.08);margin-top:8px;overflow:hidden}
+  .yv-fill{height:100%;border-radius:2px;opacity:.9;transition:width .5s cubic-bezier(.22,1,.36,1)}
   .rk-name.q{color:var(--blue)} .rk-name.s{color:#30D158} .rk-name.z{color:#BF5AF2}
   .rk-mm{display:flex;flex-direction:column;align-items:flex-end;justify-content:center;min-width:52px;margin-left:8px;line-height:1.25}
   .rk-mm-v{font-size:11px;font-weight:600}
@@ -239,7 +242,7 @@
   .ac-sbtn.on{background:rgba(255,255,255,.12);color:var(--txt);border-color:rgba(255,255,255,.16)}
   .ac-item{display:flex;align-items:center;gap:9px;padding:13px 12px;border-radius:18px;background:linear-gradient(165deg,#16161C,#111116);border:1px solid rgba(255,255,255,.05);margin-bottom:9px}
   .ac-dot{width:26px;height:26px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:#fff}
-  .ac-dot.c{background:var(--blue)} .ac-dot.s{background:var(--purple)}
+  .ac-dot.c{background:var(--blue)} .ac-dot.s{background:#30D158} .ac-dot.z{background:#BF5AF2}
   .ac-info{flex:1;min-width:0}
   .ac-tk{white-space:nowrap}
   .ac-tk{font-size:15px;font-weight:700;display:flex;align-items:center;gap:6px}
@@ -268,7 +271,7 @@
   .dv-val{position:absolute;top:3px;font-size:10.5px;font-weight:800;line-height:16px;color:#fff;white-space:nowrap;box-sizing:border-box}
   .rk-card h3{font-size:13px;color:var(--dim);font-weight:600;margin:0 0 4px}
   .dv-dot{width:16px;height:16px;border-radius:50%;flex:none;display:inline-flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;color:#fff}
-  .dv-dot.c{background:var(--blue)} .dv-dot.s{background:var(--purple)}
+  .dv-dot.c{background:var(--blue)} .dv-dot.s{background:#30D158} .dv-dot.z{background:#BF5AF2}
   .dv-lbl.tick{width:112px;flex:none;display:flex;align-items:center;gap:6px;justify-content:flex-start;text-align:left}
   .dv-lbl.tick .tk{font-size:13px;font-weight:700;color:#E8E8EE;width:46px;flex:none}
   .dv-tech{width:16px;height:16px;flex:none;color:#FFD426}
@@ -280,7 +283,7 @@
   .modal .sub{font-size:12px;color:var(--dim2);margin-bottom:16px}
   .modal .close{float:right;width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.08);border:none;color:var(--txt);font-size:16px;cursor:pointer;line-height:1}
   .rule-strat{font-size:15px;font-weight:700;margin:18px 0 10px;padding-bottom:6px;border-bottom:1px solid rgba(255,255,255,.08)}
-  .rule-strat.q{color:var(--blue)} .rule-strat.s{color:var(--purple)}
+  .rule-strat.q{color:var(--blue)} .rule-strat.s{color:#30D158} .rule-strat.z{color:#BF5AF2}
   .rule{display:flex;align-items:flex-start;gap:10px;padding:7px 0;font-size:13px}
   .rule .rdot{width:9px;height:9px;border-radius:3px;flex:none;margin-top:3px}
   .rdot.am{background:var(--amber)} .rdot.na{background:var(--orange)} .rdot.ro{background:var(--red)} .rdot.gr{background:var(--dim2)} .rdot.bl{background:var(--blue)}
@@ -294,7 +297,12 @@
 
   <!-- HERO -->
   <div class="hero">
-    <div class="hrow"><div class="brand" id="brandRefresh" style="cursor:pointer"><span class="dot"></span><span>Mi Cartera</span></div><div class="date" id="liveChip">actualizando…</div></div>
+    <div class="hrow"><div class="brand" id="brandRefresh" style="cursor:pointer"><span class="dot"></span><span>Mi Cartera</span></div>
+      <button id="homeBell" aria-label="Alertas" style="margin-left:8px;position:relative;background:none;border:none;padding:4px;cursor:pointer;color:var(--dim);display:inline-flex">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+        <span id="homeBellBadge" style="display:none;position:absolute;top:-2px;right:-3px;min-width:16px;height:16px;padding:0 4px;background:#ff3b30;color:#fff;font-size:10px;font-weight:800;border-radius:100px;align-items:center;justify-content:center;box-shadow:0 0 0 2px #0e0e12">0</span>
+      </button>
+      <div class="date" id="liveChip" style="margin-left:auto">actualizando…</div></div>
     <div id="heroShotSel" style="display:flex;gap:5px;margin:2px 0 12px"></div>
     <div class="duel-hero">
       <div class="dh-col">
@@ -330,7 +338,7 @@
     <h3>Todas mis acciones desde mi compra</h3>
     <div class="rk-top" style="margin-bottom:14px">
       <div class="rk-name" style="font-size:15px" id="allMineCount">14 posiciones</div>
-      <div class="rk-tag"><span class="dv-dot c" style="width:13px;height:13px">C</span> Quant &nbsp; <span class="dv-dot s" style="width:13px;height:13px">S</span> Smart</div>
+      <div class="rk-tag"><span class="dv-dot c" style="width:13px;height:13px">Q</span> Quant &nbsp; <span class="dv-dot s" style="width:13px;height:13px">S</span> Smart &nbsp; <span class="dv-dot z" style="width:13px;height:13px">C</span> Chica</div>
     </div>
     <div id="allMineList"></div>
   </div>
@@ -545,7 +553,7 @@
   <div class="foot" id="anFoot">Desliza las manijas o usa los atajos · no es asesoría de inversión</div>
 </div>
 
-<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v82</div>
+<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v87</div>
 <div class="tabbar">
   <button class="tab on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l9-8 9 8"/><path d="M5 10v10h14V10"/></svg><span>Resumen</span></button>
   <button class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg><span>Alertas</span></button>
@@ -618,7 +626,7 @@ function renderAcc(key){
   for(var j=0;j<arr.length;j++){
     var a=arr[j];
     var tk=a[0], nm=a[1], st=a[2], tech=a[3], sm=a[4], sr=a[5], ret=a[6], trim=a[7], mes=a[8], fcompra=a[9];
-    var dot='<span class="ac-dot '+st+'">'+(st==='c'?'C':'S')+'</span>';
+    var dot='<span class="ac-dot '+st+'">'+(st==='c'?'Q':(st==='s'?'S':'C'))+'</span>';
     var chip=tech?TECHSVG:'';
     var fbadge=(window.shotSel==='all'&&fcompra)?'<span style="font-size:9px;color:var(--dim2);margin-left:5px">'+fmtShotFecha(fcompra)+'</span>':'';
     html += '<div class="ac-item">'+dot+
@@ -661,8 +669,18 @@ renderAcc('ret');
 
 function updateCount(){
   var n=document.querySelectorAll('#alertList .alert-wrap').length;
-  document.getElementById('aCount').textContent=n;
+  var ac=document.getElementById('aCount'); if(ac) ac.textContent=n;
+  var bb=document.getElementById('homeBellBadge');
+  if(bb){ if(n>0){ bb.textContent=n; bb.style.display='inline-flex'; } else { bb.style.display='none'; } }
+  var bell=document.getElementById('homeBell');
+  if(bell){ bell.style.color = n>0 ? '#ff453a' : 'var(--dim)'; }
 }
+(function(){
+  var bell=document.getElementById('homeBell');
+  if(bell && !bell.__wired){ bell.__wired=true;
+    bell.addEventListener('click',function(){ var t=document.querySelectorAll('.tab'); if(t[1]) t[1].click(); });
+  }
+})();
 </script>
 
 
@@ -710,7 +728,7 @@ function updateCount(){
   };
 
   var got = { precios:false, hist:false, claude:false };
-  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-82";
+  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-87";
   var estado={precios:false,historial:false,claude:false};
   function pinta(){
     var chip=document.getElementById('liveChip'); if(!chip) return;
@@ -784,12 +802,12 @@ function updateCount(){
     var lista=[];
     Object.keys(LIVE).forEach(function(tk){ var a=evalua(tk); if(a)lista.push(a); });
     lista.sort(function(x,y){ return y.nivel-x.nivel; });
-    if(!lista.length){ cont.innerHTML='<div style="text-align:center;color:#7ee89f;padding:26px 0;font-size:13px">Todo en orden · ninguna acción requiere atención</div>'; var ac=document.getElementById('aCount'); if(ac)ac.textContent='0'; return; }
+    if(!lista.length){ cont.innerHTML='<div style="text-align:center;color:#7ee89f;padding:26px 0;font-size:13px">Todo en orden · ninguna acción requiere atención</div>'; var ac=document.getElementById('aCount'); if(ac)ac.textContent='0'; if(typeof updateCount==='function') updateCount(); return; }
     var html='';
     lista.forEach(function(a){
       var icCls=a.nivel===3?'sell':(a.nivel===2?'orange':'warn');
       var ic=a.nivel===3?IC_SELL:IC_TRI;
-      var strat=a.q?'<span class="a-strat q">QUANT</span>':'<span class="a-strat s">SMART</span>';
+      var strat=a.estrat==='z'?'<span class="a-strat z">CHICA</span>':(a.q?'<span class="a-strat q">QUANT</span>':'<span class="a-strat s">SMART</span>');
       var nm=META[a.tk]?META[a.tk][0]:a.tk;
       var ini=INI[a.tk]||[a.sm,a.st];
       var tag=a.nivel===3?'<div class="a-tag sell">VENDER</div>':'';
@@ -809,6 +827,7 @@ function updateCount(){
     });
     cont.innerHTML=html;
     var ac=document.getElementById('aCount'); if(ac)ac.textContent=lista.length;
+    if(typeof updateCount==='function') updateCount();
     if(window.enlazarSwipe) window.enlazarSwipe();
   }
 
@@ -858,6 +877,10 @@ function updateCount(){
       var mx=Math.max(Math.abs(yoQ),Math.abs(yoS),Math.abs(alQ),Math.abs(alS),Math.abs(yoZ),Math.abs(alZ),1);
       function fpv(v){ return (v>=0?'+':'\u2212')+Math.abs(v).toFixed(1)+'%'; }
       function colv(v){ return v>=0?'#4ade80':'#ff6b60'; }
+      function barra(v){
+        var w=Math.min(100,(Math.abs(v)/mx*100)).toFixed(1);
+        return '<div class="yv-track"><div class="yv-fill" style="width:'+w+'%;background:'+colv(v)+'"></div></div>';
+      }
       function bloque(nombre, color, yo, algo, mostrar){
         if(!mostrar) return '';
         var gana = yo>=algo;
@@ -869,8 +892,8 @@ function updateCount(){
             '<span class="yv-name" style="color:'+color+'">'+nombre+'</span>'+
             '<span class="yv-win" style="background:'+difCol+';color:'+difTx+'">'+difTxt+'</span></div>'+
           '<div class="yv-duo">'+
-            '<div class="yv-cell me"><div class="yv-lbl">Tú</div><div class="yv-num" style="color:'+colv(yo)+'">'+fpv(yo)+'</div></div>'+
-            '<div class="yv-cell"><div class="yv-lbl">Algoritmo</div><div class="yv-num" style="color:'+colv(algo)+'">'+fpv(algo)+'</div></div>'+
+            '<div class="yv-cell me"><div class="yv-lbl">Tú</div><div class="yv-num" style="color:'+colv(yo)+'">'+fpv(yo)+'</div>'+barra(yo)+'</div>'+
+            '<div class="yv-cell"><div class="yv-lbl">Algoritmo</div><div class="yv-num" style="color:'+colv(algo)+'">'+fpv(algo)+'</div>'+barra(algo)+'</div>'+
           '</div></div>';
       }
       yva.innerHTML=
@@ -888,7 +911,7 @@ function updateCount(){
       var html='';
       lista.forEach(function(p){
         var st=p.estrat, tech=META[p.tk]?META[p.tk][2]:false;
-        var dot='<span class="dv-dot '+st+'">'+(st==='c'?'C':(st==='s'?'S':'Ch'))+'</span>';
+        var dot='<span class="dv-dot '+st+'">'+(st==='c'?'Q':(st==='s'?'S':'C'))+'</span>';
         var techi=tech?TECHSVG2:'<span style="width:16px;flex:none"></span>';
         var fb=(sel==='all'&&p.compra)?'<span style="font-size:9px;color:var(--dim2);margin-left:4px">'+fmtSF(p.compra)+'</span>':'';
         html+='<div class="dv-row"><div class="dv-lbl tick"><span class="tk">'+p.tk+'</span>'+dot+techi+fb+'</div>'+dvBar(p.mio,mx2)+'</div>';
@@ -1021,7 +1044,7 @@ function updateCount(){
         var mine=''; var rowcls='';
         if(it.tag==='mia'){ mine='<span class="mine">MÍA</span>'; rowcls=' rk-mine-row'; }
         else if(it.tag==='quant'){ mine='<span class="mine" style="background:var(--blue);color:#fff">QUANT</span>'; }
-        else if(it.tag==='smart'){ mine='<span class="mine" style="background:var(--purple);color:#fff">SMART</span>'; }
+        else if(it.tag==='smart'){ mine='<span class="mine" style="background:#30D158;color:#fff">SMART</span>'; }
         else if(it.tag==='chica'){ mine='<span class="mine" style="background:#BF5AF2;color:#fff">CHICA</span>'; }
         var cls=it.v>=0?'g':'r';
         var mm=(window.LAB_MINMAX&&it.key)?window.LAB_MINMAX[it.key]:null;
