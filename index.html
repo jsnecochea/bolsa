@@ -269,6 +269,15 @@
   .dv-bar.g{background:linear-gradient(90deg,#30d158,#7ee89f)}
   .dv-bar.r{background:linear-gradient(270deg,#ff453a,#ff8079)}
   .dv-val{position:absolute;top:3px;font-size:10.5px;font-weight:800;line-height:16px;color:#fff;white-space:nowrap;box-sizing:border-box}
+  .am-row{display:flex;align-items:center;gap:8px;margin-bottom:12px}
+  .am-lbl{width:92px;flex:none;display:flex;align-items:center;gap:6px;justify-content:flex-end}
+  .am-neg{width:52px;flex:none;text-align:right;font-size:13px;font-weight:700;color:#ff6b60}
+  .am-pos{width:52px;flex:none;text-align:left;font-size:13px;font-weight:700;color:#4ade80}
+  .am-track{flex:1;position:relative;height:16px}
+  .am-zero{position:absolute;top:-2px;bottom:-2px;left:50%;width:1px;background:rgba(255,255,255,.16)}
+  .am-bar{position:absolute;top:2px;height:12px;border-radius:3px;transition:width .5s cubic-bezier(.22,1,.36,1),left .5s cubic-bezier(.22,1,.36,1)}
+  .am-bar.g{background:linear-gradient(90deg,#30d158,#7ee89f)}
+  .am-bar.r{background:linear-gradient(270deg,#ff453a,#ff8079)}
   .rk-card h3{font-size:13px;color:var(--dim);font-weight:600;margin:0 0 4px}
   .dv-dot{width:16px;height:16px;border-radius:50%;flex:none;display:inline-flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;color:#fff}
   .dv-dot.c{background:var(--blue)} .dv-dot.s{background:#00C7BE} .dv-dot.z{background:#BF5AF2}
@@ -554,7 +563,7 @@
   <div class="foot" id="anFoot">Desliza las manijas o usa los atajos · no es asesoría de inversión</div>
 </div>
 
-<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v94</div>
+<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v95</div>
 <div class="tabbar">
   <button class="tab on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l9-8 9 8"/><path d="M5 10v10h14V10"/></svg><span>Resumen</span></button>
   <button class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg><span>Alertas</span></button>
@@ -729,7 +738,7 @@ function updateCount(){
   };
 
   var got = { precios:false, hist:false, claude:false };
-  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-94";
+  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-95";
   var estado={precios:false,historial:false,claude:false};
   function pinta(){
     var chip=document.getElementById('liveChip'); if(!chip) return;
@@ -912,13 +921,25 @@ function updateCount(){
       var cnt=document.getElementById('allMineCount'); if(cnt) cnt.textContent=lista.length+' posiciones';
       var mx2=1; lista.forEach(function(p){ if(Math.abs(p.mio)>mx2)mx2=Math.abs(p.mio); });
       function fmtSF(iso){ if(!iso)return''; var pp=iso.split("-"); if(pp.length!==3)return''; var m=["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"]; return (+pp[2])+' '+m[(+pp[1])-1]; }
+      function fpv(v){ return (v>=0?'+':'\u2212')+Math.abs(v).toFixed(1)+'%'; }
       var html='';
       lista.forEach(function(p){
-        var st=p.estrat, tech=META[p.tk]?META[p.tk][2]:false;
+        var st=p.estrat, tech=META[p.tk]?META[p.tk][2]:false, v=p.mio;
         var dot='<span class="dv-dot '+st+'">'+(st==='c'?'Q':(st==='s'?'S':'C'))+'</span>';
         var techi=tech?TECHSVG2:'<span style="width:16px;flex:none"></span>';
         var fb=(sel==='all'&&p.compra)?'<span style="font-size:9px;color:var(--dim2);margin-left:4px">'+fmtSF(p.compra)+'</span>':'';
-        html+='<div class="dv-row"><div class="dv-lbl tick"><span class="tk">'+p.tk+'</span>'+dot+techi+fb+'</div>'+dvBar(p.mio,mx2)+'</div>';
+        var half=Math.min(50,(Math.abs(v)/mx2*50));
+        var bar = v>=0
+          ? '<div class="am-bar g" style="left:50%;width:'+half.toFixed(1)+'%"></div>'
+          : '<div class="am-bar r" style="left:'+(50-half).toFixed(1)+'%;width:'+half.toFixed(1)+'%"></div>';
+        var neg = v<0 ? fpv(v) : '';
+        var pos = v>=0 ? fpv(v) : '';
+        html+='<div class="am-row">'+
+          '<div class="am-lbl tick"><span class="tk">'+p.tk+'</span>'+dot+techi+fb+'</div>'+
+          '<div class="am-neg">'+neg+'</div>'+
+          '<div class="am-track"><div class="am-zero"></div>'+bar+'</div>'+
+          '<div class="am-pos">'+pos+'</div>'+
+        '</div>';
       });
       aml.innerHTML=html;
     }
