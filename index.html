@@ -570,7 +570,7 @@
   <div class="foot" id="anFoot">Desliza las manijas o usa los atajos · no es asesoría de inversión</div>
 </div>
 
-<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v99</div>
+<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v100</div>
 <div class="tabbar">
   <button class="tab on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l9-8 9 8"/><path d="M5 10v10h14V10"/></svg><span>Resumen</span></button>
   <button class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg><span>Alertas</span></button>
@@ -745,7 +745,7 @@ function updateCount(){
   };
 
   var got = { precios:false, hist:false, claude:false };
-  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-99";
+  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-100";
   var estado={precios:false,historial:false,claude:false};
   function pinta(){
     var chip=document.getElementById('liveChip'); if(!chip) return;
@@ -1798,6 +1798,7 @@ function updateCount(){
     var rA=fA?rendMap[fA]:null, rB=fB?rendMap[fB]:null;
     if(!rA || !rB || fA===fB){
       var diag='REND registros:'+(window.REND?window.REND.length:0)+' · fechas:'+rendFechas.length+' ('+rendFechas.join(', ')+')';
+      if(window.__RENDRAW){ var R=window.__RENDRAW; diag+='<br>fetch: '+(R.error?('ERROR '+R.error):('bytes:'+R.len+' filas:'+R.filas+' parseadas:'+R.parseadas))+'<br>inicio: '+(R.ini||''); }
       var m0=(window.REND&&window.REND[0])?window.REND[0]:null;
       if(m0){ diag+=' · mias:'+Object.keys(m0.mias||{}).length+' · algo:'+Object.keys(m0.algo||{}).length; }
       var msg = (rendFechas.length<2)
@@ -1875,9 +1876,13 @@ function updateCount(){
   // Fetch RENDIMIENTO
   if(GID.rendimiento && GID.rendimiento!=="PENDIENTE_GID"){
     fetch(urlR(GID.rendimiento)).then(function(r){return r.text();}).then(function(txt){
-      window.REND=parseRend(csvR(txt));
+      window.__RENDRAW={len:txt.length, ini:(txt||"").slice(0,120).replace(/\n/g,' | ')};
+      var parsed=parseRend(csvR(txt));
+      window.REND=parsed;
+      window.__RENDRAW.filas=csvR(txt).length;
+      window.__RENDRAW.parseadas=parsed.length;
       if(document.getElementById('viewAnalisis').classList.contains('on')) window.dibujarAnalisis();
-    }).catch(function(e){ console.log("rend err",e); });
+    }).catch(function(e){ window.__RENDRAW={error:String(e)}; console.log("rend err",e); });
   }
 })();
 </script>
