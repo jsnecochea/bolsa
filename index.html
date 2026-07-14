@@ -273,6 +273,7 @@
   .am-lbl{width:92px;flex:none;display:flex;align-items:center;gap:6px;justify-content:flex-end}
   .am-neg{width:52px;flex:none;text-align:right;font-size:13px;font-weight:700;color:#ff6b60}
   .am-pos{width:52px;flex:none;text-align:left;font-size:13px;font-weight:700;color:#4ade80}
+  .am-val{width:58px;flex:none;text-align:right;font-size:13px;font-weight:700}
   .am-track{flex:1;position:relative;height:16px}
   .am-zero{position:absolute;top:-2px;bottom:-2px;left:50%;width:1px;background:rgba(255,255,255,.16)}
   .am-bar{position:absolute;top:2px;height:12px;border-radius:3px;transition:width .5s cubic-bezier(.22,1,.36,1),left .5s cubic-bezier(.22,1,.36,1)}
@@ -570,7 +571,7 @@
   <div class="foot" id="anFoot">Desliza las manijas o usa los atajos · no es asesoría de inversión</div>
 </div>
 
-<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v106</div>
+<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v108</div>
 <div class="tabbar">
   <button class="tab on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l9-8 9 8"/><path d="M5 10v10h14V10"/></svg><span>Resumen</span></button>
   <button class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg><span>Alertas</span></button>
@@ -746,7 +747,7 @@ function updateCount(){
   window.META = META;
 
   var got = { precios:false, hist:false, claude:false };
-  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-106";
+  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-108";
   var estado={precios:false,historial:false,claude:false};
   function pinta(){
     var chip=document.getElementById('liveChip'); if(!chip) return;
@@ -940,13 +941,10 @@ function updateCount(){
         var bar = v>=0
           ? '<div class="am-bar g" style="left:50%;width:'+half.toFixed(1)+'%"></div>'
           : '<div class="am-bar r" style="left:'+(50-half).toFixed(1)+'%;width:'+half.toFixed(1)+'%"></div>';
-        var neg = v<0 ? fpv(v) : '';
-        var pos = v>=0 ? fpv(v) : '';
         html+='<div class="am-row">'+
           '<div class="am-lbl tick"><span class="tk">'+p.tk+'</span>'+dot+techi+fb+'</div>'+
-          '<div class="am-neg">'+neg+'</div>'+
           '<div class="am-track"><div class="am-zero"></div>'+bar+'</div>'+
-          '<div class="am-pos">'+pos+'</div>'+
+          '<div class="am-val" style="color:'+(v>=0?'#4ade80':'#ff6b60')+'">'+fpv(v)+'</div>'+
         '</div>';
       });
       aml.innerHTML=html;
@@ -1084,9 +1082,8 @@ function updateCount(){
           : '<div class="am-bar r" style="left:'+(50-half).toFixed(1)+'%;width:'+half.toFixed(1)+'%"></div>';
         html+='<div class="am-row">'+
           '<div class="am-lbl tick" style="width:64px"><span class="tk">'+x.tk+'</span></div>'+
-          '<div class="am-neg">'+(x.v<0?fpv(x.v):'')+'</div>'+
           '<div class="am-track"><div class="am-zero"></div>'+bar+'</div>'+
-          '<div class="am-pos">'+(x.v>=0?fpv(x.v):'')+'</div>'+
+          '<div class="am-val" style="color:'+(x.v>=0?'#4ade80':'#ff6b60')+'">'+fpv(x.v)+'</div>'+
         '</div>';
       });
       cont.innerHTML=html;
@@ -1237,14 +1234,16 @@ function updateCount(){
       var nuevo=[];
       if(POSA.length){
         POSA.forEach(function(p){
-          var m=META[p.tk]; if(!m) return; var d=LIVE[p.tk]||{};
-          nuevo.push([p.tk, m[0], m[1], m[2],
+          var m=META[p.tk]; var d=LIVE[p.tk]||{};
+          var nombre=m?m[0]:p.tk, est=p.estrat||(m?m[1]:'c'), tech=m?m[2]:false;
+          nuevo.push([p.tk, nombre, est, tech,
             isNaN(d.smart)?0:d.smart, isNaN(d.stren)?0:d.stren,
             isNaN(p.mio)?0:p.mio, isNaN(p.trim)?0:p.trim, isNaN(p.mes)?0:p.mes, p.compra||'']);
         });
       } else {
-        tickers.forEach(function(t){ var m=META[t]; if(!m) return; var d=LIVE[t];
-          nuevo.push([t, m[0], m[1], m[2], isNaN(d.smart)?0:d.smart, isNaN(d.stren)?0:d.stren,
+        tickers.forEach(function(t){ var m=META[t]; var d=LIVE[t]||{};
+          var est=(window.ESTRAT_MAP&&window.ESTRAT_MAP[t])?window.ESTRAT_MAP[t]:(m?m[1]:'c');
+          nuevo.push([t, m?m[0]:t, est, m?m[2]:false, isNaN(d.smart)?0:d.smart, isNaN(d.stren)?0:d.stren,
             isNaN(d.mio)?0:d.mio, isNaN(d.trim)?0:d.trim, isNaN(d.mes)?0:d.mes, '']); });
       }
       if(nuevo.length){
@@ -1275,7 +1274,7 @@ function updateCount(){
     }
     function esp(et){ return (window.ESPEJO && window.ESPEJO[et]!==undefined)? num(window.ESPEJO[et]) : NaN; }
     // Ubicar columnas del bloque de acciones por su encabezado (Ticker/Trim/Mes/Mío)
-    var cTk=-1,cTrim=-1,cMes=-1,cMio=-1,cCompra=-1,cMonto=-1;
+    var cTk=-1,cTrim=-1,cMes=-1,cMio=-1,cCompra=-1,cMonto=-1,cEstrat=-1;
     for(var hr=0; hr<rows.length && cTk<0; hr++){
       var hh=rows[hr]||[];
       for(var hc=0; hc<hh.length; hc++){
@@ -1286,17 +1285,19 @@ function updateCount(){
         else if(v==="mío"||v==="mio"){ cMio=hc; }
         else if(v==="compra"){ cCompra=hc; }
         else if(v==="monto"){ cMonto=hc; }
+        else if(v==="estrategia"||v==="estrat"){ cEstrat=hc; }
       }
-      if(cTk<0){ cTrim=cMes=cMio=cCompra=cMonto=-1; } // no era la fila correcta
+      if(cTk<0){ cTrim=cMes=cMio=cCompra=cMonto=cEstrat=-1; } // no era la fila correcta
     }
     if(cTk<0){ cTk=17; cTrim=18; cMes=19; cMio=20; } // respaldo a posición vieja
     var shotsDetectadas={};
     window.POSICIONES=[];
+    window.ESTRAT_MAP={};
     for(var i=0;i<rows.length;i++){
       var r=rows[i]; if(!r) continue;
       var raw=(r[cTk]||"").trim(); if(!raw) continue;
       var tk=raw.split(" ")[0].toUpperCase();
-      if(!META[tk]) continue;
+      if(!/^[A-Z]{1,6}$/.test(tk)) continue;
       LIVE[tk]=LIVE[tk]||{};
       var fcIso=null;
       if(cCompra>=0){
@@ -1309,8 +1310,18 @@ function updateCount(){
       }
       var pTrim=num(r[cTrim]), pMes=num(r[cMes]), pMio=num(r[cMio]);
       var pMonto=(cMonto>=0?num(r[cMonto]):NaN); if(isNaN(pMonto)) pMonto=10000; // respaldo
+      // estrategia del renglón (desde el espejo); si no hay columna, respaldo a META
+      var pEstrat=null;
+      if(cEstrat>=0){
+        var ev=(r[cEstrat]||"").trim().toLowerCase();
+        if(ev==="quant"||ev==="cuant"||ev==="q"||ev==="c") pEstrat="c";
+        else if(ev==="smart"||ev==="s") pEstrat="s";
+        else if(ev==="chica"||ev==="chicas"||ev==="semilla"||ev==="z") pEstrat="z";
+      }
+      if(!pEstrat) pEstrat=(META[tk]?META[tk][1]:"c");
+      window.ESTRAT_MAP=window.ESTRAT_MAP||{}; window.ESTRAT_MAP[tk]=pEstrat;
       // cada renglón = una posición (shot) independiente
-      window.POSICIONES.push({tk:tk, compra:fcIso, trim:pTrim, mes:pMes, mio:pMio, monto:pMonto, estrat:META[tk][1]});
+      window.POSICIONES.push({tk:tk, compra:fcIso, trim:pTrim, mes:pMes, mio:pMio, monto:pMonto, estrat:pEstrat});
       // LIVE[tk] guarda la última leída (para score/alertas por acción)
       LIVE[tk].trim=pTrim; LIVE[tk].mes=pMes; LIVE[tk].mio=pMio;
     }
@@ -1399,7 +1410,7 @@ function updateCount(){
       var r=rows[i]; if(!r) continue;
       var raw=(r[iAcc]||"").trim(); if(!raw) continue;
       var tk=raw.split(" ")[0].toUpperCase();
-      if(!META[tk]) continue;
+      if(!/^[A-Z]{1,6}$/.test(tk)) continue;
       var sm=(iSm>=0?num(r[iSm]):NaN), st=(iSt>=0?num(r[iSt]):NaN);
       if(isNaN(sm)&&isNaN(st)) continue;
       LIVE[tk]=LIVE[tk]||{};
@@ -1708,7 +1719,10 @@ function updateCount(){
   // Estado de la vista
   var stratSel="cartera", idxA=0, idxB=0;
 
-  function metaStrat(tk){ return (window.META&&window.META[tk])?window.META[tk][1]:null; }
+  function metaStrat(tk){
+    if(window.ESTRAT_MAP && window.ESTRAT_MAP[tk]) return window.ESTRAT_MAP[tk];
+    return (window.META&&window.META[tk])?window.META[tk][1]:null;
+  }
 
   function tickersDe(rec, strat){
     if(strat==="algo") return Object.keys(rec.algo||{});
