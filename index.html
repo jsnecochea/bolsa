@@ -205,6 +205,17 @@
   .rk-card{border-radius:24px;padding:22px;margin-top:16px;background:linear-gradient(165deg,#17171E,#111116);border:1px solid rgba(255,255,255,.055);box-shadow:0 20px 40px -28px rgba(0,0,0,.8), inset 0 1px 0 rgba(255,255,255,.04)}
   .rk-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
   .rk-name{font-size:19px;font-weight:700}
+  .yv-strat{background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:13px 15px;margin-bottom:10px}
+  .yv-strat:last-child{margin-bottom:0}
+  .yv-head{display:flex;align-items:center;gap:7px;margin-bottom:11px}
+  .yv-name{font-size:14px;font-weight:700;letter-spacing:.2px}
+  .yv-dot{width:9px;height:9px;border-radius:50%;flex:none}
+  .yv-win{margin-left:auto;font-size:10px;font-weight:600;padding:3px 8px;border-radius:100px}
+  .yv-duo{display:flex;gap:10px}
+  .yv-cell{flex:1;background:rgba(0,0,0,.22);border-radius:11px;padding:9px 11px}
+  .yv-cell.me{border:1px solid rgba(255,255,255,.09)}
+  .yv-lbl{font-size:10px;color:var(--dim2);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px}
+  .yv-num{font-size:19px;font-weight:700;letter-spacing:-.5px}
   .rk-name.q{color:var(--blue)} .rk-name.s{color:#30D158} .rk-name.z{color:#BF5AF2}
   .rk-mm{display:flex;flex-direction:column;align-items:flex-end;justify-content:center;min-width:52px;margin-left:8px;line-height:1.25}
   .rk-mm-v{font-size:11px;font-weight:600}
@@ -309,22 +320,19 @@
 
   <!-- RENDIMIENTO POR COMPRA -->
   <div class="section-cap">Mi rendimiento por compra</div>
-  <div class="rk-card" style="background:linear-gradient(165deg,#141419,#0e0e12);padding:16px;margin-top:0">
 
-    <div class="rk-card" style="margin-top:0">
-      <h3>Mi rendimiento vs el algoritmo</h3>
-      <div class="rk-top" style="margin-bottom:14px"><div class="rk-name" style="font-size:15px">Por estrategia &middot; desde inicio de mes</div></div>
-      <div id="yvaList"></div>
-    </div>
+  <div class="rk-card" style="margin-top:0">
+    <h3>Mi rendimiento vs el algoritmo</h3>
+    <div id="yvaList"></div>
+  </div>
 
-    <div class="rk-card">
-      <h3>Todas mis acciones desde mi compra</h3>
-      <div class="rk-top" style="margin-bottom:14px">
-        <div class="rk-name" style="font-size:15px" id="allMineCount">14 posiciones</div>
-        <div class="rk-tag"><span class="dv-dot c" style="width:13px;height:13px">C</span> Quant &nbsp; <span class="dv-dot s" style="width:13px;height:13px">S</span> Smart</div>
-      </div>
-      <div id="allMineList"></div>
+  <div class="rk-card">
+    <h3>Todas mis acciones desde mi compra</h3>
+    <div class="rk-top" style="margin-bottom:14px">
+      <div class="rk-name" style="font-size:15px" id="allMineCount">14 posiciones</div>
+      <div class="rk-tag"><span class="dv-dot c" style="width:13px;height:13px">C</span> Quant &nbsp; <span class="dv-dot s" style="width:13px;height:13px">S</span> Smart</div>
     </div>
+    <div id="allMineList"></div>
   </div>
 
   <div class="foot">Datos de tu hoja &middot; en vivo &middot; no es asesoría de inversión</div>
@@ -537,7 +545,7 @@
   <div class="foot" id="anFoot">Desliza las manijas o usa los atajos · no es asesoría de inversión</div>
 </div>
 
-<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v81</div>
+<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v82</div>
 <div class="tabbar">
   <button class="tab on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l9-8 9 8"/><path d="M5 10v10h14V10"/></svg><span>Resumen</span></button>
   <button class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg><span>Alertas</span></button>
@@ -702,7 +710,7 @@ function updateCount(){
   };
 
   var got = { precios:false, hist:false, claude:false };
-  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-81";
+  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-82";
   var estado={precios:false,historial:false,claude:false};
   function pinta(){
     var chip=document.getElementById('liveChip'); if(!chip) return;
@@ -848,13 +856,27 @@ function updateCount(){
       var alZ=(window.ALGO_MES_SEM!=null&&!isNaN(window.ALGO_MES_SEM))?window.ALGO_MES_SEM:0;
       var hayZ=(POS.filter(function(p){return p.estrat==='z';}).length>0)||(window.ALGO_MES_SEM!=null&&!isNaN(window.ALGO_MES_SEM));
       var mx=Math.max(Math.abs(yoQ),Math.abs(yoS),Math.abs(alQ),Math.abs(alS),Math.abs(yoZ),Math.abs(alZ),1);
+      function fpv(v){ return (v>=0?'+':'\u2212')+Math.abs(v).toFixed(1)+'%'; }
+      function colv(v){ return v>=0?'#4ade80':'#ff6b60'; }
+      function bloque(nombre, color, yo, algo, mostrar){
+        if(!mostrar) return '';
+        var gana = yo>=algo;
+        var difTxt = gana?'Vas ganando':'Vas abajo';
+        var difCol = gana?'rgba(74,222,128,.16)':'rgba(255,107,96,.16)';
+        var difTx = gana?'#4ade80':'#ff8079';
+        return '<div class="yv-strat">'+
+          '<div class="yv-head"><span class="yv-dot" style="background:'+color+'"></span>'+
+            '<span class="yv-name" style="color:'+color+'">'+nombre+'</span>'+
+            '<span class="yv-win" style="background:'+difCol+';color:'+difTx+'">'+difTxt+'</span></div>'+
+          '<div class="yv-duo">'+
+            '<div class="yv-cell me"><div class="yv-lbl">Tú</div><div class="yv-num" style="color:'+colv(yo)+'">'+fpv(yo)+'</div></div>'+
+            '<div class="yv-cell"><div class="yv-lbl">Algoritmo</div><div class="yv-num" style="color:'+colv(algo)+'">'+fpv(algo)+'</div></div>'+
+          '</div></div>';
+      }
       yva.innerHTML=
-        '<div class="dv-row"><div class="dv-lbl">Quant<small>yo</small></div>'+dvBar(yoQ,mx)+'</div>'+
-        '<div class="dv-row"><div class="dv-lbl">Quant<small>algoritmo</small></div>'+dvBar(alQ,mx)+'</div>'+
-        '<div class="dv-row"><div class="dv-lbl">Smart<small>yo</small></div>'+dvBar(yoS,mx)+'</div>'+
-        '<div class="dv-row"><div class="dv-lbl">Smart<small>algoritmo</small></div>'+dvBar(alS,mx)+'</div>'+
-        (hayZ?('<div class="dv-row"><div class="dv-lbl">Chica<small>yo</small></div>'+dvBar(yoZ,mx)+'</div>'+
-        '<div class="dv-row"><div class="dv-lbl">Chica<small>algoritmo</small></div>'+dvBar(alZ,mx)+'</div>'):'');
+        bloque('Quant', '#0A84FF', yoQ, alQ, true)+
+        bloque('Smart', '#30D158', yoS, alS, true)+
+        bloque('Chica', '#BF5AF2', yoZ, alZ, hayZ);
     }
     // --- Todas mis acciones desde mi compra (una fila por posición del shot) ---
     var aml=document.getElementById('allMineList');
