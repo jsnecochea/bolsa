@@ -278,6 +278,7 @@
   .am-bar{position:absolute;top:2px;height:12px;border-radius:3px;transition:width .5s cubic-bezier(.22,1,.36,1),left .5s cubic-bezier(.22,1,.36,1)}
   .am-bar.g{background:linear-gradient(90deg,#30d158,#7ee89f)}
   .am-bar.r{background:linear-gradient(270deg,#ff453a,#ff8079)}
+  .strat-acc-cap{font-size:11px;color:var(--dim2);font-weight:600;margin:16px 0 10px;padding-top:14px;border-top:1px solid rgba(255,255,255,.06)}
   .rk-card h3{font-size:13px;color:var(--dim);font-weight:600;margin:0 0 4px}
   .dv-dot{width:16px;height:16px;border-radius:50%;flex:none;display:inline-flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;color:#fff}
   .dv-dot.c{background:var(--blue)} .dv-dot.s{background:#00C7BE} .dv-dot.z{background:#BF5AF2}
@@ -382,16 +383,22 @@
   <div class="rk-card">
     <div class="rk-top"><div class="rk-name q">Quant</div><div class="rk-tag">trimestre</div></div>
     <div id="labQuant"></div>
+    <div class="strat-acc-cap" id="capQuant" style="display:none">Acciones · desde inicio de trimestre</div>
+    <div id="accQuant"></div>
   </div>
 
   <div class="rk-card">
     <div class="rk-top"><div class="rk-name s">Smart</div><div class="rk-tag">trimestre</div></div>
     <div id="labSmart"></div>
+    <div class="strat-acc-cap" id="capSmart" style="display:none">Acciones · desde inicio de trimestre</div>
+    <div id="accSmart"></div>
   </div>
 
   <div class="rk-card">
     <div class="rk-top"><div class="rk-name z">Chica</div><div class="rk-tag">trimestre</div></div>
     <div id="labChica"></div>
+    <div class="strat-acc-cap" id="capChica" style="display:none">Acciones · desde inicio de trimestre</div>
+    <div id="accChica"></div>
   </div>
 
   <div class="st-note">Apenas 2 días de datos &middot; el ranking cambiará conforme el robot acumule historial. No tomes decisiones con la foto de hoy.</div>
@@ -563,7 +570,7 @@
   <div class="foot" id="anFoot">Desliza las manijas o usa los atajos · no es asesoría de inversión</div>
 </div>
 
-<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v95</div>
+<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v99</div>
 <div class="tabbar">
   <button class="tab on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l9-8 9 8"/><path d="M5 10v10h14V10"/></svg><span>Resumen</span></button>
   <button class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg><span>Alertas</span></button>
@@ -738,7 +745,7 @@ function updateCount(){
   };
 
   var got = { precios:false, hist:false, claude:false };
-  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-95";
+  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-99";
   var estado={precios:false,historial:false,claude:false};
   function pinta(){
     var chip=document.getElementById('liveChip'); if(!chip) return;
@@ -1053,6 +1060,41 @@ function updateCount(){
 
   if(document.readyState!=="loading"){ setTimeout(function(){try{window.renderTrimBtns();}catch(e){}},60); } else { document.addEventListener("DOMContentLoaded",function(){try{window.renderTrimBtns();}catch(e){}}); }
 
+  window.dibujarAccEstrat=function(){
+    var POS=window.POSICIONES||[];
+    function pinta(letra, contId, capId){
+      var cont=document.getElementById(contId), cap=document.getElementById(capId);
+      if(!cont) return;
+      // tickers únicos de esa estrategia con su rendimiento de trimestre (LIVE[tk].trim)
+      var vistos={}, arr=[];
+      POS.forEach(function(p){ if(p.estrat!==letra) return; if(vistos[p.tk]) return; vistos[p.tk]=true;
+        var tr=(LIVE[p.tk]&&!isNaN(LIVE[p.tk].trim))?LIVE[p.tk].trim:NaN;
+        if(!isNaN(tr)) arr.push({tk:p.tk, v:tr}); });
+      if(!arr.length){ cont.innerHTML=''; if(cap)cap.style.display='none'; return; }
+      if(cap)cap.style.display='block';
+      arr.sort(function(a,b){return b.v-a.v;});
+      var mx=1; arr.forEach(function(x){ if(Math.abs(x.v)>mx)mx=Math.abs(x.v); });
+      function fpv(v){ return (v>=0?'+':'\u2212')+Math.abs(v).toFixed(1)+'%'; }
+      var html='';
+      arr.forEach(function(x){
+        var half=Math.min(50,(Math.abs(x.v)/mx*50));
+        var bar = x.v>=0
+          ? '<div class="am-bar g" style="left:50%;width:'+half.toFixed(1)+'%"></div>'
+          : '<div class="am-bar r" style="left:'+(50-half).toFixed(1)+'%;width:'+half.toFixed(1)+'%"></div>';
+        html+='<div class="am-row">'+
+          '<div class="am-lbl tick" style="width:64px"><span class="tk">'+x.tk+'</span></div>'+
+          '<div class="am-neg">'+(x.v<0?fpv(x.v):'')+'</div>'+
+          '<div class="am-track"><div class="am-zero"></div>'+bar+'</div>'+
+          '<div class="am-pos">'+(x.v>=0?fpv(x.v):'')+'</div>'+
+        '</div>';
+      });
+      cont.innerHTML=html;
+    }
+    pinta('c','accQuant','capQuant');
+    pinta('s','accSmart','capSmart');
+    pinta('z','accChica','capChica');
+  };
+
   window.dibujarLab=function(){
     if(window.renderTrimBtns){ try{window.renderTrimBtns();}catch(e){} }
     var L=labEfectivo(); if(!L) return;
@@ -1110,6 +1152,7 @@ function updateCount(){
     card(itemsQ, 'labQuant', mxGlobal);
     card(itemsS, 'labSmart', mxGlobal);
     card(itemsC, 'labChica', mxGlobal);
+    if(window.dibujarAccEstrat){ try{window.dibujarAccEstrat();}catch(e){} }
     // Diagnóstico: si Chica viene sin datos, mostrar qué etiquetas relacionadas ve la app
     if(isNaN(L.sem_trim)||L.sem_trim===0){
       var lc=document.getElementById('labChica');
@@ -1661,6 +1704,7 @@ function updateCount(){
     var ks=Object.keys(rec.mias||{});
     if(strat==="quant") return ks.filter(function(t){return metaStrat(t)==="c";});
     if(strat==="smart") return ks.filter(function(t){return metaStrat(t)==="s";});
+    if(strat==="chica") return ks.filter(function(t){return metaStrat(t)==="z";});
     return ks; // cartera
   }
   function valDe(rec, strat, tk){ return strat==="algo" ? (rec.algo?rec.algo[tk]:NaN) : (rec.mias?rec.mias[tk]:NaN); }
@@ -1741,15 +1785,32 @@ function updateCount(){
     var rendArr=(window.REND||[]).filter(function(x){return esHabil(x.fecha);});
     rendArr.sort(function(a,b){ return (a.fecha+(a.hora||"")).localeCompare(b.fecha+(b.hora||"")); });
     var rendMap={}; rendArr.forEach(function(x){ rendMap[x.fecha]=x; }); // último del día = cierre
-    var rA=rendMap[recA.fecha], rB=rendMap[recB.fecha];
-    if(!rA || !rB){
-      document.getElementById('anList').innerHTML='<div style="text-align:center;color:var(--dim2);padding:20px 0;font-size:13px">El desglose por acción se activa cuando el robot de rendimiento tenga esas dos fechas.<br>Se va llenando con los días.</div>';
+    // Fechas de RENDIMIENTO disponibles (una por día)
+    var rendFechas=Object.keys(rendMap).sort();
+    function masCercana(objetivo){
+      if(!rendFechas.length) return null;
+      var best=rendFechas[0], bd=1e15;
+      var od=objetivo.replace(/-/g,'');
+      rendFechas.forEach(function(f){ var d=Math.abs(parseInt(f.replace(/-/g,''),10)-parseInt(od,10)); if(d<bd){bd=d;best=f;} });
+      return best;
+    }
+    var fA=masCercana(recA.fecha), fB=masCercana(recB.fecha);
+    var rA=fA?rendMap[fA]:null, rB=fB?rendMap[fB]:null;
+    if(!rA || !rB || fA===fB){
+      var diag='REND registros:'+(window.REND?window.REND.length:0)+' · fechas:'+rendFechas.length+' ('+rendFechas.join(', ')+')';
+      var m0=(window.REND&&window.REND[0])?window.REND[0]:null;
+      if(m0){ diag+=' · mias:'+Object.keys(m0.mias||{}).length+' · algo:'+Object.keys(m0.algo||{}).length; }
+      var msg = (rendFechas.length<2)
+        ? 'El desglose por acción se activa cuando el robot de rendimiento tenga al menos dos días.<br>Se va llenando con los días.'
+        : 'Aún no hay dos fechas distintas de rendimiento dentro de este tramo.';
+      document.getElementById('anList').innerHTML='<div style="text-align:center;color:var(--dim2);padding:20px 0;font-size:13px">'+msg+'<br><span style="font-size:10px;opacity:.7">diag · '+diag+'</span></div>';
     } else {
+      var notaAprox=(fA!==recA.fecha||fB!==recB.fecha)?'<div style="font-size:10px;color:var(--dim2);text-align:center;margin-bottom:8px">Fechas más cercanas con datos: '+fmtFecha(fA)+' → '+fmtFecha(fB)+'</div>':'';
       var tks=tickersDe(rB, stratSel), filas=[];
       tks.forEach(function(tk){ var a=valDe(rA,stratSel,tk), b=valDe(rB,stratSel,tk); if(isNaN(a)||isNaN(b))return; filas.push({tk:tk,chg:(b-a)*100}); });
       filas.sort(function(a,b){return b.chg-a.chg;});
       var nF=filas.length||1, mx=1; filas.forEach(function(x){ if(Math.abs(x.chg)>mx)mx=Math.abs(x.chg); });
-      var html='';
+      var html=notaAprox;
       filas.forEach(function(x){
         var w=(Math.abs(x.chg)/mx*50).toFixed(1), apt=(x.chg/nF), pos=x.chg>=0;
         var bar= pos?'<div class="an-bar" style="left:50%;width:'+w+'%;background:#1baf7a;border-radius:0 3px 3px 0"></div>'
