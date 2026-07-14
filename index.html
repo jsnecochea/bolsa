@@ -554,7 +554,7 @@
   <div class="foot" id="anFoot">Desliza las manijas o usa los atajos · no es asesoría de inversión</div>
 </div>
 
-<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v91</div>
+<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v93</div>
 <div class="tabbar">
   <button class="tab on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l9-8 9 8"/><path d="M5 10v10h14V10"/></svg><span>Resumen</span></button>
   <button class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg><span>Alertas</span></button>
@@ -729,7 +729,7 @@ function updateCount(){
   };
 
   var got = { precios:false, hist:false, claude:false };
-  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-91";
+  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-93";
   var estado={precios:false,historial:false,claude:false};
   function pinta(){
     var chip=document.getElementById('liveChip'); if(!chip) return;
@@ -1054,7 +1054,8 @@ function updateCount(){
         var mm=(window.LAB_MINMAX&&it.key)?window.LAB_MINMAX[it.key]:null;
         var mmHtml='';
         if(mm && !isNaN(mm.max)){
-          mmHtml='<div class="rk-mm"><div class="rk-mm-v g">'+fp(mm.max)+'</div><div class="rk-mm-v r">'+fp(mm.min)+'</div></div>';
+          var maxCol = mm.max>=0 ? '#4ade80' : '#FFD426';
+          mmHtml='<div class="rk-mm"><div class="rk-mm-v" style="color:'+maxCol+'">'+fp(mm.max)+'</div><div class="rk-mm-v r">'+fp(mm.min)+'</div></div>';
         } else { mmHtml='<div class="rk-mm"><div class="rk-mm-v" style="color:var(--dim2)">—</div></div>'; }
         html+='<div class="rk-row'+rowcls+'"><div class="rk-rank">'+(i+1)+'</div>'+
           '<div class="rk-mid"><div class="rk-lbl">'+it.lbl+mine+'</div>'+
@@ -1706,7 +1707,7 @@ function updateCount(){
       else { notaEl.style.display='none'; }
     }
 
-    var comps=[]; ['algo','quant','smart','cartera'].forEach(function(k){ if(k===stratSel) return; comps.push({k:k,v:movStrat(k)}); });
+    var comps=[]; ['algo','quant','smart','chica','cartera'].forEach(function(k){ if(k===stratSel) return; var v=movStrat(k); if(k==='chica' && isNaN(v)) return; comps.push({k:k,v:v}); });
     document.getElementById('anCompare').innerHTML=comps.map(function(c){
       var col=(isNaN(c.v)||c.v>=0)?'#4ade80':'#ff5a5a';
       return '<div style="text-align:right"><div style="font-size:10px;color:var(--dim2)">'+lblMap[c.k]+'</div><div style="font-size:15px;font-weight:600;color:'+col+'">'+fp(c.v)+'</div></div>';
