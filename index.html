@@ -572,7 +572,7 @@
   <div class="foot" id="anFoot">Desliza las manijas o usa los atajos · no es asesoría de inversión</div>
 </div>
 
-<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v116</div>
+<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v118</div>
 <div class="tabbar">
   <button class="tab on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l9-8 9 8"/><path d="M5 10v10h14V10"/></svg><span>Resumen</span></button>
   <button class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg><span>Alertas</span></button>
@@ -750,7 +750,7 @@ function updateCount(){
   window.META = META;
 
   var got = { precios:false, hist:false, claude:false };
-  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-116";
+  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-118";
   var estado={precios:false,historial:false,claude:false};
   function pinta(){
     var chip=document.getElementById('liveChip'); if(!chip) return;
@@ -860,11 +860,13 @@ function updateCount(){
           }
         }
         filas.push({lbl:'Actual', sm:a.sm, st:a.st, cls:'now'});
-        // mínimos globales por métrica (para pintar SOLO ese valor de amarillo, cada uno por su lado)
-        var gMinSm=filas[0].sm, gMinSt=filas[0].st;
-        filas.forEach(function(x){ if(x.sm<gMinSm)gMinSm=x.sm; if(x.st<gMinSt)gMinSt=x.st; });
+        // mínimos globales por métrica
+        var gMinSm=filas[0].sm, gMinSt=filas[0].st, gMaxSm=filas[0].sm, gMaxSt=filas[0].st;
+        filas.forEach(function(x){ if(x.sm<gMinSm)gMinSm=x.sm; if(x.st<gMinSt)gMinSt=x.st; if(x.sm>gMaxSm)gMaxSm=x.sm; if(x.st>gMaxSt)gMaxSt=x.st; });
+        // solo pintar si hubo variación a la baja (el mínimo es menor que el máximo registrado)
+        var haySmDip=(gMaxSm-gMinSm)>0.001, hayStDip=(gMaxSt-gMinSt)>0.001;
         return filas.map(function(x){
-          var smY=(x.sm<=gMinSm+0.001), stY=(x.st<=gMinSt+0.001);
+          var smY=haySmDip && (x.sm<=gMinSm+0.001), stY=hayStDip && (x.st<=gMinSt+0.001);
           var smSpan='<span style="color:'+(smY?'#f5c518':'inherit')+'">'+x.sm.toFixed(2)+'</span>';
           var stSpan='<span style="color:'+(stY?'#f5c518':'inherit')+'">'+x.st.toFixed(1)+'</span>';
           return '<div class="a-scoreline '+x.cls+'"><span class="lbl">'+x.lbl+'</span><span class="num">Sm '+smSpan+' / St '+stSpan+'</span></div>';
@@ -962,7 +964,7 @@ function updateCount(){
     var aml=document.getElementById('allMineList');
     if(aml){
       var lista = POS.slice().filter(function(p){return !isNaN(p.mio);}).sort(function(a,b){return b.mio-a.mio;});
-      var cnt=document.getElementById('allMineCount'); if(cnt) cnt.textContent=lista.length+' posiciones';
+      var cnt=document.getElementById('allMineCount'); if(cnt){ var uq={}; lista.forEach(function(p){uq[p.tk]=true;}); cnt.textContent=lista.length+' posiciones ('+Object.keys(uq).length+' acciones)'; }
       var mx2=1; lista.forEach(function(p){ if(Math.abs(p.mio)>mx2)mx2=Math.abs(p.mio); });
       function fmtSF(iso){ if(!iso)return''; var pp=iso.split("-"); if(pp.length!==3)return''; var m=["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"]; return (+pp[2])+' '+m[(+pp[1])-1]; }
       function fpv(v){ return (v>=0?'+':'\u2212')+Math.abs(v).toFixed(1)+'%'; }
