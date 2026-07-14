@@ -570,7 +570,7 @@
   <div class="foot" id="anFoot">Desliza las manijas o usa los atajos · no es asesoría de inversión</div>
 </div>
 
-<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v100</div>
+<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v101</div>
 <div class="tabbar">
   <button class="tab on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l9-8 9 8"/><path d="M5 10v10h14V10"/></svg><span>Resumen</span></button>
   <button class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg><span>Alertas</span></button>
@@ -745,7 +745,7 @@ function updateCount(){
   };
 
   var got = { precios:false, hist:false, claude:false };
-  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-100";
+  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-101";
   var estado={precios:false,historial:false,claude:false};
   function pinta(){
     var chip=document.getElementById('liveChip'); if(!chip) return;
@@ -1668,12 +1668,19 @@ function updateCount(){
     if(!p)return false; var d=p.getDay(); return d!==0 && d!==6;
   }
 
+  function normFechaR(f){
+    f=(f||"").trim(); if(!f) return "";
+    if(/^\d{4}-\d{2}-\d{2}/.test(f)) return f.slice(0,10);
+    var m=f.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/);
+    if(m){ var d=("0"+m[1]).slice(-2), mo=("0"+m[2]).slice(-2), y=m[3]; if(y.length===2) y="20"+y; return y+"-"+mo+"-"+d; }
+    return "";
+  }
   function parseRend(rows){
     var recs=[];
     for(var i=0;i<rows.length;i++){
       var r=rows[i]; if(!r||r.length<5) continue;
-      var fecha=(r[0]||"").trim();
-      if(!/\d{4}-\d{2}-\d{2}|\d{1,2}\/\d{1,2}\/\d{4}/.test(fecha)) continue;
+      var fecha=normFechaR(r[0]);
+      if(!fecha) continue;
       // localizar mi_total, |MIAS|, |ALGO|
       var miTotal=NaN, mias={}, algo={}, modo="";
       for(var c=2;c<r.length;c++){
@@ -1682,14 +1689,17 @@ function updateCount(){
         if(cel==="|MIAS|"){ modo="mias"; continue; }
         if(cel==="|ALGO|"){ modo="algo"; continue; }
         if(!cel) continue;
-        if(/^[A-Z]{1,5}$/.test(cel)){ // ticker
+        if(/^[A-Z]{1,5}$/.test(cel) && modo){ // ticker (solo dentro de una sección)
           var val=n(r[c+1]);
           if(modo==="mias") mias[cel]=val;
           else if(modo==="algo") algo[cel]=val;
           c++;
         }
       }
-      recs.push({fecha:fecha, hora:(r[1]||"").trim(), miTotal:miTotal, mias:mias, algo:algo});
+      // solo registros con datos útiles
+      if(Object.keys(mias).length || Object.keys(algo).length || !isNaN(miTotal)){
+        recs.push({fecha:fecha, hora:(r[1]||"").trim(), miTotal:miTotal, mias:mias, algo:algo});
+      }
     }
     return recs;
   }
