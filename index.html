@@ -310,7 +310,6 @@
   <!-- RENDIMIENTO POR COMPRA -->
   <div class="section-cap">Mi rendimiento por compra</div>
   <div class="rk-card" style="background:linear-gradient(165deg,#141419,#0e0e12);padding:16px;margin-top:0">
-    <div id="estShotSel" style="display:flex;gap:5px;margin-bottom:14px"></div>
 
     <div class="rk-card" style="margin-top:0">
       <h3>Mi rendimiento vs el algoritmo</h3>
@@ -538,7 +537,7 @@
   <div class="foot" id="anFoot">Desliza las manijas o usa los atajos · no es asesoría de inversión</div>
 </div>
 
-<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v80</div>
+<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v81</div>
 <div class="tabbar">
   <button class="tab on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l9-8 9 8"/><path d="M5 10v10h14V10"/></svg><span>Resumen</span></button>
   <button class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg><span>Alertas</span></button>
@@ -703,7 +702,7 @@ function updateCount(){
   };
 
   var got = { precios:false, hist:false, claude:false };
-  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-80";
+  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-81";
   var estado={precios:false,historial:false,claude:false};
   function pinta(){
     var chip=document.getElementById('liveChip'); if(!chip) return;
@@ -830,8 +829,7 @@ function updateCount(){
   };
 
   function actualizarEstrategias(){
-    if(window.renderEstShotSel) window.renderEstShotSel();
-    var sel=window.estShotSel||'all';
+    var sel=window.heroShotSel||'all';
     var POS=(window.POSICIONES||[]).filter(function(p){ return sel==='all' || p.compra===sel; });
     if(!POS.length && sel!=='all'){ POS=[]; }
     var tks=Object.keys(LIVE).filter(function(t){return !isNaN(LIVE[t].mio);});
@@ -1067,7 +1065,7 @@ function updateCount(){
     ds.forEach(function(d,i){ b+='<button class="ac-sbtn'+(window.heroShotSel===d?' on':'')+'" data-s="'+d+'" style="flex:1;padding:5px 0;font-size:11px;text-align:center">C'+(i+1)+'</button>'; });
     cont.innerHTML=b;
     cont.querySelectorAll('.ac-sbtn').forEach(function(bt){
-      bt.addEventListener('click',function(){ window.heroShotSel=bt.getAttribute('data-s'); window.renderHeroShotSel(); try{tryUpdateAll();}catch(e){} });
+      bt.addEventListener('click',function(){ window.heroShotSel=bt.getAttribute('data-s'); window.renderHeroShotSel(); try{tryUpdateAll();}catch(e){} try{actualizarEstrategias();}catch(e){} });
     });
   };
 
