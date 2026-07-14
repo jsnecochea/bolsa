@@ -570,7 +570,7 @@
   <div class="foot" id="anFoot">Desliza las manijas o usa los atajos · no es asesoría de inversión</div>
 </div>
 
-<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v104</div>
+<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v105</div>
 <div class="tabbar">
   <button class="tab on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l9-8 9 8"/><path d="M5 10v10h14V10"/></svg><span>Resumen</span></button>
   <button class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg><span>Alertas</span></button>
@@ -745,7 +745,7 @@ function updateCount(){
   };
 
   var got = { precios:false, hist:false, claude:false };
-  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-104";
+  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-105";
   var estado={precios:false,historial:false,claude:false};
   function pinta(){
     var chip=document.getElementById('liveChip'); if(!chip) return;
@@ -1824,7 +1824,8 @@ function updateCount(){
       tks.forEach(function(tk){ var a=valDe(rA,stratSel,tk), b=valDe(rB,stratSel,tk); if(isNaN(a)||isNaN(b))return; filas.push({tk:tk,chg:(b-a)*100}); });
       filas.sort(function(a,b){return b.chg-a.chg;});
       var nF=filas.length||1, mx=1; filas.forEach(function(x){ if(Math.abs(x.chg)>mx)mx=Math.abs(x.chg); });
-      var html=notaAprox;
+      var diag2='<div style="font-size:10px;color:var(--dim2);text-align:center;margin-bottom:6px">diag · rA('+fA+'):'+Object.keys(rA.mias||{}).length+'m/'+Object.keys(rA.algo||{}).length+'a · rB('+fB+'):'+Object.keys(rB.mias||{}).length+'m/'+Object.keys(rB.algo||{}).length+'a · tks:'+tks.length+' · filas:'+filas.length+'</div>';
+      var html=notaAprox+diag2;
       filas.forEach(function(x){
         var w=(Math.abs(x.chg)/mx*50).toFixed(1), apt=(x.chg/nF), pos=x.chg>=0;
         var bar= pos?'<div class="an-bar" style="left:50%;width:'+w+'%;background:#1baf7a;border-radius:0 3px 3px 0"></div>'
