@@ -26,6 +26,7 @@
   .dh-col{flex:1;min-width:0}
   .pct{font-size:52px;font-weight:700;letter-spacing:-0.04em;line-height:.9;background:linear-gradient(180deg,#fff,#7ee89f);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
   .pct.algo{background:linear-gradient(180deg,#ffd9d5,#ff4d42);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+  .pct.neg{background:linear-gradient(180deg,#ffd9d5,#ff4d42);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
   .dh-chip{display:inline-block;margin-top:12px;font-size:14px;font-weight:600;color:#7ee89f;background:rgba(48,209,88,.16);padding:6px 12px;border-radius:100px}
   .dh-chip.algo{color:#ff6b60;background:rgba(255,69,58,.16)}
   .dh-chip.algo b{color:#ff8079;font-weight:700}
@@ -206,19 +207,18 @@
   .rk-card{border-radius:24px;padding:22px;margin-top:16px;background:linear-gradient(165deg,#17171E,#111116);border:1px solid rgba(255,255,255,.055);box-shadow:0 20px 40px -28px rgba(0,0,0,.8), inset 0 1px 0 rgba(255,255,255,.04)}
   .rk-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
   .rk-name{font-size:19px;font-weight:700}
-  .yv-strat{background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:13px 15px;margin-bottom:10px}
-  .yv-strat:last-child{margin-bottom:0}
-  .yv-head{display:flex;align-items:center;gap:7px;margin-bottom:11px}
-  .yv-name{font-size:14px;font-weight:700;letter-spacing:.2px}
-  .yv-dot{width:9px;height:9px;border-radius:50%;flex:none}
-  .yv-win{margin-left:auto;font-size:10px;font-weight:600;padding:3px 8px;border-radius:100px}
-  .yv-duo{display:flex;gap:10px}
-  .yv-cell{flex:1;background:rgba(0,0,0,.22);border-radius:11px;padding:9px 11px}
-  .yv-cell.me{border:1px solid rgba(255,255,255,.09)}
-  .yv-lbl{font-size:10px;color:var(--dim2);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px}
-  .yv-num{font-size:19px;font-weight:700;letter-spacing:-.5px}
-  .yv-track{height:3px;border-radius:2px;background:rgba(255,255,255,.08);margin-top:8px;overflow:hidden}
-  .yv-fill{height:100%;border-radius:2px;opacity:.9;transition:width .5s cubic-bezier(.22,1,.36,1)}
+  .yv-w{border-radius:16px;padding:13px 15px 15px;margin-bottom:10px;background:rgba(255,255,255,.022);border:1px solid rgba(255,255,255,.06)}
+  .yv-w:last-child{margin-bottom:0}
+  .yv-w-head{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+  .yv-w-dot{width:9px;height:9px;border-radius:50%;flex:none}
+  .yv-w-name{font-size:14px;font-weight:700;letter-spacing:.2px}
+  .yv-w-delta{margin-left:auto;font-size:10.5px;font-weight:700;padding:3px 9px;border-radius:100px}
+  .yv-line{display:flex;align-items:center;gap:10px;margin:6px 0 0}
+  .yv-line-lbl{width:58px;font-size:11px;color:var(--dim);font-weight:600}
+  .yv-track{flex:1;position:relative;height:20px}
+  .yv-zero{position:absolute;left:50%;top:1px;bottom:1px;width:1px;background:rgba(255,255,255,.14)}
+  .yv-bar2{position:absolute;top:4px;height:12px;border-radius:3px;transition:width .55s cubic-bezier(.22,1,.36,1),left .55s cubic-bezier(.22,1,.36,1)}
+  .yv-line-val{width:54px;text-align:right;font-size:16px;font-weight:700;letter-spacing:-.4px}
   .rk-name.q{color:var(--blue)} .rk-name.s{color:#30D158} .rk-name.z{color:#BF5AF2}
   .rk-mm{display:flex;flex-direction:column;align-items:flex-end;justify-content:center;min-width:52px;margin-left:8px;line-height:1.25}
   .rk-mm-v{font-size:11px;font-weight:600}
@@ -512,6 +512,7 @@
     <div class="an-strat on" data-k="cartera">Cartera</div>
     <div class="an-strat" data-k="quant">Quant</div>
     <div class="an-strat" data-k="smart">Smart</div>
+    <div class="an-strat" data-k="chica">Chica</div>
     <div class="an-strat" data-k="algo">Algo</div>
   </div>
 
@@ -553,7 +554,7 @@
   <div class="foot" id="anFoot">Desliza las manijas o usa los atajos · no es asesoría de inversión</div>
 </div>
 
-<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v87</div>
+<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v89</div>
 <div class="tabbar">
   <button class="tab on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l9-8 9 8"/><path d="M5 10v10h14V10"/></svg><span>Resumen</span></button>
   <button class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg><span>Alertas</span></button>
@@ -728,7 +729,7 @@ function updateCount(){
   };
 
   var got = { precios:false, hist:false, claude:false };
-  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-87";
+  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-89";
   var estado={precios:false,historial:false,claude:false};
   function pinta(){
     var chip=document.getElementById('liveChip'); if(!chip) return;
@@ -877,24 +878,27 @@ function updateCount(){
       var mx=Math.max(Math.abs(yoQ),Math.abs(yoS),Math.abs(alQ),Math.abs(alS),Math.abs(yoZ),Math.abs(alZ),1);
       function fpv(v){ return (v>=0?'+':'\u2212')+Math.abs(v).toFixed(1)+'%'; }
       function colv(v){ return v>=0?'#4ade80':'#ff6b60'; }
-      function barra(v){
-        var w=Math.min(100,(Math.abs(v)/mx*100)).toFixed(1);
-        return '<div class="yv-track"><div class="yv-fill" style="width:'+w+'%;background:'+colv(v)+'"></div></div>';
+      function barDiv(v, color){
+        var half=Math.min(50,(Math.abs(v)/mx*50));
+        var pos = v>=0 ? ('left:50%;width:'+half+'%') : ('left:'+(50-half)+'%;width:'+half+'%');
+        return '<div class="yv-bar2" style="'+pos+';background:'+color+'"></div>';
+      }
+      function linea(lbl, v, color){
+        return '<div class="yv-line"><div class="yv-line-lbl">'+lbl+'</div>'+
+          '<div class="yv-track"><div class="yv-zero"></div>'+barDiv(v,color)+'</div>'+
+          '<div class="yv-line-val" style="color:'+colv(v)+'">'+fpv(v)+'</div></div>';
       }
       function bloque(nombre, color, yo, algo, mostrar){
         if(!mostrar) return '';
-        var gana = yo>=algo;
-        var difTxt = gana?'Vas ganando':'Vas abajo';
-        var difCol = gana?'rgba(74,222,128,.16)':'rgba(255,107,96,.16)';
-        var difTx = gana?'#4ade80':'#ff8079';
-        return '<div class="yv-strat">'+
-          '<div class="yv-head"><span class="yv-dot" style="background:'+color+'"></span>'+
-            '<span class="yv-name" style="color:'+color+'">'+nombre+'</span>'+
-            '<span class="yv-win" style="background:'+difCol+';color:'+difTx+'">'+difTxt+'</span></div>'+
-          '<div class="yv-duo">'+
-            '<div class="yv-cell me"><div class="yv-lbl">Tú</div><div class="yv-num" style="color:'+colv(yo)+'">'+fpv(yo)+'</div>'+barra(yo)+'</div>'+
-            '<div class="yv-cell"><div class="yv-lbl">Algoritmo</div><div class="yv-num" style="color:'+colv(algo)+'">'+fpv(algo)+'</div>'+barra(algo)+'</div>'+
-          '</div></div>';
+        var dif=yo-algo, gana=dif>=0;
+        var chip='<span class="yv-w-delta" style="background:'+(gana?'rgba(74,222,128,.15)':'rgba(255,107,96,.15)')+';color:'+(gana?'#4ade80':'#ff8079')+'">'+
+                 (gana?'▲ ':'▼ ')+Math.abs(dif).toFixed(1)+' pts '+(gana?'mejor':'abajo')+'</span>';
+        return '<div class="yv-w">'+
+          '<div class="yv-w-head"><span class="yv-w-dot" style="background:'+color+'"></span>'+
+            '<span class="yv-w-name" style="color:'+color+'">'+nombre+'</span>'+chip+'</div>'+
+          linea('Tú', yo, color)+
+          linea('Algoritmo', algo, 'rgba(255,255,255,.28)')+
+        '</div>';
       }
       yva.innerHTML=
         bloque('Quant', '#0A84FF', yoQ, alQ, true)+
@@ -1135,7 +1139,7 @@ function updateCount(){
       if(n){
         var avg=invSum>0?(ponSum/invSum):0; // rendimiento ponderado
         var el=document.getElementById('hMio');
-        if(el){ el.textContent=fmtPct(avg); }
+        if(el){ el.textContent=fmtPct(avg); el.classList.toggle('neg', avg<0); }
         var lbl=document.getElementById('hMioLabel');
         if(lbl){
           if(sel==='all'){ lbl.textContent='Mi rendimiento del mes'; }
@@ -1286,7 +1290,7 @@ function updateCount(){
     var H=(rows[0]||[]).map(function(x){return (x||"").trim().toLowerCase();});
     function ix(nombre){ return H.indexOf(nombre); }
     var iFecha=ix("fecha"), iQT=ix("cuant_trim"), iST=ix("smart_trim"), iIQ=ix("inv_cuant"), iIS=ix("inv_smart");
-    var iYQ=ix("yo_mes_cuant"), iYS=ix("yo_mes_smart");
+    var iYQ=ix("yo_mes_cuant"), iYS=ix("yo_mes_smart"), iSemT=ix("semilla_trim");
     var serie=[];
     var estrat=[];
     var ultInv=null;
@@ -1301,7 +1305,7 @@ function updateCount(){
       if(isNaN(q)||isNaN(sm)) continue;
       serie.push({fecha:fchS, val:(q+sm)/2});
       var yq=(iYQ>=0?num(r[iYQ]):NaN), ys=(iYS>=0?num(r[iYS]):NaN);
-      estrat.push({fecha:fchS, hora:(ix('hora')>=0?(r[ix('hora')]||'').trim():''), algoQ:q, algoS:sm, algo:(q+sm)/2, miQ:yq, miS:ys,
+      estrat.push({fecha:fchS, hora:(ix('hora')>=0?(r[ix('hora')]||'').trim():''), algoQ:q, algoS:sm, algo:(q+sm)/2, algoSem:(iSemT>=0?num(r[iSemT]):NaN), miQ:yq, miS:ys,
                    mi:((!isNaN(yq)&&!isNaN(ys))?(yq+ys)/2:(isNaN(yq)?ys:yq))});
       var d=(iIQ>=0?num(r[iIQ]):NaN), e=(iIS>=0?num(r[iIS]):NaN);
       if(!isNaN(d)||!isNaN(e)){ ultInv=(isNaN(d)?0:d)+(isNaN(e)?0:e); }
@@ -1683,12 +1687,13 @@ function updateCount(){
       if(strat==="cartera") return rec.mi;         // mi rendimiento total
       if(strat==="quant") return rec.algoQ;        // algoritmo Quant (desde inicio trim)
       if(strat==="smart") return rec.algoS;        // algoritmo Smart (desde inicio trim)
+      if(strat==="chica") return rec.algoSem;      // algoritmo Chica (semilla, desde inicio trim)
       if(strat==="algo") return rec.algo;          // algoritmo combinado
       return NaN;
     }
     function movStrat(strat){ var a=campo(strat,recA), b=campo(strat,recB); return (isNaN(a)||isNaN(b))?NaN:(b-a); }
 
-    var lblMap={cartera:'Mi cartera',quant:'Quant',smart:'Smart',algo:'Algoritmo'};
+    var lblMap={cartera:'Mi cartera',quant:'Quant',smart:'Smart',chica:'Chica',algo:'Algoritmo'};
     var mainVal=movStrat(stratSel);
     var mainEl=document.getElementById('anMainVal');
     mainEl.textContent=fp(mainVal); mainEl.style.color = (isNaN(mainVal)||mainVal>=0)?'#4ade80':'#ff5a5a';
