@@ -572,7 +572,7 @@
   <div class="foot" id="anFoot">Desliza las manijas o usa los atajos · no es asesoría de inversión</div>
 </div>
 
-<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v113</div>
+<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v114</div>
 <div class="tabbar">
   <button class="tab on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l9-8 9 8"/><path d="M5 10v10h14V10"/></svg><span>Resumen</span></button>
   <button class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg><span>Alertas</span></button>
@@ -750,7 +750,7 @@ function updateCount(){
   window.META = META;
 
   var got = { precios:false, hist:false, claude:false };
-  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-113";
+  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-114";
   var estado={precios:false,historial:false,claude:false};
   function pinta(){
     var chip=document.getElementById('liveChip'); if(!chip) return;
@@ -843,24 +843,20 @@ function updateCount(){
       // Renglones de lecturas desde el historial de scores
       function lineasScore(){
         var hist=(window.SCORE_HIST&&window.SCORE_HIST[a.tk])?window.SCORE_HIST[a.tk].filter(function(h){return !isNaN(h.smart)&&!isNaN(h.stren);}):[];
-        var filas=[];
-        filas.push({lbl:'Inicio', sm:ini[0], st:ini[1], cls:'ini'});
-        if(hist.length>=2){
-          var first=hist[0], actual=hist[hist.length-1];
+        var filas=[{lbl:'Inicio', sm:ini[0], st:ini[1], cls:'ini'}];
+        if(hist.length){
           var mS=hist[0], mT=hist[0];
           hist.forEach(function(h){ if(h.smart<mS.smart)mS=h; if(h.stren<mT.stren)mT=h; });
-          var fIni=first.fecha, fAct=actual.fecha;
-          function util(h){ return h.fecha!==fIni && h.fecha!==fAct; }
-          if(mS.fecha===mT.fecha){
-            if(util(mS)) filas.push({lbl:'Mín Sm+St', sm:mS.smart, st:mS.stren, cls:'min'});
+          var dipS = mS.smart < Math.min(ini[0], a.sm) - 0.001; // el smart tocó más bajo que ambos extremos
+          var dipT = mT.stren < Math.min(ini[1], a.st) - 0.001; // el strength tocó más bajo que ambos extremos
+          if(dipS && dipT && mS.fecha===mT.fecha){
+            filas.push({lbl:'Mín Sm+St', sm:mS.smart, st:mS.stren, cls:'min'});
           } else {
-            if(util(mS)) filas.push({lbl:'Mín Smart', sm:mS.smart, st:mS.stren, cls:'min'});
-            if(util(mT)) filas.push({lbl:'Mín Strength', sm:mT.smart, st:mT.stren, cls:'min'});
+            if(dipS) filas.push({lbl:'Mín Smart', sm:mS.smart, st:mS.stren, cls:'min'});
+            if(dipT) filas.push({lbl:'Mín Strength', sm:mT.smart, st:mT.stren, cls:'min'});
           }
-          filas.push({lbl:'Actual', sm:actual.smart, st:actual.stren, cls:'now'});
-        } else {
-          filas.push({lbl:'Actual', sm:a.sm, st:a.st, cls:'now'});
         }
+        filas.push({lbl:'Actual', sm:a.sm, st:a.st, cls:'now'});
         return filas.map(function(x){
           return '<div class="a-scoreline '+x.cls+'"><span class="lbl">'+x.lbl+'</span><span class="num">Sm '+x.sm.toFixed(2)+' / St '+x.st.toFixed(1)+'</span></div>';
         }).join('');
