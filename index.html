@@ -319,18 +319,18 @@
     <div class="duel-hero">
       <div class="dh-col">
         <div class="label" id="hMioLabel">Mi rendimiento del mes</div>
-        <div class="pct" id="hMio">+3.1%</div>
-        <div class="dh-chip" id="hMioChip">&uarr; $4,181</div>
+        <div class="pct" id="hMio">&mdash;</div>
+        <div class="dh-chip" id="hMioChip">&mdash;</div>
       </div>
       <div class="dh-col" id="algoOpen" style="cursor:pointer" onclick="if(window.abrirHist)window.abrirHist();">
         <div class="label">Algoritmo del mes</div>
-        <div class="pct algo" id="hAlgo">&minus;10.4%</div>
-        <div class="dh-chip algo">Trim <b id="hAlgoTrim">&minus;10.4%</b></div>
+        <div class="pct algo" id="hAlgo">&mdash;</div>
+        <div class="dh-chip algo">Trim <b id="hAlgoTrim">&mdash;</b></div>
       </div>
     </div>
     <div class="statgrid">
-      <div class="stat"><div class="s-lbl">Invertido</div><div class="s-val" id="hInv">$140,000</div></div>
-      <div class="stat"><div class="s-lbl">Posiciones</div><div class="s-val" id="hPos">14</div></div>
+      <div class="stat"><div class="s-lbl">Invertido</div><div class="s-val" id="hInv">&mdash;</div></div>
+      <div class="stat"><div class="s-lbl">Posiciones</div><div class="s-val" id="hPos">&mdash;</div></div>
     </div>
     <div class="strip">
       <div class="pill-card"><div class="pulse"></div><div><div class="pc-lbl">Mercado</div><div class="pc-val green">Verde</div></div></div>
@@ -349,7 +349,7 @@
   <div class="rk-card">
     <h3>Todas mis acciones desde mi compra</h3>
     <div class="rk-top" style="margin-bottom:14px">
-      <div class="rk-name" style="font-size:15px" id="allMineCount">14 posiciones</div>
+      <div class="rk-name" style="font-size:15px" id="allMineCount">&mdash;</div>
       <div class="rk-tag"><span class="dv-dot c" style="width:13px;height:13px">Q</span> Quant &nbsp; <span class="dv-dot s" style="width:13px;height:13px">S</span> Smart &nbsp; <span class="dv-dot z" style="width:13px;height:13px">C</span> Chica</div>
     </div>
     <div id="allMineList"></div>
@@ -365,7 +365,7 @@
   </div>
   <div class="card">
     <div class="a-head"><div><div class="card-title">Requieren atención</div><div style="font-size:11px;color:var(--dim2);font-weight:500;margin-top:2px" id="aScoreDate">Scores en vivo</div></div>
-      <div class="a-head-right"><div class="a-count" id="aCount">6</div>
+      <div class="a-head-right"><div class="a-count" id="aCount">0</div>
         <button class="rules-btn" onclick="document.getElementById('rulesModal').classList.add('open')"><span></span><span></span><span></span></button>
       </div>
     </div>
@@ -572,7 +572,7 @@
   <div class="foot" id="anFoot">Desliza las manijas o usa los atajos · no es asesoría de inversión</div>
 </div>
 
-<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v118</div>
+<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v119</div>
 <div class="tabbar">
   <button class="tab on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l9-8 9 8"/><path d="M5 10v10h14V10"/></svg><span>Resumen</span></button>
   <button class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg><span>Alertas</span></button>
@@ -711,7 +711,7 @@ function updateCount(){
 (function(){
   var BASE = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ1gnRj1TvcXXF66yAreWKo6RON27GE3K2pZWq8LSxb98SNZeKpFuYaeHgovJTO9zM1QSeHb-cxWJ2N/pub";
   var GID = { precios:"288876761", historial:"1844874580", claude:"1972938992", rendimiento:"161922984" };
-  function url(gid){ return BASE + "?gid=" + gid + "&single=true&output=csv"; }
+  function url(gid){ return BASE + "?gid=" + gid + "&single=true&output=csv&_=" + Date.now(); }
 
   // Parser CSV que respeta comillas
   function parseCSV(txt){
@@ -750,7 +750,7 @@ function updateCount(){
   window.META = META;
 
   var got = { precios:false, hist:false, claude:false };
-  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-118";
+  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-119";
   var estado={precios:false,historial:false,claude:false};
   function pinta(){
     var chip=document.getElementById('liveChip'); if(!chip) return;
@@ -1705,7 +1705,7 @@ function updateCount(){
 /* ====== ANÁLISIS POR TRAMO (lee RENDIMIENTO) ====== */
 (function(){
   var BASE_R="https://docs.google.com/spreadsheets/d/e/2PACX-1vQ1gnRj1TvcXXF66yAreWKo6RON27GE3K2pZWq8LSxb98SNZeKpFuYaeHgovJTO9zM1QSeHb-cxWJ2N/pub";
-  function urlR(gid){ return BASE_R+"?gid="+gid+"&single=true&output=csv"; }
+  function urlR(gid){ return BASE_R+"?gid="+gid+"&single=true&output=csv&_="+Date.now(); }
   function n(x){ var v=parseFloat(String(x).replace(/[%$,\s]/g,"")); return isNaN(v)?NaN:v; }
   function csvR(t){ var out=[],row=[],cur="",q=false;
     for(var i=0;i<t.length;i++){var c=t[i];
