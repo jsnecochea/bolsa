@@ -571,7 +571,7 @@
   <div class="foot" id="anFoot">Desliza las manijas o usa los atajos · no es asesoría de inversión</div>
 </div>
 
-<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v108</div>
+<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v109</div>
 <div class="tabbar">
   <button class="tab on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l9-8 9 8"/><path d="M5 10v10h14V10"/></svg><span>Resumen</span></button>
   <button class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg><span>Alertas</span></button>
@@ -747,7 +747,7 @@ function updateCount(){
   window.META = META;
 
   var got = { precios:false, hist:false, claude:false };
-  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-108";
+  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-109";
   var estado={precios:false,historial:false,claude:false};
   function pinta(){
     var chip=document.getElementById('liveChip'); if(!chip) return;
@@ -876,17 +876,15 @@ function updateCount(){
 
   function actualizarEstrategias(){
     var sel=window.heroShotSel||'all';
-    var POS=(window.POSICIONES||[]).filter(function(p){ return sel==='all' || p.compra===sel; });
-    if(!POS.length && sel!=='all'){ POS=[]; }
-    var tks=Object.keys(LIVE).filter(function(t){return !isNaN(LIVE[t].mio);});
-    if(!POS.length && !tks.length) return;
-    // --- Yo vs algoritmo (promedio mío por estrategia, filtrado por shot) ---
+    var POS=(window.POSICIONES||[]).filter(function(p){ return p.esMia && (sel==='all' || p.compra===sel); });
+    if(!POS.length) { var yv0=document.getElementById('yvaList'); if(yv0)yv0.innerHTML=''; var am0=document.getElementById('allMineList'); if(am0)am0.innerHTML=''; return; }
+    // --- Yo vs algoritmo (rendimiento mío ponderado por monto, por estrategia) ---
     var yva=document.getElementById('yvaList');
     if(yva){
       function promEstrat(letra){
-        var arr=POS.filter(function(p){return p.estrat===letra && !isNaN(p.mio);});
+        var arr=POS.filter(function(p){return p.estrat===letra && !isNaN(p.mio) && !isNaN(p.monto) && p.monto>0;});
         if(!arr.length) return 0;
-        var s=0; arr.forEach(function(p){s+=p.mio;}); return s/arr.length;
+        var s=0,w=0; arr.forEach(function(p){s+=p.mio*p.monto;w+=p.monto;}); return w?s/w:0;
       }
       var yoQ=promEstrat('c'), yoS=promEstrat('s'), yoZ=promEstrat('z');
       var alQ=(window.ALGO_MES_Q!=null&&!isNaN(window.ALGO_MES_Q))?window.ALGO_MES_Q:0;
@@ -1186,21 +1184,17 @@ function updateCount(){
     var tickers=Object.keys(LIVE);
     var POS=window.POSICIONES||[];
     if(got.precios && (POS.length || tickers.length)){
-      // Fechas de compra distintas para el selector del hero
-      var setF={}; POS.forEach(function(p){ if(p.compra) setF[p.compra]=true; });
+      // Solo mis posiciones (compradas y vigentes): monto>0 y sin fecha de venta
+      var setF={}; POS.forEach(function(p){ if(p.esMia && p.compra) setF[p.compra]=true; });
       window.HERO_SHOTS=Object.keys(setF).sort();
       if(window.renderHeroShotSel) window.renderHeroShotSel();
       // Filtrar por la compra seleccionada (o todas)
       var sel=window.heroShotSel||'all';
-      var usar = POS.length ? POS.filter(function(p){ return sel==='all' || p.compra===sel; }) : [];
+      var usar = POS.filter(function(p){ return p.esMia && (sel==='all' || p.compra===sel); });
       var invSum=0, ponSum=0, n=0;
-      if(usar.length){
-        usar.forEach(function(p){ if(!isNaN(p.mio)){ var mt=(!isNaN(p.monto)&&p.monto>0)?p.monto:10000; invSum+=mt; ponSum+=mt*p.mio; n++; } });
-      } else {
-        tickers.forEach(function(t){ if(!isNaN(LIVE[t].mio)){ invSum+=10000; ponSum+=10000*LIVE[t].mio; n++; } });
-      }
+      usar.forEach(function(p){ var mt=p.monto; if(!isNaN(mt)&&mt>0){ invSum+=mt; if(!isNaN(p.mio)) ponSum+=mt*p.mio; n++; } });
       if(n){
-        var avg=invSum>0?(ponSum/invSum):0; // rendimiento ponderado
+        var avg=invSum>0?(ponSum/invSum):0; // rendimiento ponderado por monto
         var el=document.getElementById('hMio');
         if(el){ el.textContent=fmtPct(avg); el.classList.toggle('neg', avg<0); }
         var lbl=document.getElementById('hMioLabel');
@@ -1274,7 +1268,7 @@ function updateCount(){
     }
     function esp(et){ return (window.ESPEJO && window.ESPEJO[et]!==undefined)? num(window.ESPEJO[et]) : NaN; }
     // Ubicar columnas del bloque de acciones por su encabezado (Ticker/Trim/Mes/Mío)
-    var cTk=-1,cTrim=-1,cMes=-1,cMio=-1,cCompra=-1,cMonto=-1,cEstrat=-1;
+    var cTk=-1,cTrim=-1,cMes=-1,cMio=-1,cCompra=-1,cMonto=-1,cEstrat=-1,cVenta=-1;
     for(var hr=0; hr<rows.length && cTk<0; hr++){
       var hh=rows[hr]||[];
       for(var hc=0; hc<hh.length; hc++){
@@ -1286,8 +1280,9 @@ function updateCount(){
         else if(v==="compra"){ cCompra=hc; }
         else if(v==="monto"){ cMonto=hc; }
         else if(v==="estrategia"||v==="estrat"){ cEstrat=hc; }
+        else if(v==="venta"){ cVenta=hc; }
       }
-      if(cTk<0){ cTrim=cMes=cMio=cCompra=cMonto=cEstrat=-1; } // no era la fila correcta
+      if(cTk<0){ cTrim=cMes=cMio=cCompra=cMonto=cEstrat=cVenta=-1; } // no era la fila correcta
     }
     if(cTk<0){ cTk=17; cTrim=18; cMes=19; cMio=20; } // respaldo a posición vieja
     var shotsDetectadas={};
@@ -1309,7 +1304,10 @@ function updateCount(){
         }
       }
       var pTrim=num(r[cTrim]), pMes=num(r[cMes]), pMio=num(r[cMio]);
-      var pMonto=(cMonto>=0?num(r[cMonto]):NaN); if(isNaN(pMonto)) pMonto=10000; // respaldo
+      var pMonto=(cMonto>=0?num(r[cMonto]):NaN); // monto real del espejo (NaN si vacío)
+      var ventaCel=(cVenta>=0?(r[cVenta]||"").trim():"");
+      var esFechaVenta=/\d{1,4}[\/\-]\d{1,2}[\/\-]\d{1,4}/.test(ventaCel); // fecha real de venta
+      var esMia=(!isNaN(pMonto)&&pMonto>0)&&!esFechaVenta; // comprada y vigente
       // estrategia del renglón (desde el espejo); si no hay columna, respaldo a META
       var pEstrat=null;
       if(cEstrat>=0){
@@ -1321,7 +1319,7 @@ function updateCount(){
       if(!pEstrat) pEstrat=(META[tk]?META[tk][1]:"c");
       window.ESTRAT_MAP=window.ESTRAT_MAP||{}; window.ESTRAT_MAP[tk]=pEstrat;
       // cada renglón = una posición (shot) independiente
-      window.POSICIONES.push({tk:tk, compra:fcIso, trim:pTrim, mes:pMes, mio:pMio, monto:pMonto, estrat:pEstrat});
+      window.POSICIONES.push({tk:tk, compra:fcIso, trim:pTrim, mes:pMes, mio:pMio, monto:pMonto, estrat:pEstrat, esMia:esMia, venta:ventaCel});
       // LIVE[tk] guarda la última leída (para score/alertas por acción)
       LIVE[tk].trim=pTrim; LIVE[tk].mes=pMes; LIVE[tk].mio=pMio;
     }
