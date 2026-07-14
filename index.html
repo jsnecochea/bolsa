@@ -834,11 +834,35 @@ function updateCount(){
       var ini=INI[a.tk]||[a.sm,a.st];
       var tag=a.nivel===3?'<div class="a-tag sell">VENDER</div>':'';
       var obsCls=a.nivel===3?'':(a.nivel===2?'na':'am');
+      // Renglones de lecturas desde el historial de scores
+      function lineasScore(){
+        var hist=(window.SCORE_HIST&&window.SCORE_HIST[a.tk])?window.SCORE_HIST[a.tk].filter(function(h){return !isNaN(h.smart)&&!isNaN(h.stren);}):[];
+        var filas=[];
+        filas.push({lbl:'Inicio', sm:ini[0], st:ini[1], cls:'ini'});
+        if(hist.length>=2){
+          var first=hist[0], actual=hist[hist.length-1];
+          var mS=hist[0], mT=hist[0];
+          hist.forEach(function(h){ if(h.smart<mS.smart)mS=h; if(h.stren<mT.stren)mT=h; });
+          var fIni=first.fecha, fAct=actual.fecha;
+          function util(h){ return h.fecha!==fIni && h.fecha!==fAct; }
+          if(mS.fecha===mT.fecha){
+            if(util(mS)) filas.push({lbl:'Mín Sm+St', sm:mS.smart, st:mS.stren, cls:'min'});
+          } else {
+            if(util(mS)) filas.push({lbl:'Mín Smart', sm:mS.smart, st:mS.stren, cls:'min'});
+            if(util(mT)) filas.push({lbl:'Mín Strength', sm:mT.smart, st:mT.stren, cls:'min'});
+          }
+          filas.push({lbl:'Actual', sm:actual.smart, st:actual.stren, cls:'now'});
+        } else {
+          filas.push({lbl:'Actual', sm:a.sm, st:a.st, cls:'now'});
+        }
+        return filas.map(function(x){
+          return '<div class="a-scoreline '+x.cls+'"><span class="lbl">'+x.lbl+'</span><span class="num">Sm '+x.sm.toFixed(2)+' / St '+x.st.toFixed(1)+'</span></div>';
+        }).join('');
+      }
       html+='<div class="alert-wrap"><div class="alert-del">&#128465;</div><div class="alert'+(a.nivel===3?' sell-row':'')+'">'+
         '<div class="a-ic '+icCls+'">'+ic+'</div>'+
         '<div class="a-body"><div class="a-tx">'+a.tk+' &middot; '+nm+' '+strat+'</div>'+
-        '<div class="a-scoreline ini"><span class="lbl">Inicio</span><span class="num">Sm '+ini[0].toFixed(2)+' / St '+ini[1].toFixed(1)+'</span></div>'+
-        '<div class="a-scoreline now"><span class="lbl">Ahora</span><span class="num">Sm '+a.sm.toFixed(2)+' / St '+a.st.toFixed(1)+'</span></div>'+
+        lineasScore()+
         '<div class="a-obs '+obsCls+'">'+a.obs.join('<br>')+'</div></div>'+
         '<div class="a-boxes">'+
           '<div class="a-box"><div class="bx-lbl">Trim</div><div class="bx-val '+(a.trim>=0?'g':'r')+'">'+(isNaN(a.trim)?'—':fpct(a.trim))+'</div></div>'+
@@ -1401,13 +1425,15 @@ function updateCount(){
   fetch(url(GID.claude)).then(function(r){return r.text();}).then(function(txt){
     var rows=parseCSV(txt);
     var H=(rows[0]||[]).map(function(x){return (x||"").trim().toLowerCase();});
-    var iAcc=-1,iSm=-1,iSt=-1;
+    var iAcc=-1,iSm=-1,iSt=-1,iFe=-1;
     for(var h=0; h<H.length; h++){
       if(H[h]==="acción"||H[h]==="accion") iAcc=h;
       else if(H[h]==="smart") iSm=h;
       else if(H[h]==="strength") iSt=h;
+      else if(H[h]==="fecha") iFe=h;
     }
     if(iAcc<0){ iAcc=2; iSm=4; iSt=5; } // respaldo a posición vieja
+    window.SCORE_HIST={};
     for(var i=1;i<rows.length;i++){
       var r=rows[i]; if(!r) continue;
       var raw=(r[iAcc]||"").trim(); if(!raw) continue;
@@ -1415,9 +1441,12 @@ function updateCount(){
       if(!/^[A-Z]{1,6}$/.test(tk)) continue;
       var sm=(iSm>=0?num(r[iSm]):NaN), st=(iSt>=0?num(r[iSt]):NaN);
       if(isNaN(sm)&&isNaN(st)) continue;
+      var fe=(iFe>=0?(r[iFe]||"").trim():"");
       LIVE[tk]=LIVE[tk]||{};
       if(!isNaN(sm)) LIVE[tk].smart=sm;
       if(!isNaN(st)) LIVE[tk].stren=st;
+      window.SCORE_HIST[tk]=window.SCORE_HIST[tk]||[];
+      window.SCORE_HIST[tk].push({fecha:fe, smart:sm, stren:st});
     }
     got.claude=true; estado.claude=true; pinta(); tryUpdateAll();
   }).catch(function(e){ estado.claude=false; pinta(); console.log("claude err",e); });
