@@ -275,6 +275,8 @@
   .am-neg{width:52px;flex:none;text-align:right;font-size:13px;font-weight:700;color:#ff6b60}
   .am-pos{width:52px;flex:none;text-align:left;font-size:13px;font-weight:700;color:#4ade80}
   .am-val{width:58px;flex:none;text-align:right;font-size:13px;font-weight:700}
+  .am-own{width:13px;flex:none;font-size:11px;font-weight:800;color:#4ade80;text-align:left}
+  .am-own.off{color:transparent}
   .am-track{flex:1;position:relative;height:16px}
   .am-zero{position:absolute;top:-2px;bottom:-2px;left:50%;width:1px;background:rgba(255,255,255,.16)}
   .am-bar{position:absolute;top:2px;height:12px;border-radius:3px;transition:width .5s cubic-bezier(.22,1,.36,1),left .5s cubic-bezier(.22,1,.36,1)}
@@ -572,7 +574,7 @@
   <div class="foot" id="anFoot">Desliza las manijas o usa los atajos · no es asesoría de inversión</div>
 </div>
 
-<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v119</div>
+<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v120</div>
 <div class="tabbar">
   <button class="tab on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l9-8 9 8"/><path d="M5 10v10h14V10"/></svg><span>Resumen</span></button>
   <button class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg><span>Alertas</span></button>
@@ -750,7 +752,7 @@ function updateCount(){
   window.META = META;
 
   var got = { precios:false, hist:false, claude:false };
-  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-119";
+  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-120";
   var estado={precios:false,historial:false,claude:false};
   function pinta(){
     var chip=document.getElementById('liveChip'); if(!chip) return;
@@ -1098,6 +1100,8 @@ function updateCount(){
 
   window.dibujarAccEstrat=function(){
     var POS=window.POSICIONES||[];
+    // acciones que SÍ tengo vigentes en cartera (monto>0 y sin fecha de venta)
+    var enCartera={}; POS.forEach(function(p){ if(p.esMia) enCartera[p.tk]=true; });
     function pinta(letra, contId, capId){
       var cont=document.getElementById(contId), cap=document.getElementById(capId);
       if(!cont) return;
@@ -1117,8 +1121,9 @@ function updateCount(){
         var bar = x.v>=0
           ? '<div class="am-bar g" style="left:50%;width:'+half.toFixed(1)+'%"></div>'
           : '<div class="am-bar r" style="left:'+(50-half).toFixed(1)+'%;width:'+half.toFixed(1)+'%"></div>';
+        var mia=enCartera[x.tk]?'<span class="am-own" title="La tengo en cartera">$</span>':'<span class="am-own off"></span>';
         html+='<div class="am-row">'+
-          '<div class="am-lbl tick" style="width:64px"><span class="tk">'+x.tk+'</span></div>'+
+          '<div class="am-lbl tick" style="width:76px">'+mia+'<span class="tk">'+x.tk+'</span></div>'+
           '<div class="am-track"><div class="am-zero"></div>'+bar+'</div>'+
           '<div class="am-val" style="color:'+(x.v>=0?'#4ade80':'#ff6b60')+'">'+fpv(x.v)+'</div>'+
         '</div>';
