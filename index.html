@@ -276,6 +276,8 @@
   .am-pos{width:52px;flex:none;text-align:left;font-size:13px;font-weight:700;color:#4ade80}
   .am-val{width:58px;flex:none;text-align:right;font-size:13px;font-weight:700}
   .am-own{width:13px;flex:none;font-size:11px;font-weight:800;color:#4ade80;text-align:left}
+  .am-row.vend{opacity:.85}
+  .ac-item.vend{background:rgba(255,212,38,.05);border-left:2px solid #FFD426}
   .am-own.off{color:transparent}
   .am-track{flex:1;position:relative;height:16px}
   .am-zero{position:absolute;top:-2px;bottom:-2px;left:50%;width:1px;background:rgba(255,255,255,.16)}
@@ -575,7 +577,7 @@
   <div class="foot" id="anFoot">Desliza las manijas o usa los atajos · no es asesoría de inversión</div>
 </div>
 
-<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v123</div>
+<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v125</div>
 <div class="tabbar">
   <button class="tab on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l9-8 9 8"/><path d="M5 10v10h14V10"/></svg><span>Resumen</span></button>
   <button class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg><span>Alertas</span></button>
@@ -647,14 +649,15 @@ function renderAcc(key){
   var html = '';
   for(var j=0;j<arr.length;j++){
     var a=arr[j];
-    var tk=a[0], nm=a[1], st=a[2], tech=a[3], sm=a[4], sr=a[5], ret=a[6], trim=a[7], mes=a[8], fcompra=a[9];
+    var tk=a[0], nm=a[1], st=a[2], tech=a[3], sm=a[4], sr=a[5], ret=a[6], trim=a[7], mes=a[8], fcompra=a[9], vend=a[10];
     var dot='<span class="ac-dot '+st+'">'+(st==='c'?'Q':(st==='s'?'S':'C'))+'</span>';
     var chip=tech?TECHSVG:'';
     var fbadge=(window.shotSel==='all'&&fcompra)?'<span style="font-size:9px;color:var(--dim2);margin-left:5px">'+fmtShotFecha(fcompra)+'</span>':'';
-    html += '<div class="ac-item">'+dot+
-      '<div class="ac-info"><div class="ac-tk">'+tk+chip+fbadge+'</div><div class="ac-sub">'+nm+'</div></div>'+
+    var lk=vend?'<span style="font-size:9px;color:#FFD426;margin-left:5px" title="Vendida · congelada">&#128274;</span>':'';
+    html += '<div class="ac-item'+(vend?' vend':'')+'">'+dot+
+      '<div class="ac-info"><div class="ac-tk"'+(vend?' style="color:#FFD426"':'')+'>'+tk+chip+fbadge+lk+'</div><div class="ac-sub">'+nm+(vend?' · vendida':'')+'</div></div>'+
       '<div class="ac-rets">'+
-        '<div class="ac-r"><div class="l">M\u00edo</div><div class="n '+cl(ret)+'">'+pct(ret)+'</div></div>'+
+        '<div class="ac-r"><div class="l">M\u00edo</div><div class="n '+(vend?'':cl(ret))+'"'+(vend?' style="color:#FFD426"':'')+'>'+pct(ret)+'</div></div>'+
         '<div class="ac-r"><div class="l">Mes</div><div class="n '+cl(mes)+'">'+pct(mes)+'</div></div>'+
         '<div class="ac-r"><div class="l">Trim</div><div class="n '+cl(trim)+'">'+pct(trim)+'</div></div>'+
         '<div class="ac-r sc"><div class="l">Smart</div><div class="n">'+sm.toFixed(2)+'</div></div>'+
@@ -664,7 +667,9 @@ function renderAcc(key){
   }
   document.getElementById('acList').innerHTML = html;
   var ct=document.getElementById('acCountTxt');
-  if(ct){ var uniq={}; arr.forEach(function(a){uniq[a[0]]=true;}); var nu=Object.keys(uniq).length; ct.textContent='Tus '+arr.length+' posiciones ('+nu+' acciones)'; }
+  if(ct){ var uniq={}; arr.forEach(function(a){uniq[a[0]]=true;}); var nu=Object.keys(uniq).length;
+    var nv=arr.filter(function(a){return a[10];}).length;
+    ct.textContent='Tus '+(arr.length-nv)+' posiciones ('+nu+' acciones)'+(nv?' · '+nv+' vendida'+(nv>1?'s':''):''); }
 }
 window.renderShotSel=function(){
   var cont=document.getElementById('acShotSel'); if(!cont) return;
@@ -755,7 +760,7 @@ function updateCount(){
   window.META = META;
 
   var got = { precios:false, hist:false, claude:false };
-  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-123";
+  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-125";
   var estado={precios:false,historial:false,claude:false};
   function pinta(){
     var chip=document.getElementById('liveChip'); if(!chip) return;
@@ -923,7 +928,7 @@ function updateCount(){
 
   function actualizarEstrategias(){
     var sel=window.heroShotSel||'all';
-    var POS=(window.POSICIONES||[]).filter(function(p){ return p.esMia && (sel==='all' || p.compra===sel); });
+    var POS=(window.POSICIONES||[]).filter(function(p){ return (p.esMia||p.vendida) && (sel==='all' || p.compra===sel); });
     if(!POS.length) { var yv0=document.getElementById('yvaList'); if(yv0)yv0.innerHTML=''; var am0=document.getElementById('allMineList'); if(am0)am0.innerHTML=''; return; }
     // --- Yo vs algoritmo (rendimiento mío ponderado por monto, por estrategia) ---
     var yva=document.getElementById('yvaList');
@@ -972,7 +977,7 @@ function updateCount(){
     var aml=document.getElementById('allMineList');
     if(aml){
       var lista = POS.slice().filter(function(p){return !isNaN(p.mio);}).sort(function(a,b){return b.mio-a.mio;});
-      var cnt=document.getElementById('allMineCount'); if(cnt){ var uq={}; lista.forEach(function(p){uq[p.tk]=true;}); cnt.textContent=lista.length+' posiciones ('+Object.keys(uq).length+' acciones)'; }
+      var cnt=document.getElementById('allMineCount'); if(cnt){ var uq={}; lista.forEach(function(p){uq[p.tk]=true;}); var nv=lista.filter(function(p){return p.vendida;}).length; cnt.textContent=(lista.length-nv)+' posiciones ('+Object.keys(uq).length+' acciones)'+(nv?' · '+nv+' vendida'+(nv>1?'s':''):''); }
       var mx2=1; lista.forEach(function(p){ if(Math.abs(p.mio)>mx2)mx2=Math.abs(p.mio); });
       function fmtSF(iso){ if(!iso)return''; var pp=iso.split("-"); if(pp.length!==3)return''; var m=["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"]; return (+pp[2])+' '+m[(+pp[1])-1]; }
       function fpv(v){ return (v>=0?'+':'\u2212')+Math.abs(v).toFixed(1)+'%'; }
@@ -983,13 +988,18 @@ function updateCount(){
         var techi=tech?TECHSVG2:'<span style="width:16px;flex:none"></span>';
         var fb=(sel==='all'&&p.compra)?'<span style="font-size:9px;color:var(--dim2);margin-left:4px">'+fmtSF(p.compra)+'</span>':'';
         var half=Math.min(50,(Math.abs(v)/mx2*50));
-        var bar = v>=0
-          ? '<div class="am-bar g" style="left:50%;width:'+half.toFixed(1)+'%"></div>'
-          : '<div class="am-bar r" style="left:'+(50-half).toFixed(1)+'%;width:'+half.toFixed(1)+'%"></div>';
-        html+='<div class="am-row">'+
-          '<div class="am-lbl tick"><span class="tk">'+p.tk+'</span>'+dot+techi+fb+'</div>'+
+        var cong=!!p.vendida; // vendida: rendimiento congelado, ya no cotiza
+        var colBar = cong ? '#FFD426' : (v>=0?'g':'r');
+        var bar = cong
+          ? '<div class="am-bar" style="background:#FFD426;'+(v>=0?('left:50%;width:'+half.toFixed(1)+'%'):('left:'+(50-half).toFixed(1)+'%;width:'+half.toFixed(1)+'%'))+'"></div>'
+          : (v>=0
+            ? '<div class="am-bar g" style="left:50%;width:'+half.toFixed(1)+'%"></div>'
+            : '<div class="am-bar r" style="left:'+(50-half).toFixed(1)+'%;width:'+half.toFixed(1)+'%"></div>');
+        var lock = cong?'<span style="font-size:9px;color:#FFD426;margin-left:4px" title="Vendida · rendimiento congelado">&#128274;</span>':'';
+        html+='<div class="am-row'+(cong?' vend':'')+'">'+
+          '<div class="am-lbl tick"><span class="tk"'+(cong?' style="color:#FFD426"':'')+'>'+p.tk+'</span>'+dot+techi+fb+lock+'</div>'+
           '<div class="am-track"><div class="am-zero"></div>'+bar+'</div>'+
-          '<div class="am-val" style="color:'+(v>=0?'#4ade80':'#ff6b60')+'">'+fpv(v)+'</div>'+
+          '<div class="am-val" style="color:'+(cong?'#FFD426':(v>=0?'#4ade80':'#ff6b60'))+'">'+fpv(v)+'</div>'+
         '</div>';
       });
       aml.innerHTML=html;
@@ -1234,25 +1244,25 @@ function updateCount(){
     var tickers=Object.keys(LIVE);
     var POS=window.POSICIONES||[];
     if(got.precios && (POS.length || tickers.length)){
-      // Solo mis posiciones (compradas y vigentes): monto>0 y sin fecha de venta
-      var setF={}; POS.forEach(function(p){ if(p.esMia && p.compra) setF[p.compra]=true; });
+      // Cuentan vigentes Y vendidas (la ganancia/pérdida realizada no desaparece)
+      var setF={}; POS.forEach(function(p){ if((p.esMia||p.vendida) && p.compra) setF[p.compra]=true; });
       window.HERO_SHOTS=Object.keys(setF).sort();
       if(window.renderHeroShotSel) window.renderHeroShotSel();
       // Filtrar por la compra seleccionada (o todas)
       var sel=window.heroShotSel||'all';
-      var usar = POS.filter(function(p){ return p.esMia && (sel==='all' || p.compra===sel); });
-      var invSum=0, invConDato=0, ponSum=0, n=0, sinDato=0;
+      var usar = POS.filter(function(p){ return (p.esMia||p.vendida) && (sel==='all' || p.compra===sel); });
+      var invVigente=0, capTotal=0, ponSum=0, n=0, nVend=0, sinDato=0;
       usar.forEach(function(p){
         var mt=p.monto;
         if(!isNaN(mt)&&mt>0){
-          invSum+=mt; n++;
-          if(!isNaN(p.mio)){ invConDato+=mt; ponSum+=mt*p.mio; }   // solo pondera lo que SÍ trae rendimiento
-          else { sinDato++; }
+          capTotal+=mt;                                  // capital desplegado (vigente + ya vendido)
+          if(p.esMia){ invVigente+=mt; n++; } else { nVend++; }
+          if(!isNaN(p.mio)) ponSum+=mt*p.mio; else sinDato++;
         }
       });
-      window.DIAG_HERO={n:n,inv:invSum,conDato:invConDato,sinDato:sinDato,pon:ponSum};
-      if(n){
-        var avg=invConDato>0?(ponSum/invConDato):0; // ponderado SOLO sobre lo que tiene dato (antes se diluía)
+      window.DIAG_HERO={n:n,nVend:nVend,inv:invVigente,cap:capTotal,sinDato:sinDato,pon:ponSum};
+      if(n||nVend){
+        var avg=capTotal>0?(ponSum/capTotal):0; // % sobre capital desplegado (así el % no se infla)
         var el=document.getElementById('hMio');
         if(el){ el.textContent=fmtPct(avg); el.classList.toggle('neg', avg<0); }
         var lbl=document.getElementById('hMioLabel');
@@ -1263,8 +1273,8 @@ function updateCount(){
         var pos=document.getElementById('hPos'); if(pos) pos.textContent=n;
         window.MIOS_N=n; window.MIOS_PROM=avg;
         // Monto ganado/perdido en vivo (usa la suma real de montos del espejo)
-        var inv=invSum;
-        var gan=ponSum/100; // suma de (monto*mio)/100 = ganancia real ponderada
+        var inv=invVigente;
+        var gan=ponSum/100; // ganancia/pérdida real: vigentes (flotante) + vendidas (realizada)
         var chip=document.getElementById('hMioChip');
         if(chip){
           var signo=gan>=0?'↑':'↓';
@@ -1276,7 +1286,7 @@ function updateCount(){
         var invEl=document.getElementById('hInv');
         if(invEl){ invEl.innerHTML='$'+Math.round(inv).toLocaleString('es-MX'); }
         var dg=document.getElementById('hDiag');
-        if(dg){ dg.textContent='diag · pos:'+n+' · con dato:'+((n-sinDato))+' · sin dato:'+sinDato+' · inv:'+Math.round(invSum).toLocaleString('es-MX')+' · prom:'+avg.toFixed(2)+'%'; }
+        if(dg){ dg.textContent='diag · vig:'+n+' · vend:'+nVend+' · sin dato:'+sinDato+' · inv:'+Math.round(invVigente).toLocaleString('es-MX')+' · cap:'+Math.round(capTotal).toLocaleString('es-MX')+' · prom:'+avg.toFixed(2)+'%'; }
         actualizarMovers();
       }
       try{ generaAlertas(); }catch(e){ console.log("alertas err",e); }
@@ -1288,12 +1298,12 @@ function updateCount(){
       var nuevo=[];
       if(POSA.length){
         POSA.forEach(function(p){
-          if(!p.esMia) return; // solo donde tengo inversión y no he vendido
+          if(!p.esMia && !p.vendida) return; // solo lo que compré (vigente o ya vendido)
           var m=META[p.tk]; var d=LIVE[p.tk]||{};
           var nombre=m?m[0]:p.tk, est=p.estrat||(m?m[1]:'c'), tech=m?m[2]:false;
           nuevo.push([p.tk, nombre, est, tech,
             isNaN(d.smart)?0:d.smart, isNaN(d.stren)?0:d.stren,
-            isNaN(p.mio)?0:p.mio, isNaN(p.trim)?0:p.trim, isNaN(p.mes)?0:p.mes, p.compra||'']);
+            isNaN(p.mio)?0:p.mio, isNaN(p.trim)?0:p.trim, isNaN(p.mes)?0:p.mes, p.compra||'', !!p.vendida]);
         });
       } else {
         tickers.forEach(function(t){ var m=META[t]; var d=LIVE[t]||{};
@@ -1329,7 +1339,7 @@ function updateCount(){
     }
     function esp(et){ return (window.ESPEJO && window.ESPEJO[et]!==undefined)? num(window.ESPEJO[et]) : NaN; }
     // Ubicar columnas del bloque de acciones por su encabezado (Ticker/Trim/Mes/Mío)
-    var cTk=-1,cTrim=-1,cMes=-1,cMio=-1,cCompra=-1,cMonto=-1,cEstrat=-1,cVenta=-1;
+    var cTk=-1,cTrim=-1,cMes=-1,cMio=-1,cCompra=-1,cMonto=-1,cEstrat=-1,cVenta=-1,cMioV=-1;
     for(var hr=0; hr<rows.length && cTk<0; hr++){
       var hh=rows[hr]||[];
       for(var hc=0; hc<hh.length; hc++){
@@ -1342,8 +1352,9 @@ function updateCount(){
         else if(v==="monto"){ cMonto=hc; }
         else if(v==="estrategia"||v==="estrat"){ cEstrat=hc; }
         else if(v==="venta"){ cVenta=hc; }
+        else if(/vend/.test(v) && /(rend|m[ií]o)/.test(v)){ cMioV=hc; } // "mi rendimiento al vender", "rend al vender", etc.
       }
-      if(cTk<0){ cTrim=cMes=cMio=cCompra=cMonto=cEstrat=cVenta=-1; } // no era la fila correcta
+      if(cTk<0){ cTrim=cMes=cMio=cCompra=cMonto=cEstrat=cVenta=cMioV=-1; } // no era la fila correcta
     }
     if(cTk<0){ cTk=17; cTrim=18; cMes=19; cMio=20; } // respaldo a posición vieja
     var shotsDetectadas={};
@@ -1368,7 +1379,14 @@ function updateCount(){
       var pMonto=(cMonto>=0?num(r[cMonto]):NaN); // monto real del espejo (NaN si vacío)
       var ventaCel=(cVenta>=0?(r[cVenta]||"").trim():"");
       var esFechaVenta=/\d{1,4}[\/\-]\d{1,2}[\/\-]\d{1,4}/.test(ventaCel); // fecha real de venta
-      var esMia=(!isNaN(pMonto)&&pMonto>0)&&!esFechaVenta; // comprada y vigente
+      var comprada=(!isNaN(pMonto)&&pMonto>0);
+      var esMia=comprada&&!esFechaVenta;   // vigente: sigue cotizando
+      var vendida=comprada&&esFechaVenta;  // cerrada: rendimiento congelado al vender
+      // Si ya se vendió, el rendimiento REAL es el de la columna "al vender" (congelado), no el de precio en vivo
+      if(vendida && cMioV>=0){
+        var mv=num(r[cMioV]);
+        if(!isNaN(mv)) pMio=mv;
+      }
       // estrategia del renglón (desde el espejo); si no hay columna, respaldo a META
       var pEstrat=null;
       if(cEstrat>=0){
@@ -1380,7 +1398,7 @@ function updateCount(){
       if(!pEstrat) pEstrat=(META[tk]?META[tk][1]:"c");
       window.ESTRAT_MAP=window.ESTRAT_MAP||{}; window.ESTRAT_MAP[tk]=pEstrat;
       // cada renglón = una posición (shot) independiente
-      window.POSICIONES.push({tk:tk, compra:fcIso, trim:pTrim, mes:pMes, mio:pMio, monto:pMonto, estrat:pEstrat, esMia:esMia, venta:ventaCel});
+      window.POSICIONES.push({tk:tk, compra:fcIso, trim:pTrim, mes:pMes, mio:pMio, monto:pMonto, estrat:pEstrat, esMia:esMia, vendida:vendida, venta:ventaCel});
       // LIVE[tk] guarda la última leída (para score/alertas por acción)
       LIVE[tk].trim=pTrim; LIVE[tk].mes=pMes; LIVE[tk].mio=pMio;
     }
