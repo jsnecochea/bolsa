@@ -577,7 +577,7 @@
   <div class="foot" id="anFoot">Desliza las manijas o usa los atajos · no es asesoría de inversión</div>
 </div>
 
-<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v129</div>
+<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v130</div>
 <div class="tabbar">
   <button class="tab on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l9-8 9 8"/><path d="M5 10v10h14V10"/></svg><span>Resumen</span></button>
   <button class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg><span>Alertas</span></button>
@@ -757,7 +757,7 @@ function updateCount(){
   var GID = { precios:"288876761", historial:"1844874580", claude:"1972938992", rendimiento:"161922984" };
   var FILE_ID = "1Z3MeyaSkFfk16AQg2yNC-SYts9SbcXT0JbFW_73DT9o";
   // gviz lee la HOJA VIVA (no la foto que Google publica y cachea). Respaldo: la publicación.
-  function urlLive(gid){ return "https://docs.google.com/spreadsheets/d/"+FILE_ID+"/gviz/tq?tqx=out:csv&gid="+gid+"&_="+Date.now(); }
+  function urlLive(gid){ return "https://docs.google.com/spreadsheets/d/"+FILE_ID+"/gviz/tq?tqx=out:csv&headers=1&gid="+gid+"&_="+Date.now(); }
   function url(gid){ return BASE + "?gid=" + gid + "&single=true&output=csv&_=" + Date.now(); }
   window.FUENTE_DATOS="";
   function fetchCSV(gid){
@@ -813,7 +813,7 @@ function updateCount(){
   window.META = META;
 
   var got = { precios:false, hist:false, claude:false };
-  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-129";
+  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-130";
   var estado={precios:false,historial:false,claude:false};
   function pinta(){
     var chip=document.getElementById('liveChip'); if(!chip) return;
@@ -1285,7 +1285,7 @@ function updateCount(){
       // Diagnóstico temporal: muestra qué detectó la app
       var pos=(window.POSICIONES||[]);
       var conFecha=pos.filter(function(p){return p.compra;}).length;
-      cont.innerHTML='<div style="font-size:10px;color:var(--dim2)">diag · posiciones:'+pos.length+' · con fecha:'+conFecha+' · fechas:'+(ds.join(', ')||'ninguna')+'</div>';
+      cont.innerHTML='<div style="font-size:10px;color:var(--dim2)">diag · posiciones:'+pos.length+' · con fecha:'+conFecha+' · fechas:'+(ds.join(', ')||'ninguna')+'<br>cols · '+(window.DIAG_COLS||'?')+'</div>';
       return;
     }
     function fmtF(iso){ var p=iso.split("-"); if(p.length!==3)return iso; var m=["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"]; return (+p[2])+" "+m[(+p[1])-1]; }
@@ -1416,6 +1416,7 @@ function updateCount(){
       }
       if(cTk<0){ cTrim=cMes=cMio=cCompra=cMonto=cEstrat=cVenta=cMioV=cAct=-1; } // no era la fila correcta
     }
+    window.DIAG_COLS='tk:'+cTk+' compra:'+cCompra+' venta:'+cVenta+' monto:'+cMonto+' mio:'+cMio+' estrat:'+cEstrat+' vender:'+cMioV;
     if(cTk<0){ cTk=17; cTrim=18; cMes=19; cMio=20; } // respaldo a posición vieja
     var shotsDetectadas={};
     window.POSICIONES=[];
@@ -1430,7 +1431,9 @@ function updateCount(){
       if(cCompra>=0){
         var fc=(r[cCompra]||"").trim();
         if(fc){
-          if(fc.indexOf("/")>0){ var pp=fc.split("/"); if(pp.length===3){ var dd=("0"+pp[0]).slice(-2), mm=("0"+pp[1]).slice(-2), yy=pp[2]; fcIso=yy+"-"+mm+"-"+dd; } }
+          var mg=fc.match(/Date\((\d{4}),(\d{1,2}),(\d{1,2})/); // formato gviz: Date(2026,6,7) mes base 0
+          if(mg){ fcIso=mg[1]+"-"+("0"+(parseInt(mg[2],10)+1)).slice(-2)+"-"+("0"+mg[3]).slice(-2); }
+          else if(fc.indexOf("/")>0){ var pp=fc.split("/"); if(pp.length===3){ var dd=("0"+pp[0]).slice(-2), mm=("0"+pp[1]).slice(-2), yy=pp[2]; if(yy.length===2) yy="20"+yy; fcIso=yy+"-"+mm+"-"+dd; } }
           else if(fc.indexOf("-")>0){ fcIso=fc.slice(0,10); }
           if(fcIso) shotsDetectadas[fcIso]=true;
         }
@@ -1438,7 +1441,7 @@ function updateCount(){
       var pTrim=num(r[cTrim]), pMes=num(r[cMes]), pMio=num(r[cMio]);
       var pMonto=(cMonto>=0?num(r[cMonto]):NaN); // monto real del espejo (NaN si vacío)
       var ventaCel=(cVenta>=0?(r[cVenta]||"").trim():"");
-      var esFechaVenta=/\d{1,4}[\/\-]\d{1,2}[\/\-]\d{1,4}/.test(ventaCel); // fecha real de venta
+      var esFechaVenta=/\d{1,4}[\/\-]\d{1,2}[\/\-]\d{1,4}/.test(ventaCel)||/^Date\(/.test(ventaCel); // fecha real de venta (incluye formato gviz)
       var comprada=(!isNaN(pMonto)&&pMonto>0);
       var esMia=comprada&&!esFechaVenta;   // vigente: sigue cotizando
       var vendida=comprada&&esFechaVenta;  // cerrada: rendimiento congelado al vender
