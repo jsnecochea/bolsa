@@ -577,7 +577,7 @@
   <div class="foot" id="anFoot">Desliza las manijas o usa los atajos · no es asesoría de inversión</div>
 </div>
 
-<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v126</div>
+<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v129</div>
 <div class="tabbar">
   <button class="tab on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l9-8 9 8"/><path d="M5 10v10h14V10"/></svg><span>Resumen</span></button>
   <button class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg><span>Alertas</span></button>
@@ -755,7 +755,24 @@ function updateCount(){
 (function(){
   var BASE = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ1gnRj1TvcXXF66yAreWKo6RON27GE3K2pZWq8LSxb98SNZeKpFuYaeHgovJTO9zM1QSeHb-cxWJ2N/pub";
   var GID = { precios:"288876761", historial:"1844874580", claude:"1972938992", rendimiento:"161922984" };
+  var FILE_ID = "1Z3MeyaSkFfk16AQg2yNC-SYts9SbcXT0JbFW_73DT9o";
+  // gviz lee la HOJA VIVA (no la foto que Google publica y cachea). Respaldo: la publicación.
+  function urlLive(gid){ return "https://docs.google.com/spreadsheets/d/"+FILE_ID+"/gviz/tq?tqx=out:csv&gid="+gid+"&_="+Date.now(); }
   function url(gid){ return BASE + "?gid=" + gid + "&single=true&output=csv&_=" + Date.now(); }
+  window.FUENTE_DATOS="";
+  function fetchCSV(gid){
+    return fetch(urlLive(gid)).then(function(r){
+      if(!r.ok) throw new Error("gviz "+r.status);
+      return r.text();
+    }).then(function(t){
+      if(/^\s*</.test(t)) throw new Error("gviz devolvió HTML"); // no tiene permiso de lectura
+      window.FUENTE_DATOS="vivo";
+      return t;
+    }).catch(function(){
+      window.FUENTE_DATOS="publicado";
+      return fetch(url(gid)).then(function(r){ return r.text(); });
+    });
+  }
 
   // Parser CSV que respeta comillas
   function parseCSV(txt){
@@ -796,7 +813,7 @@ function updateCount(){
   window.META = META;
 
   var got = { precios:false, hist:false, claude:false };
-  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-126";
+  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-129";
   var estado={precios:false,historial:false,claude:false};
   function pinta(){
     var chip=document.getElementById('liveChip'); if(!chip) return;
@@ -1292,18 +1309,19 @@ function updateCount(){
       // Filtrar por la compra seleccionada (o todas)
       var sel=window.heroShotSel||'all';
       var usar = POS.filter(function(p){ return (p.esMia||p.vendida) && (sel==='all' || p.compra===sel); });
-      var invVigente=0, capTotal=0, ponSum=0, n=0, nVend=0, sinDato=0;
+      var invVigente=0, capTotal=0, capConDato=0, ponSum=0, n=0, nVend=0, sinDato=0;
       usar.forEach(function(p){
         var mt=p.monto;
         if(!isNaN(mt)&&mt>0){
           capTotal+=mt;                                  // capital desplegado (vigente + ya vendido)
           if(p.esMia){ invVigente+=mt; n++; } else { nVend++; }
-          if(!isNaN(p.mio)) ponSum+=mt*p.mio; else sinDato++;
+          if(!isNaN(p.mio)){ capConDato+=mt; ponSum+=mt*p.mio; }   // SOLO lo que trae rendimiento pondera
+          else { sinDato++; }
         }
       });
-      window.DIAG_HERO={n:n,nVend:nVend,inv:invVigente,cap:capTotal,sinDato:sinDato,pon:ponSum};
+      window.DIAG_HERO={n:n,nVend:nVend,inv:invVigente,cap:capTotal,conDato:capConDato,sinDato:sinDato,pon:ponSum};
       if(n||nVend){
-        var avg=capTotal>0?(ponSum/capTotal):0; // % sobre capital desplegado (así el % no se infla)
+        var avg=capConDato>0?(ponSum/capConDato):0; // % sobre el capital que SÍ trae dato (no se diluye)
         var el=document.getElementById('hMio');
         if(el){ el.textContent=fmtPct(avg); el.classList.toggle('neg', avg<0); }
         var lbl=document.getElementById('hMioLabel');
@@ -1327,7 +1345,7 @@ function updateCount(){
         var invEl=document.getElementById('hInv');
         if(invEl){ invEl.innerHTML='$'+Math.round(inv).toLocaleString('es-MX'); }
         var dg=document.getElementById('hDiag');
-        if(dg){ dg.textContent='diag · vig:'+n+' · vend:'+nVend+' · sin dato:'+sinDato+' · inv:'+Math.round(invVigente).toLocaleString('es-MX')+' · cap:'+Math.round(capTotal).toLocaleString('es-MX')+' · prom:'+avg.toFixed(2)+'%'; }
+        if(dg){ dg.textContent='diag · vig:'+n+' · vend:'+nVend+' · sin dato:'+sinDato+' · inv:'+Math.round(invVigente).toLocaleString('es-MX')+' · cap:'+Math.round(capTotal).toLocaleString('es-MX')+' · prom:'+avg.toFixed(2)+'% · espejo:'+(window.ESPEJO_ACT||'sin col'); }
         actualizarMovers();
       }
       try{ generaAlertas(); }catch(e){ console.log("alertas err",e); }
@@ -1365,7 +1383,7 @@ function updateCount(){
   }
 
   // precios: col16=Q Ticker,17=R Trim,18=S Mes,19=T Mio
-  fetch(url(GID.precios)).then(function(r){return r.text();}).then(function(txt){
+  fetchCSV(GID.precios).then(function(txt){
     var rows=parseCSV(txt);
     // Mapa etiqueta -> valor (escanea toda la hoja; etiqueta en una celda, valor en la de al lado)
     window.ESPEJO = {};
@@ -1380,7 +1398,7 @@ function updateCount(){
     }
     function esp(et){ return (window.ESPEJO && window.ESPEJO[et]!==undefined)? num(window.ESPEJO[et]) : NaN; }
     // Ubicar columnas del bloque de acciones por su encabezado (Ticker/Trim/Mes/Mío)
-    var cTk=-1,cTrim=-1,cMes=-1,cMio=-1,cCompra=-1,cMonto=-1,cEstrat=-1,cVenta=-1,cMioV=-1;
+    var cTk=-1,cTrim=-1,cMes=-1,cMio=-1,cCompra=-1,cMonto=-1,cEstrat=-1,cVenta=-1,cMioV=-1,cAct=-1;
     for(var hr=0; hr<rows.length && cTk<0; hr++){
       var hh=rows[hr]||[];
       for(var hc=0; hc<hh.length; hc++){
@@ -1394,8 +1412,9 @@ function updateCount(){
         else if(v==="estrategia"||v==="estrat"){ cEstrat=hc; }
         else if(v==="venta"){ cVenta=hc; }
         else if(/vend/.test(v) && /(rend|m[ií]o)/.test(v)){ cMioV=hc; } // "mi rendimiento al vender", "rend al vender", etc.
+        else if(v==="actualizado"||v==="hora"){ cAct=hc; }
       }
-      if(cTk<0){ cTrim=cMes=cMio=cCompra=cMonto=cEstrat=cVenta=cMioV=-1; } // no era la fila correcta
+      if(cTk<0){ cTrim=cMes=cMio=cCompra=cMonto=cEstrat=cVenta=cMioV=cAct=-1; } // no era la fila correcta
     }
     if(cTk<0){ cTk=17; cTrim=18; cMes=19; cMio=20; } // respaldo a posición vieja
     var shotsDetectadas={};
@@ -1438,6 +1457,7 @@ function updateCount(){
       }
       if(!pEstrat) pEstrat=(META[tk]?META[tk][1]:"c");
       window.ESTRAT_MAP=window.ESTRAT_MAP||{}; window.ESTRAT_MAP[tk]=pEstrat;
+      if(cAct>=0 && !window.ESPEJO_ACT){ var av=(r[cAct]||"").trim(); if(av) window.ESPEJO_ACT=av; }
       // cada renglón = una posición (shot) independiente
       window.POSICIONES.push({tk:tk, compra:fcIso, trim:pTrim, mes:pMes, mio:pMio, monto:pMonto, estrat:pEstrat, esMia:esMia, vendida:vendida, venta:ventaCel});
       // LIVE[tk] guarda la última leída (para score/alertas por acción)
@@ -1479,7 +1499,7 @@ function updateCount(){
   }).catch(function(e){ estado.precios=false; pinta(); console.log("precios err",e); });
 
   // historial: ultima fila; M(12)=algoQuantTrim N(13)=algoQuantMes W(22)=algoSmartTrim X(23)=algoSmartMes
-  fetch(url(GID.historial)).then(function(r){return r.text();}).then(function(txt){
+  fetchCSV(GID.historial).then(function(txt){
     var rows=parseCSV(txt);
     // Ubicar columnas por encabezado (a prueba de cambios)
     var H=(rows[0]||[]).map(function(x){return (x||"").trim().toLowerCase();});
@@ -1514,7 +1534,7 @@ function updateCount(){
   }).catch(function(e){ estado.historial=false; pinta(); console.log("historial err",e); });
 
   // claude: ubicar columnas por encabezado (Acción/Smart/Strength). Última aparición por ticker.
-  fetch(url(GID.claude)).then(function(r){return r.text();}).then(function(txt){
+  fetchCSV(GID.claude).then(function(txt){
     var rows=parseCSV(txt);
     var H=(rows[0]||[]).map(function(x){return (x||"").trim().toLowerCase();});
     var iAcc=-1,iSm=-1,iSt=-1,iFe=-1;
