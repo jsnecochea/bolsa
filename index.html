@@ -338,7 +338,7 @@
     </div>
     <div id="hDiag" style="font-size:9px;color:#6b6b78;text-align:center;margin-top:6px;font-variant-numeric:tabular-nums"></div>
     <div class="strip">
-      <div class="pill-card"><div class="pulse"></div><div><div class="pc-lbl">Mercado</div><div class="pc-val green">Verde</div></div></div>
+      <div class="pill-card"><div class="pulse" id="mktPulse"></div><div><div class="pc-lbl">Mercado</div><div class="pc-val" id="mktVal">&mdash;</div><div id="mktDist" style="font-size:9.5px;color:var(--dim2);font-weight:600;margin-top:1px"></div></div></div>
       <div class="pill-card"><div><div class="pc-lbl">Días para rotar</div><div class="pc-val">84</div></div></div>
     </div>
   </div>
@@ -577,7 +577,7 @@
   <div class="foot" id="anFoot">Desliza las manijas o usa los atajos · no es asesoría de inversión</div>
 </div>
 
-<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v130</div>
+<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v131</div>
 <div class="tabbar">
   <button class="tab on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l9-8 9 8"/><path d="M5 10v10h14V10"/></svg><span>Resumen</span></button>
   <button class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg><span>Alertas</span></button>
@@ -813,7 +813,7 @@ function updateCount(){
   window.META = META;
 
   var got = { precios:false, hist:false, claude:false };
-  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-130";
+  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-131";
   var estado={precios:false,historial:false,claude:false};
   function pinta(){
     var chip=document.getElementById('liveChip'); if(!chip) return;
@@ -1397,6 +1397,29 @@ function updateCount(){
       }
     }
     function esp(et){ return (window.ESPEJO && window.ESPEJO[et]!==undefined)? num(window.ESPEJO[et]) : NaN; }
+    // --- Semáforo de mercado: S&P 500 contra su media de 200 días ---
+    (function(){
+      var val=document.getElementById('mktVal'), dist=document.getElementById('mktDist'), pul=document.getElementById('mktPulse');
+      if(!val) return;
+      var px=esp('sp500'), ma=esp('sp500_ma200');
+      if(isNaN(px)||isNaN(ma)||ma<=0){
+        val.textContent='—'; val.className='pc-val';
+        if(dist) dist.textContent='faltan datos';
+        return;
+      }
+      var d=(px/ma-1)*100; // % arriba (+) o abajo (−) de la media de 200
+      window.MKT_DIST=d;
+      var estado, color;
+      if(d>=3){ estado='Verde'; color='#30D158'; }
+      else if(d>=0){ estado='Ámbar'; color='#FFD426'; }   // arriba pero pegado a la media
+      else { estado='Rojo'; color='#ff6b60'; }
+      val.textContent=estado; val.className='pc-val'; val.style.color=color;
+      if(pul){ pul.style.background=color; pul.style.boxShadow='0 0 0 4px '+color+'22'; }
+      if(dist){
+        var lejos=Math.abs(d).toFixed(1);
+        dist.textContent = d>=0 ? ('+'+lejos+'% sobre la media 200') : ('\u2212'+lejos+'% bajo la media 200');
+      }
+    })();
     // Ubicar columnas del bloque de acciones por su encabezado (Ticker/Trim/Mes/Mío)
     var cTk=-1,cTrim=-1,cMes=-1,cMio=-1,cCompra=-1,cMonto=-1,cEstrat=-1,cVenta=-1,cMioV=-1,cAct=-1;
     for(var hr=0; hr<rows.length && cTk<0; hr++){
