@@ -280,6 +280,25 @@
   .am-sold{width:46px;flex:none;text-align:right;font-size:10px;font-weight:800;color:#FFD426;padding-right:6px}
   .an-sold{width:46px;flex:none;text-align:right;font-size:10px;font-weight:800;color:#FFD426;padding-right:6px}
   .an-row.vend{background:rgba(255,212,38,.05)}
+  .bal-stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+  .bal-st{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:10px 11px}
+  .bal-st .l{font-size:9.5px;color:var(--dim2);font-weight:700;text-transform:uppercase;letter-spacing:.04em}
+  .bal-st .v{font-size:19px;font-weight:800;margin-top:3px;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+  .bal-st .s{font-size:9.5px;color:var(--dim2);font-weight:600;margin-top:1px}
+  .bal-head{display:flex;align-items:center;gap:4px;margin-top:12px;padding-bottom:6px;border-bottom:1px solid rgba(255,255,255,.07)}
+  .bal-head div{font-size:9px;color:var(--dim2);font-weight:700;text-transform:uppercase;letter-spacing:.03em}
+  .bh-tk{flex:1}
+  .bh-n{width:64px;flex:none;text-align:right}
+  .bal-row{display:flex;align-items:center;gap:4px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.045)}
+  .bal-row.vend{background:rgba(255,212,38,.05)}
+  .bal-tk{flex:1;min-width:0}
+  .bal-tk .t{font-size:13.5px;font-weight:800;letter-spacing:-.01em}
+  .bal-tk .d{font-size:9.5px;color:var(--dim2);font-weight:600;margin-top:1px}
+  .bal-n{width:64px;flex:none;text-align:right;font-size:12px;font-weight:700;font-variant-numeric:tabular-nums}
+  .bal-tot{display:flex;align-items:center;gap:4px;padding:10px 0 2px;margin-top:2px;border-top:1px solid rgba(255,255,255,.12)}
+  .bal-tot .bal-tk .t{font-size:12px;color:var(--dim2);text-transform:uppercase;letter-spacing:.04em}
+  .mes-row{display:flex;align-items:center;gap:8px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.045)}
+
   .ac-item.vend{background:rgba(255,212,38,.05);border-left:2px solid #FFD426}
   .am-own.off{color:transparent}
   .am-track{flex:1;position:relative;height:16px}
@@ -580,7 +599,35 @@
   <div class="foot" id="anFoot">Desliza las manijas o usa los atajos · no es asesoría de inversión</div>
 </div>
 
-<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v132</div>
+<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v133</div>
+
+<div class="wrap view" id="viewBalance">
+  <div class="st-hero">
+    <h1>Balance</h1>
+    <p>Todo lo que has puesto y lo que ha dejado.</p>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Resumen del mes</div>
+    <div class="bal-stats" id="balStats"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Posiciones &middot; una por compra</div>
+    <div class="bal-head">
+      <div class="bh-tk">Acción</div><div class="bh-n">Puse</div><div class="bh-n">Vale hoy</div><div class="bh-n">Rend</div><div class="bh-n">Utilidad</div>
+    </div>
+    <div id="balTabla"></div>
+  </div>
+
+  <div class="card" id="balMesCard">
+    <div class="card-title">Historial por mes</div>
+    <div id="balMeses"></div>
+  </div>
+
+  <div class="foot" style="margin-bottom:80px">Datos de tu hoja &middot; en vivo &middot; no es asesoría de inversión</div>
+</div>
+
 <div class="tabbar">
   <button class="tab on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l9-8 9 8"/><path d="M5 10v10h14V10"/></svg><span>Resumen</span></button>
   <button class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg><span>Alertas</span></button>
@@ -818,7 +865,7 @@ function updateCount(){
   window.META = META;
 
   var got = { precios:false, hist:false, claude:false };
-  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-132";
+  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-133";
   var estado={precios:false,historial:false,claude:false};
   function pinta(){
     var chip=document.getElementById('liveChip'); if(!chip) return;
@@ -2106,6 +2153,105 @@ function updateCount(){
       if(document.getElementById('viewAnalisis').classList.contains('on')) window.dibujarAnalisis();
     }).catch(function(e){ window.__RENDRAW={error:String(e)}; console.log("rend err",e); });
   }
+})();
+</script>
+
+
+<script>
+// ===================== BALANCE =====================
+(function(){
+  function fMon(v){ return (v<0?'\u2212':'')+'$'+Math.abs(Math.round(v)).toLocaleString('es-MX'); }
+  function fPct(v){ return (v>=0?'+':'\u2212')+Math.abs(v).toFixed(1)+'%'; }
+  function fFecha(iso){
+    if(!iso) return '';
+    var p=String(iso).split('-'); if(p.length!==3) return String(iso);
+    var m=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+    return (+p[2])+' '+m[(+p[1])-1];
+  }
+  var VERDE='#4ade80', ROJO='#ff6b60', AMBAR='#FFD426';
+
+  window.dibujarBalance=function(){
+    var cont=document.getElementById('balTabla'); if(!cont) return;
+    var POS=(window.POSICIONES||[]).filter(function(p){ return (p.esMia||p.vendida) && !isNaN(p.monto) && p.monto>0; });
+    if(!POS.length){ cont.innerHTML='<div style="text-align:center;color:var(--dim2);padding:20px 0;font-size:13px">Sin posiciones cargadas</div>'; return; }
+
+    // --- Totales ---
+    var invVig=0, invVend=0, utilVig=0, utilVend=0, capDato=0;
+    POS.forEach(function(p){
+      var u=(!isNaN(p.mio))?p.monto*p.mio/100:0;
+      if(!isNaN(p.mio)) capDato+=p.monto;
+      if(p.vendida){ invVend+=p.monto; utilVend+=u; } else { invVig+=p.monto; utilVig+=u; }
+    });
+    var desplegado=invVig+invVend, utilTot=utilVig+utilVend;
+    var rendTot=capDato>0?(utilTot/capDato*100):0;
+
+    var st=document.getElementById('balStats');
+    if(st){
+      st.innerHTML=
+        '<div class="bal-st"><div class="l">Invertido hoy</div><div class="v">'+fMon(invVig)+'</div><div class="s">'+POS.filter(function(p){return !p.vendida;}).length+' posiciones abiertas</div></div>'+
+        '<div class="bal-st"><div class="l">M\u00e1ximo desplegado</div><div class="v">'+fMon(desplegado)+'</div><div class="s">incluye '+fMon(invVend)+' ya vendido</div></div>'+
+        '<div class="bal-st"><div class="l">Utilidad acumulada</div><div class="v" style="color:'+(utilTot>=0?VERDE:ROJO)+'">'+fMon(utilTot)+'</div><div class="s">'+fPct(rendTot)+' sobre lo desplegado</div></div>'+
+        '<div class="bal-st"><div class="l">Realizado / flotante</div><div class="v" style="font-size:15px"><span style="color:'+AMBAR+'">'+fMon(utilVend)+'</span> <span style="color:var(--dim2);font-size:12px">/</span> <span style="color:'+(utilVig>=0?VERDE:ROJO)+'">'+fMon(utilVig)+'</span></div><div class="s">cerrado &middot; abierto</div></div>';
+    }
+
+    // --- Tabla de posiciones ---
+    var lista=POS.slice().sort(function(a,b){
+      var ua=(!isNaN(a.mio))?a.monto*a.mio/100:-1e12, ub=(!isNaN(b.mio))?b.monto*b.mio/100:-1e12;
+      return ub-ua;
+    });
+    var html='';
+    lista.forEach(function(p){
+      var tieneDato=!isNaN(p.mio);
+      var util=tieneDato?p.monto*p.mio/100:NaN;
+      var vale=tieneDato?p.monto+util:NaN;
+      var col=p.vendida?AMBAR:(tieneDato?(p.mio>=0?VERDE:ROJO):'var(--dim2)');
+      var letra=p.estrat==='c'?'Q':(p.estrat==='s'?'S':'C');
+      var sub=(p.vendida?'\uD83D\uDD12 vendida':'compr\u00e9 '+fFecha(p.compra));
+      html+='<div class="bal-row'+(p.vendida?' vend':'')+'">'+
+        '<div class="bal-tk"><div class="t" style="color:'+(p.vendida?AMBAR:'inherit')+'">'+p.tk+' <span class="dv-dot '+p.estrat+'" style="vertical-align:middle">'+letra+'</span></div>'+
+        '<div class="d">'+sub+'</div></div>'+
+        '<div class="bal-n" style="color:var(--dim2)">'+fMon(p.monto)+'</div>'+
+        '<div class="bal-n">'+(tieneDato?fMon(vale):'\u2014')+'</div>'+
+        '<div class="bal-n" style="color:'+col+'">'+(tieneDato?fPct(p.mio):'\u2014')+'</div>'+
+        '<div class="bal-n" style="color:'+col+'">'+(tieneDato?fMon(util):'falta %')+'</div>'+
+      '</div>';
+    });
+    html+='<div class="bal-tot">'+
+      '<div class="bal-tk"><div class="t">Total</div></div>'+
+      '<div class="bal-n" style="color:var(--dim2)">'+fMon(desplegado)+'</div>'+
+      '<div class="bal-n">'+fMon(desplegado+utilTot)+'</div>'+
+      '<div class="bal-n" style="color:'+(utilTot>=0?VERDE:ROJO)+'">'+fPct(rendTot)+'</div>'+
+      '<div class="bal-n" style="color:'+(utilTot>=0?VERDE:ROJO)+'">'+fMon(utilTot)+'</div>'+
+    '</div>';
+    cont.innerHTML=html;
+
+    // --- Historial por mes (necesita la pesta\u00f1a BALANCE del robot) ---
+    var mc=document.getElementById('balMeses');
+    if(mc){
+      if(window.BAL_HIST && window.BAL_HIST.length){
+        var porMes={};
+        window.BAL_HIST.forEach(function(r){
+          var m=(r.fecha||'').slice(0,7); if(!m) return;
+          if(!porMes[m]) porMes[m]={maxInv:0, ult:null};
+          if(r.desplegado>porMes[m].maxInv) porMes[m].maxInv=r.desplegado;
+          porMes[m].ult=r;
+        });
+        var hm='';
+        Object.keys(porMes).sort().reverse().forEach(function(m){
+          var d=porMes[m], u=d.ult||{};
+          hm+='<div class="mes-row"><div style="flex:1"><div style="font-size:13px;font-weight:800">'+m+'</div>'+
+            '<div style="font-size:9.5px;color:var(--dim2);font-weight:600">m\u00e1x desplegado '+fMon(d.maxInv)+'</div></div>'+
+            '<div style="text-align:right"><div style="font-size:15px;font-weight:800;color:'+((u.util||0)>=0?VERDE:ROJO)+'">'+fMon(u.util||0)+'</div>'+
+            '<div style="font-size:9.5px;color:var(--dim2);font-weight:600">'+fPct(u.rend||0)+'</div></div></div>';
+        });
+        mc.innerHTML=hm;
+      } else {
+        mc.innerHTML='<div style="font-size:11.5px;color:var(--dim2);line-height:1.5;margin-top:8px">'+
+          'Falta el historial diario. Agrega la funci\u00f3n <b>guardarBalance</b> al robot y crea la pesta\u00f1a <b>BALANCE</b> en tu hoja; '+
+          'a partir de ah\u00ed se llena solo, mes con mes.</div>';
+      }
+    }
+  };
 })();
 </script>
 
