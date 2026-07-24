@@ -601,7 +601,7 @@
   <div class="foot" id="anFoot">Desliza las manijas o usa los atajos · no es asesoría de inversión</div>
 </div>
 
-<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v135</div>
+<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v136</div>
 
 <div class="wrap view" id="viewBalance">
   <div class="st-hero">
@@ -814,6 +814,7 @@ function updateCount(){
   function urlLive(gid){ return "https://docs.google.com/spreadsheets/d/"+FILE_ID+"/gviz/tq?tqx=out:csv&headers=1&gid="+gid+"&_="+Date.now(); }
   function url(gid){ return BASE + "?gid=" + gid + "&single=true&output=csv&_=" + Date.now(); }
   window.FUENTE_DATOS="";
+  window.fetchCSV=function(gid){ return fetchCSV(gid); };
   function fetchCSV(gid){
     return fetch(urlLive(gid)).then(function(r){
       if(!r.ok) throw new Error("gviz "+r.status);
@@ -867,7 +868,7 @@ function updateCount(){
   window.META = META;
 
   var got = { precios:false, hist:false, claude:false };
-  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-135";
+  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-136";
   var estado={precios:false,historial:false,claude:false};
   function pinta(){
     var chip=document.getElementById('liveChip'); if(!chip) return;
@@ -1968,7 +1969,7 @@ function updateCount(){
         if(cel==="|MIAS|"){ modo="mias"; continue; }
         if(cel==="|ALGO|"){ modo="algo"; continue; }
         if(!cel) continue;
-        if(/^[A-Z]{1,5}$/.test(cel) && modo){ // ticker (solo dentro de una sección)
+        if(/^[A-Z]{1,6}$/.test(cel) && modo){ // ticker (solo dentro de una sección)
           var val=n(r[c+1]);
           if(modo==="mias") mias[cel]=val;
           else if(modo==="algo") algo[cel]=val;
@@ -2174,13 +2175,15 @@ function updateCount(){
   // Fetch RENDIMIENTO (gid directo: GID no está en este scope)
   var GID_REND="161922984";
   if(GID_REND){
-    fetch(urlR(GID_REND)).then(function(r){return r.text();}).then(function(txt){
+    (window.fetchCSV ? window.fetchCSV(GID_REND) : fetch(urlR(GID_REND)).then(function(r){return r.text();})).then(function(txt){
       window.__RENDRAW={len:txt.length, ini:(txt||"").slice(0,120).replace(/\n/g,' | ')};
       var parsed=parseRend(csvR(txt));
       window.REND=parsed;
       window.__RENDRAW.filas=csvR(txt).length;
       window.__RENDRAW.parseadas=parsed.length;
       if(document.getElementById('viewAnalisis').classList.contains('on')) window.dibujarAnalisis();
+      // el historial llegó después: redibujar el desglose para que salgan mín y máx
+      if(window.dibujarAccEstrat){ try{ window.dibujarAccEstrat(); }catch(e){} }
     }).catch(function(e){ window.__RENDRAW={error:String(e)}; console.log("rend err",e); });
   }
 })();
