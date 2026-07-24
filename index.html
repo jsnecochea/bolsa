@@ -278,6 +278,8 @@
   .am-own{width:13px;flex:none;font-size:11px;font-weight:800;color:#4ade80;text-align:left}
   .am-row.vend{opacity:.9}
   .am-sold{width:46px;flex:none;text-align:right;font-size:10px;font-weight:800;color:#FFD426;padding-right:6px}
+  .am-mm{display:flex;flex-direction:column;align-items:flex-end;justify-content:center;width:44px;flex:none;margin-left:6px;line-height:1.2}
+  .am-mm-v{font-size:9.5px;font-weight:700;font-variant-numeric:tabular-nums}
   .an-sold{width:46px;flex:none;text-align:right;font-size:10px;font-weight:800;color:#FFD426;padding-right:6px}
   .an-row.vend{background:rgba(255,212,38,.05)}
   .bal-stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
@@ -599,7 +601,7 @@
   <div class="foot" id="anFoot">Desliza las manijas o usa los atajos · no es asesoría de inversión</div>
 </div>
 
-<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v134</div>
+<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v135</div>
 
 <div class="wrap view" id="viewBalance">
   <div class="st-hero">
@@ -865,7 +867,7 @@ function updateCount(){
   window.META = META;
 
   var got = { precios:false, hist:false, claude:false };
-  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-134";
+  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-135";
   var estado={precios:false,historial:false,claude:false};
   function pinta(){
     var chip=document.getElementById('liveChip'); if(!chip) return;
@@ -1231,8 +1233,30 @@ function updateCount(){
 
   if(document.readyState!=="loading"){ setTimeout(function(){try{window.renderTrimBtns();}catch(e){}},60); } else { document.addEventListener("DOMContentLoaded",function(){try{window.renderTrimBtns();}catch(e){}}); }
 
+  // Mín y máx de cada acción en el trimestre en curso (desde la pestaña RENDIMIENTO)
+  window.accMinMax=function(){
+    var out={};
+    var R=window.REND||[];
+    if(!R.length) return out;
+    var hoy=new Date();
+    var qIni=new Date(hoy.getFullYear(), Math.floor(hoy.getMonth()/3)*3, 1);
+    var lim=qIni.getFullYear()+'-'+('0'+(qIni.getMonth()+1)).slice(-2)+'-01';
+    R.forEach(function(rec){
+      if(!rec.fecha || rec.fecha<lim) return;
+      var a=rec.algo||{};
+      Object.keys(a).forEach(function(tk){
+        var v=a[tk]; if(isNaN(v)) return;
+        v=v*100; // en RENDIMIENTO vienen en decimal
+        if(!out[tk]) out[tk]={min:v,max:v};
+        else { if(v<out[tk].min)out[tk].min=v; if(v>out[tk].max)out[tk].max=v; }
+      });
+    });
+    return out;
+  };
+
   window.dibujarAccEstrat=function(){
     var POS=window.POSICIONES||[];
+    var MM=window.accMinMax();
     // acciones que SÍ tengo vigentes en cartera (monto>0 y sin fecha de venta)
     var enCartera={}; POS.forEach(function(p){ if(p.esMia) enCartera[p.tk]=true; });
     function pinta(letra, contId, capId){
@@ -1254,6 +1278,11 @@ function updateCount(){
         var bar = x.v>=0
           ? '<div class="am-bar g" style="left:50%;width:'+half.toFixed(1)+'%"></div>'
           : '<div class="am-bar r" style="left:'+(50-half).toFixed(1)+'%;width:'+half.toFixed(1)+'%"></div>';
+        var mm=MM[x.tk], mmHtml='';
+        if(mm && !isNaN(mm.max)){
+          var maxCol = mm.max>=0 ? '#4ade80' : '#FFD426';
+          mmHtml='<div class="am-mm"><div class="am-mm-v" style="color:'+maxCol+'">'+fpv(mm.max)+'</div><div class="am-mm-v" style="color:#ff6b60">'+fpv(mm.min)+'</div></div>';
+        } else { mmHtml='<div class="am-mm"><div class="am-mm-v" style="color:var(--dim2)">\u2014</div></div>'; }
         var vd=(window.VENDIDAS&&window.VENDIDAS[x.tk])?window.VENDIDAS[x.tk]:null;
         var mia = vd ? '<span class="am-own" style="color:#FFD426" title="Ya la vendí">&#128274;</span>'
                      : (enCartera[x.tk]?'<span class="am-own" title="La tengo en cartera">$</span>':'<span class="am-own off"></span>');
@@ -1264,6 +1293,7 @@ function updateCount(){
           salida+
           '<div class="am-track"><div class="am-zero"></div>'+bar+'</div>'+
           '<div class="am-val" style="color:'+(x.v>=0?'#4ade80':'#ff6b60')+'">'+fpv(x.v)+'</div>'+
+          mmHtml+
         '</div>';
       });
       cont.innerHTML=html;
