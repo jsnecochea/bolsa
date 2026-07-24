@@ -599,7 +599,7 @@
   <div class="foot" id="anFoot">Desliza las manijas o usa los atajos · no es asesoría de inversión</div>
 </div>
 
-<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v133</div>
+<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v134</div>
 
 <div class="wrap view" id="viewBalance">
   <div class="st-hero">
@@ -865,7 +865,7 @@ function updateCount(){
   window.META = META;
 
   var got = { precios:false, hist:false, claude:false };
-  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-133";
+  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-134";
   var estado={precios:false,historial:false,claude:false};
   function pinta(){
     var chip=document.getElementById('liveChip'); if(!chip) return;
@@ -1514,7 +1514,7 @@ function updateCount(){
     for(var i=0;i<rows.length;i++){
       var r=rows[i]; if(!r) continue;
       var raw=(r[cTk]||"").trim(); if(!raw) continue;
-      var tk=raw.split(" ")[0].toUpperCase();
+      var tk=raw.split(" ")[0].replace(/[^A-Za-z]/g,"").toUpperCase(); // tolera "AXTI. C"
       if(!/^[A-Z]{1,6}$/.test(tk)) continue;
       LIVE[tk]=LIVE[tk]||{};
       var fcIso=null;
@@ -1643,7 +1643,7 @@ function updateCount(){
     for(var i=1;i<rows.length;i++){
       var r=rows[i]; if(!r) continue;
       var raw=(r[iAcc]||"").trim(); if(!raw) continue;
-      var tk=raw.split(" ")[0].toUpperCase();
+      var tk=raw.split(" ")[0].replace(/[^A-Za-z]/g,"").toUpperCase(); // tolera "AXTI. C"
       if(!/^[A-Z]{1,6}$/.test(tk)) continue;
       var sm=(iSm>=0?num(r[iSm]):NaN), st=(iSt>=0?num(r[iSt]):NaN);
       if(isNaN(sm)&&isNaN(st)) continue;
