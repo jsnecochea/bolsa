@@ -602,7 +602,7 @@
   <div class="foot" id="anFoot">Desliza las manijas o usa los atajos · no es asesoría de inversión</div>
 </div>
 
-<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v140</div>
+<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v141</div>
 
 <div class="wrap view" id="viewBalance">
   <div class="st-hero">
@@ -869,7 +869,7 @@ function updateCount(){
   window.META = META;
 
   var got = { precios:false, hist:false, claude:false };
-  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-140";
+  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-141";
   var estado={precios:false,historial:false,claude:false};
   function pinta(){
     var chip=document.getElementById('liveChip'); if(!chip) return;
@@ -1040,6 +1040,7 @@ function updateCount(){
     });
   };
 
+  window.actualizarEstrategias=function(){ return actualizarEstrategias(); };
   function actualizarEstrategias(){
     var sel=window.heroShotSel||'all';
     var POS=(window.POSICIONES||[]).filter(function(p){ return (p.esMia||p.vendida) && (sel==='all' || p.compra===sel); });
@@ -1095,9 +1096,17 @@ function updateCount(){
       var mx2=1; lista.forEach(function(p){ if(!isNaN(p.mio)&&Math.abs(p.mio)>mx2)mx2=Math.abs(p.mio); });
       function fmtSF(iso){ if(!iso)return''; var pp=iso.split("-"); if(pp.length!==3)return''; var m=["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"]; return (+pp[2])+' '+m[(+pp[1])-1]; }
       function fpv(v){ return (v>=0?'+':'\u2212')+Math.abs(v).toFixed(1)+'%'; }
+      var MM=window.miMinMax();
       var html='';
       lista.forEach(function(p){
         var st=p.estrat, tech=META[p.tk]?META[p.tk][2]:false, v=p.mio;
+        var mm=MM[p.tk], mmHtml='';
+        if(mm && !isNaN(mm.max)){
+          var cMax = mm.max>=0 ? '#4ade80' : '#FFD426';
+          var cMin = mm.min>=0 ? '#2f9e63' : '#ff6b60';
+          mmHtml='<div class="am-mm"><div class="am-mm-v" style="color:'+cMax+'">'+fpv(mm.max)+'</div>'+
+                 '<div class="am-mm-v" style="color:'+cMin+'">'+fpv(mm.min)+'</div></div>';
+        } else { mmHtml='<div class="am-mm"><div class="am-mm-v" style="color:var(--dim2)">\u2014</div></div>'; }
         var dot='<span class="dv-dot '+st+'">'+(st==='c'?'Q':(st==='s'?'S':'C'))+'</span>';
         var techi=tech?TECHSVG2:'<span style="width:16px;flex:none"></span>';
         var fb=(sel==='all'&&p.compra)?'<span style="font-size:9px;color:var(--dim2);margin-left:4px">'+fmtSF(p.compra)+'</span>':'';
@@ -1106,7 +1115,7 @@ function updateCount(){
           html+='<div class="am-row vend"><div class="am-lbl tick"><span class="tk" style="color:#FFD426">'+p.tk+'</span>'+dot+techi+
             '<span style="font-size:9px;color:#FFD426;margin-left:4px">&#128274;</span></div>'+
             '<div class="am-track"><div class="am-zero"></div></div>'+
-            '<div class="am-val" style="color:#FFD426;font-size:9px">falta %</div></div>';
+            '<div class="am-val" style="color:#FFD426;font-size:9px">falta %</div>'+mmHtml+'</div>';
           return;
         }
         var half=Math.min(50,(Math.abs(v)/mx2*50));
@@ -1121,6 +1130,7 @@ function updateCount(){
           '<div class="am-lbl tick"><span class="tk"'+(cong?' style="color:#FFD426"':'')+'>'+p.tk+'</span>'+dot+techi+fb+lock+'</div>'+
           '<div class="am-track"><div class="am-zero"></div>'+bar+'</div>'+
           '<div class="am-val" style="color:'+(cong?'#FFD426':(v>=0?'#4ade80':'#ff6b60'))+'">'+fpv(v)+'</div>'+
+          mmHtml+
         '</div>';
       });
       aml.innerHTML=html;
@@ -1249,6 +1259,26 @@ function updateCount(){
       Object.keys(a).forEach(function(tk){
         var v=a[tk]; if(isNaN(v)) return;
         v=v*100; // en RENDIMIENTO vienen en decimal
+        if(!out[tk]) out[tk]={min:v,max:v};
+        else { if(v<out[tk].min)out[tk].min=v; if(v>out[tk].max)out[tk].max=v; }
+      });
+    });
+    return out;
+  };
+
+  // Mín y máx de MI rendimiento por acción, trimestre en curso (sección |MIAS| del historial)
+  window.miMinMax=function(){
+    var out={}, R=window.REND||[];
+    if(!R.length) return out;
+    var hoy=new Date();
+    var qIni=new Date(hoy.getFullYear(), Math.floor(hoy.getMonth()/3)*3, 1);
+    var lim=qIni.getFullYear()+'-'+('0'+(qIni.getMonth()+1)).slice(-2)+'-01';
+    R.forEach(function(rec){
+      if(!rec.fecha || rec.fecha<lim) return;
+      var m=rec.mias||{};
+      Object.keys(m).forEach(function(tk){
+        var v=m[tk]; if(isNaN(v)) return;
+        v=v*100;
         if(!out[tk]) out[tk]={min:v,max:v};
         else { if(v<out[tk].min)out[tk].min=v; if(v>out[tk].max)out[tk].max=v; }
       });
@@ -2200,6 +2230,7 @@ function updateCount(){
       if(document.getElementById('viewAnalisis').classList.contains('on')) window.dibujarAnalisis();
       // el historial llegó después: redibujar el desglose para que salgan mín y máx
       if(window.dibujarAccEstrat){ try{ window.dibujarAccEstrat(); }catch(e){} }
+      if(window.actualizarEstrategias){ try{ window.actualizarEstrategias(); }catch(e){} }
     }).catch(function(e){ window.__RENDRAW={error:String(e)}; console.log("rend err",e); });
   }
 })();
