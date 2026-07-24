@@ -410,6 +410,7 @@
   </div>
 
   <div id="labTrims" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:4px;"></div>
+  <div id="labDiag" style="font-size:9.5px;color:#6b6b78;margin:2px 0 6px;font-variant-numeric:tabular-nums"></div>
 
   <div class="rk-card">
     <div class="rk-top"><div class="rk-name q">Quant</div><div class="rk-tag">trimestre</div></div>
@@ -601,7 +602,7 @@
   <div class="foot" id="anFoot">Desliza las manijas o usa los atajos · no es asesoría de inversión</div>
 </div>
 
-<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v136</div>
+<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v137</div>
 
 <div class="wrap view" id="viewBalance">
   <div class="st-hero">
@@ -868,7 +869,7 @@ function updateCount(){
   window.META = META;
 
   var got = { precios:false, hist:false, claude:false };
-  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-136";
+  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-137";
   var estado={precios:false,historial:false,claude:false};
   function pinta(){
     var chip=document.getElementById('liveChip'); if(!chip) return;
@@ -1258,6 +1259,15 @@ function updateCount(){
   window.dibujarAccEstrat=function(){
     var POS=window.POSICIONES||[];
     var MM=window.accMinMax();
+    var dg=document.getElementById('labDiag');
+    if(dg){
+      var R=window.REND||[];
+      var conAlgo=R.filter(function(x){return x.algo&&Object.keys(x.algo).length;}).length;
+      var f1=R.length?R[0].fecha:'-', f2=R.length?R[R.length-1].fecha:'-';
+      var ej=Object.keys(MM)[0];
+      dg.textContent='diag · REND:'+R.length+' regs · con algo:'+conAlgo+' · '+f1+' a '+f2+
+        ' · tickers con mín/máx:'+Object.keys(MM).length+(ej?(' · ej '+ej+' '+MM[ej].min.toFixed(1)+'/'+MM[ej].max.toFixed(1)):'');
+    }
     // acciones que SÍ tengo vigentes en cartera (monto>0 y sin fecha de venta)
     var enCartera={}; POS.forEach(function(p){ if(p.esMia) enCartera[p.tk]=true; });
     function pinta(letra, contId, capId){
