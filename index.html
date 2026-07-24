@@ -279,7 +279,6 @@
   .am-row.vend{opacity:.9}
   .am-sold{width:46px;flex:none;text-align:right;font-size:10px;font-weight:800;color:#FFD426;padding-right:6px}
   .am-mm{display:flex;flex-direction:column;align-items:flex-end;justify-content:center;width:44px;flex:none;margin-left:6px;line-height:1.2}
-  .mm-ar{font-size:6.5px;opacity:.55;margin-right:2px;vertical-align:middle}
   .am-mm-v{font-size:9.5px;font-weight:700;font-variant-numeric:tabular-nums}
   .an-sold{width:46px;flex:none;text-align:right;font-size:10px;font-weight:800;color:#FFD426;padding-right:6px}
   .an-row.vend{background:rgba(255,212,38,.05)}
@@ -603,7 +602,7 @@
   <div class="foot" id="anFoot">Desliza las manijas o usa los atajos · no es asesoría de inversión</div>
 </div>
 
-<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v139</div>
+<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v140</div>
 
 <div class="wrap view" id="viewBalance">
   <div class="st-hero">
@@ -870,7 +869,7 @@ function updateCount(){
   window.META = META;
 
   var got = { precios:false, hist:false, claude:false };
-  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-139";
+  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-140";
   var estado={precios:false,historial:false,claude:false};
   function pinta(){
     var chip=document.getElementById('liveChip'); if(!chip) return;
@@ -1295,8 +1294,8 @@ function updateCount(){
           var cMax = mm.max>=0 ? '#4ade80' : '#FFD426';   // máx: verde si +, ÁMBAR si nunca estuvo en positivo
           var cMin = mm.min>=0 ? '#2f9e63' : '#ff6b60';   // mín: verde oscuro si +, rojo si −
           mmHtml='<div class="am-mm">'+
-            '<div class="am-mm-v" style="color:'+cMax+'"><span class="mm-ar">\u25B2</span>'+fpv(mm.max)+'</div>'+
-            '<div class="am-mm-v" style="color:'+cMin+'"><span class="mm-ar">\u25BC</span>'+fpv(mm.min)+'</div></div>';
+            '<div class="am-mm-v" style="color:'+cMax+'">'+fpv(mm.max)+'</div>'+
+            '<div class="am-mm-v" style="color:'+cMin+'">'+fpv(mm.min)+'</div></div>';
         } else { mmHtml='<div class="am-mm"><div class="am-mm-v" style="color:var(--dim2)">\u2014</div></div>'; }
         var vd=(window.VENDIDAS&&window.VENDIDAS[x.tk])?window.VENDIDAS[x.tk]:null;
         var mia = vd ? '<span class="am-own" style="color:#FFD426" title="Ya la vendí">&#128274;</span>'
@@ -1343,8 +1342,8 @@ function updateCount(){
           var cMax = mm.max>=0 ? '#4ade80' : '#FFD426';   // máx: verde si +, ÁMBAR si nunca estuvo en positivo
           var cMin = mm.min>=0 ? '#2f9e63' : '#ff6b60';   // mín: verde oscuro si +, rojo si −
           mmHtml='<div class="rk-mm">'+
-            '<div class="rk-mm-v" style="color:'+cMax+'"><span class="mm-ar">\u25B2</span>'+fp(mm.max)+'</div>'+
-            '<div class="rk-mm-v" style="color:'+cMin+'"><span class="mm-ar">\u25BC</span>'+fp(mm.min)+'</div></div>';
+            '<div class="rk-mm-v" style="color:'+cMax+'">'+fp(mm.max)+'</div>'+
+            '<div class="rk-mm-v" style="color:'+cMin+'">'+fp(mm.min)+'</div></div>';
         } else { mmHtml='<div class="rk-mm"><div class="rk-mm-v" style="color:var(--dim2)">—</div></div>'; }
         html+='<div class="rk-row'+rowcls+'"><div class="rk-rank">'+(i+1)+'</div>'+
           '<div class="rk-mid"><div class="rk-lbl">'+it.lbl+mine+'</div>'+
