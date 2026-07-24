@@ -276,7 +276,10 @@
   .am-pos{width:52px;flex:none;text-align:left;font-size:13px;font-weight:700;color:#4ade80}
   .am-val{width:58px;flex:none;text-align:right;font-size:13px;font-weight:700}
   .am-own{width:13px;flex:none;font-size:11px;font-weight:800;color:#4ade80;text-align:left}
-  .am-row.vend{opacity:.85}
+  .am-row.vend{opacity:.9}
+  .am-sold{width:46px;flex:none;text-align:right;font-size:10px;font-weight:800;color:#FFD426;padding-right:6px}
+  .an-sold{width:46px;flex:none;text-align:right;font-size:10px;font-weight:800;color:#FFD426;padding-right:6px}
+  .an-row.vend{background:rgba(255,212,38,.05)}
   .ac-item.vend{background:rgba(255,212,38,.05);border-left:2px solid #FFD426}
   .am-own.off{color:transparent}
   .am-track{flex:1;position:relative;height:16px}
@@ -333,7 +336,7 @@
       </div>
     </div>
     <div class="statgrid">
-      <div class="stat"><div class="s-lbl">Invertido</div><div class="s-val" id="hInv">&mdash;</div></div>
+      <div class="stat"><div class="s-lbl">Invertido</div><div class="s-val" id="hInv">&mdash;</div><div id="hVend" style="font-size:9.5px;color:#FFD426;font-weight:700;margin-top:3px"></div></div>
       <div class="stat"><div class="s-lbl">Posiciones</div><div class="s-val" id="hPos">&mdash;</div></div>
     </div>
     <div id="hDiag" style="font-size:9px;color:#6b6b78;text-align:center;margin-top:6px;font-variant-numeric:tabular-nums"></div>
@@ -577,7 +580,7 @@
   <div class="foot" id="anFoot">Desliza las manijas o usa los atajos · no es asesoría de inversión</div>
 </div>
 
-<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v131</div>
+<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v132</div>
 <div class="tabbar">
   <button class="tab on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l9-8 9 8"/><path d="M5 10v10h14V10"/></svg><span>Resumen</span></button>
   <button class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg><span>Alertas</span></button>
@@ -813,7 +816,7 @@ function updateCount(){
   window.META = META;
 
   var got = { precios:false, hist:false, claude:false };
-  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-131";
+  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-132";
   var estado={precios:false,historial:false,claude:false};
   function pinta(){
     var chip=document.getElementById('liveChip'); if(!chip) return;
@@ -1034,9 +1037,9 @@ function updateCount(){
     // --- Todas mis acciones desde mi compra (una fila por posición del shot) ---
     var aml=document.getElementById('allMineList');
     if(aml){
-      var lista = POS.slice().filter(function(p){return !isNaN(p.mio);}).sort(function(a,b){return b.mio-a.mio;});
+      var lista = POS.slice().filter(function(p){return !isNaN(p.mio) || p.vendida;}).sort(function(a,b){return (isNaN(b.mio)?-999:b.mio)-(isNaN(a.mio)?-999:a.mio);});
       var cnt=document.getElementById('allMineCount'); if(cnt){ var uq={}; lista.forEach(function(p){uq[p.tk]=true;}); var nv=lista.filter(function(p){return p.vendida;}).length; cnt.textContent=(lista.length-nv)+' posiciones ('+Object.keys(uq).length+' acciones)'+(nv?' · '+nv+' vendida'+(nv>1?'s':''):''); }
-      var mx2=1; lista.forEach(function(p){ if(Math.abs(p.mio)>mx2)mx2=Math.abs(p.mio); });
+      var mx2=1; lista.forEach(function(p){ if(!isNaN(p.mio)&&Math.abs(p.mio)>mx2)mx2=Math.abs(p.mio); });
       function fmtSF(iso){ if(!iso)return''; var pp=iso.split("-"); if(pp.length!==3)return''; var m=["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"]; return (+pp[2])+' '+m[(+pp[1])-1]; }
       function fpv(v){ return (v>=0?'+':'\u2212')+Math.abs(v).toFixed(1)+'%'; }
       var html='';
@@ -1045,8 +1048,15 @@ function updateCount(){
         var dot='<span class="dv-dot '+st+'">'+(st==='c'?'Q':(st==='s'?'S':'C'))+'</span>';
         var techi=tech?TECHSVG2:'<span style="width:16px;flex:none"></span>';
         var fb=(sel==='all'&&p.compra)?'<span style="font-size:9px;color:var(--dim2);margin-left:4px">'+fmtSF(p.compra)+'</span>':'';
-        var half=Math.min(50,(Math.abs(v)/mx2*50));
         var cong=!!p.vendida; // vendida: rendimiento congelado, ya no cotiza
+        if(isNaN(v)){ // vendida sin rendimiento capturado: mostrarla igual, para que no se pierda
+          html+='<div class="am-row vend"><div class="am-lbl tick"><span class="tk" style="color:#FFD426">'+p.tk+'</span>'+dot+techi+
+            '<span style="font-size:9px;color:#FFD426;margin-left:4px">&#128274;</span></div>'+
+            '<div class="am-track"><div class="am-zero"></div></div>'+
+            '<div class="am-val" style="color:#FFD426;font-size:9px">falta %</div></div>';
+          return;
+        }
+        var half=Math.min(50,(Math.abs(v)/mx2*50));
         var colBar = cong ? '#FFD426' : (v>=0?'g':'r');
         var bar = cong
           ? '<div class="am-bar" style="background:#FFD426;'+(v>=0?('left:50%;width:'+half.toFixed(1)+'%'):('left:'+(50-half).toFixed(1)+'%;width:'+half.toFixed(1)+'%'))+'"></div>'
@@ -1195,9 +1205,14 @@ function updateCount(){
         var bar = x.v>=0
           ? '<div class="am-bar g" style="left:50%;width:'+half.toFixed(1)+'%"></div>'
           : '<div class="am-bar r" style="left:'+(50-half).toFixed(1)+'%;width:'+half.toFixed(1)+'%"></div>';
-        var mia=enCartera[x.tk]?'<span class="am-own" title="La tengo en cartera">$</span>':'<span class="am-own off"></span>';
-        html+='<div class="am-row">'+
-          '<div class="am-lbl tick" style="width:76px">'+mia+'<span class="tk">'+x.tk+'</span></div>'+
+        var vd=(window.VENDIDAS&&window.VENDIDAS[x.tk])?window.VENDIDAS[x.tk]:null;
+        var mia = vd ? '<span class="am-own" style="color:#FFD426" title="Ya la vendí">&#128274;</span>'
+                     : (enCartera[x.tk]?'<span class="am-own" title="La tengo en cartera">$</span>':'<span class="am-own off"></span>');
+        // columna del precio de salida: dónde la vendí (amarillo) vs dónde va hoy (derecha)
+        var salida = (vd&&!isNaN(vd.mio)) ? '<div class="am-sold">'+fpv(vd.mio)+'</div>' : '<div class="am-sold"></div>';
+        html+='<div class="am-row'+(vd?' vend':'')+'">'+
+          '<div class="am-lbl tick" style="width:76px">'+mia+'<span class="tk"'+(vd?' style="color:#FFD426"':'')+'>'+x.tk+'</span></div>'+
+          salida+
           '<div class="am-track"><div class="am-zero"></div>'+bar+'</div>'+
           '<div class="am-val" style="color:'+(x.v>=0?'#4ade80':'#ff6b60')+'">'+fpv(x.v)+'</div>'+
         '</div>';
@@ -1309,12 +1324,12 @@ function updateCount(){
       // Filtrar por la compra seleccionada (o todas)
       var sel=window.heroShotSel||'all';
       var usar = POS.filter(function(p){ return (p.esMia||p.vendida) && (sel==='all' || p.compra===sel); });
-      var invVigente=0, capTotal=0, capConDato=0, ponSum=0, n=0, nVend=0, sinDato=0;
+      var invVigente=0, capTotal=0, capConDato=0, ponSum=0, n=0, nVend=0, sinDato=0, capVend=0;
       usar.forEach(function(p){
         var mt=p.monto;
         if(!isNaN(mt)&&mt>0){
           capTotal+=mt;                                  // capital desplegado (vigente + ya vendido)
-          if(p.esMia){ invVigente+=mt; n++; } else { nVend++; }
+          if(p.esMia){ invVigente+=mt; n++; } else { nVend++; capVend+=mt; }
           if(!isNaN(p.mio)){ capConDato+=mt; ponSum+=mt*p.mio; }   // SOLO lo que trae rendimiento pondera
           else { sinDato++; }
         }
@@ -1344,6 +1359,8 @@ function updateCount(){
         // Invertido en el hero
         var invEl=document.getElementById('hInv');
         if(invEl){ invEl.innerHTML='$'+Math.round(inv).toLocaleString('es-MX'); }
+        var vEl=document.getElementById('hVend');
+        if(vEl){ vEl.innerHTML = capVend>0 ? ('&#128274; $'+Math.round(capVend).toLocaleString('es-MX')+' ya vendido') : ''; }
         var dg=document.getElementById('hDiag');
         if(dg){ dg.textContent='diag · vig:'+n+' · vend:'+nVend+' · sin dato:'+sinDato+' · inv:'+Math.round(invVigente).toLocaleString('es-MX')+' · cap:'+Math.round(capTotal).toLocaleString('es-MX')+' · prom:'+avg.toFixed(2)+'% · espejo:'+(window.ESPEJO_ACT||'sin col'); }
         actualizarMovers();
@@ -1444,6 +1461,7 @@ function updateCount(){
     var shotsDetectadas={};
     window.POSICIONES=[];
     window.ESTRAT_MAP={};
+    window.VENDIDAS={};
     for(var i=0;i<rows.length;i++){
       var r=rows[i]; if(!r) continue;
       var raw=(r[cTk]||"").trim(); if(!raw) continue;
@@ -1483,6 +1501,7 @@ function updateCount(){
       }
       if(!pEstrat) pEstrat=(META[tk]?META[tk][1]:"c");
       window.ESTRAT_MAP=window.ESTRAT_MAP||{}; window.ESTRAT_MAP[tk]=pEstrat;
+      if(vendida){ window.VENDIDAS=window.VENDIDAS||{}; window.VENDIDAS[tk]={mio:pMio, fecha:ventaCel}; }
       if(cAct>=0 && !window.ESPEJO_ACT){ var av=(r[cAct]||"").trim(); if(av) window.ESPEJO_ACT=av; }
       // cada renglón = una posición (shot) independiente
       window.POSICIONES.push({tk:tk, compra:fcIso, trim:pTrim, mes:pMes, mio:pMio, monto:pMonto, estrat:pEstrat, esMia:esMia, vendida:vendida, venta:ventaCel});
@@ -2014,7 +2033,9 @@ function updateCount(){
         var w=(Math.abs(x.chg)/mx*50).toFixed(1), apt=(x.chg/nF), pos=x.chg>=0;
         var bar= pos?'<div class="an-bar" style="left:50%;width:'+w+'%;background:#1baf7a;border-radius:0 3px 3px 0"></div>'
                      :'<div class="an-bar" style="right:50%;width:'+w+'%;background:#e24b4a;border-radius:3px 0 0 3px"></div>';
-        html+='<div class="an-row"><div class="an-tk">'+x.tk+'</div><div class="an-track"><div class="an-zero"></div>'+bar+'</div>'+
+        var vd=(window.VENDIDAS&&window.VENDIDAS[x.tk])?window.VENDIDAS[x.tk]:null;
+        var salida=(vd&&!isNaN(vd.mio))?('<div class="an-sold">'+(vd.mio>=0?'+':'\u2212')+Math.abs(vd.mio).toFixed(1)+'%</div>'):'<div class="an-sold"></div>';
+        html+='<div class="an-row'+(vd?' vend':'')+'"><div class="an-tk"'+(vd?' style="color:#FFD426"':'')+'>'+(vd?'\uD83D\uDD12 ':'')+x.tk+'</div>'+salida+'<div class="an-track"><div class="an-zero"></div>'+bar+'</div>'+
           '<div class="an-chg" style="color:'+(pos?'#4ade80':'#ff5a5a')+'">'+fp(x.chg)+'</div>'+
           '<div class="an-apt">'+(apt>=0?'+':'\u2212')+Math.abs(apt).toFixed(1)+'</div></div>';
       });
