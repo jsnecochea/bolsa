@@ -24,6 +24,7 @@
   .label{font-size:14px;color:var(--dim);font-weight:500;margin-bottom:12px}
   .duel-hero{position:relative;z-index:1;display:flex;gap:10px}
   .dh-col{flex:1;min-width:0}
+  .pct .sg{font-size:.58em;font-weight:600;letter-spacing:0;margin-right:.02em;vertical-align:.14em}
   .pct{font-size:52px;font-weight:700;letter-spacing:-0.04em;line-height:.9;background:linear-gradient(180deg,#fff,#7ee89f);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
   .pct.algo{background:linear-gradient(180deg,#ffd9d5,#ff4d42);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
   .pct.neg{background:linear-gradient(180deg,#ffd9d5,#ff4d42);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
@@ -270,12 +271,15 @@
   .dv-bar.g{background:linear-gradient(90deg,#30d158,#7ee89f)}
   .dv-bar.r{background:linear-gradient(270deg,#ff453a,#ff8079)}
   .dv-val{position:absolute;top:3px;font-size:10.5px;font-weight:800;line-height:16px;color:#fff;white-space:nowrap;box-sizing:border-box}
-  .am-row{display:flex;align-items:center;gap:8px;margin-bottom:12px}
-  .am-lbl{width:92px;flex:none;display:flex;align-items:center;gap:6px;justify-content:flex-end}
+  .am-row{display:flex;align-items:center;gap:8px;margin-bottom:12px;min-height:20px}
+  .am-lbl{width:74px;flex:none;display:flex;align-items:center;gap:5px;justify-content:flex-start;overflow:hidden}
+  .am-lbl .tk{font-size:12.5px;font-weight:700;letter-spacing:-.01em;white-space:nowrap}
+  .am-fec{width:40px;flex:none;text-align:center;font-size:9px;color:var(--dim2);font-weight:600;white-space:nowrap}
+  .am-lk{font-size:9.5px;color:#FFD426}
   .am-neg{width:52px;flex:none;text-align:right;font-size:13px;font-weight:700;color:#ff6b60}
   .am-pos{width:52px;flex:none;text-align:left;font-size:13px;font-weight:700;color:#4ade80}
   .am-val{width:58px;flex:none;text-align:right;font-size:13px;font-weight:700}
-  .am-own{width:13px;flex:none;font-size:11px;font-weight:800;color:#4ade80;text-align:left}
+  .am-own{width:12px;flex:none;font-size:11px;font-weight:800;color:#4ade80;text-align:center;line-height:1}
   .am-row.vend{opacity:.9}
   .am-sold{width:46px;flex:none;text-align:right;font-size:10px;font-weight:800;color:#FFD426;padding-right:6px}
   .mt-mark{font-size:7.5px;font-weight:700;color:var(--dim2);opacity:.6;vertical-align:super;margin-left:2px}
@@ -603,7 +607,7 @@
   <div class="foot" id="anFoot">Desliza las manijas o usa los atajos · no es asesoría de inversión</div>
 </div>
 
-<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v151</div>
+<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v152</div>
 
 <div class="wrap view" id="viewBalance">
   <div class="st-hero">
@@ -870,7 +874,7 @@ function updateCount(){
   window.META = META;
 
   var got = { precios:false, hist:false, claude:false };
-  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-151";
+  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-152";
   var estado={precios:false,historial:false,claude:false};
   function pinta(){
     var chip=document.getElementById('liveChip'); if(!chip) return;
@@ -884,7 +888,7 @@ function updateCount(){
     else { chip.style.color='#ff8079'; chip.textContent='sin conexión'; }
   }
 
-  function fmtPct(v){ return (v>=0?'+':'\u2212')+Math.abs(v).toFixed(1)+'%'; }
+  function fmtPct(v){ return '<span class="sg">'+(v>=0?'+':'\u2212')+'</span>'+Math.abs(v).toFixed(1)+'%'; }
   function fmtPct2(v){ return (v>=0?'+':'\u2212')+Math.abs(v).toFixed(2)+'%'; }
 
 
@@ -1119,8 +1123,9 @@ function updateCount(){
         var fb=(sel==='all'&&p.compra)?'<span style="font-size:9px;color:var(--dim2);margin-left:4px">'+fmtSF(p.compra)+'</span>':'';
         var cong=!!p.vendida; // vendida: rendimiento congelado, ya no cotiza
         if(isNaN(v)){ // vendida sin rendimiento capturado: mostrarla igual, para que no se pierda
-          html+='<div class="am-row vend"><div class="am-lbl tick"><span class="tk" style="color:#FFD426">'+p.tk+'</span>'+dot+techi+
-            '<span style="font-size:9px;color:#FFD426;margin-left:4px">&#128274;</span></div>'+
+          html+='<div class="am-row vend">'+
+            '<div class="am-lbl tick">'+dot+'<span class="tk" style="color:#FFD426">'+p.tk+'</span></div>'+
+            '<div class="am-fec"><span class="am-lk">&#128274;</span></div>'+
             '<div class="am-track"><div class="am-zero"></div></div>'+
             '<div class="am-val" style="color:#FFD426;font-size:9px">falta %</div>'+mmHtml+'</div>';
           return;
@@ -1134,7 +1139,8 @@ function updateCount(){
             : '<div class="am-bar r" style="left:'+(50-half).toFixed(1)+'%;width:'+half.toFixed(1)+'%"></div>');
         var lock = cong?'<span style="font-size:9px;color:#FFD426;margin-left:4px" title="Vendida · rendimiento congelado">&#128274;</span>':'';
         html+='<div class="am-row'+(cong?' vend':'')+'">'+
-          '<div class="am-lbl tick"><span class="tk"'+(cong?' style="color:#FFD426"':'')+'>'+p.tk+'</span>'+dot+techi+fb+lock+'</div>'+
+          '<div class="am-lbl tick">'+dot+'<span class="tk"'+(cong?' style="color:#FFD426"':'')+'>'+p.tk+'</span></div>'+
+          '<div class="am-fec">'+(cong?'<span class="am-lk">&#128274;</span>':fb)+'</div>'+
           '<div class="am-track"><div class="am-zero"></div>'+bar+'</div>'+
           '<div class="am-val" style="color:'+(cong?'#FFD426':(v>=0?'#4ade80':'#ff6b60'))+'">'+fpv(v)+'</div>'+
           mmHtml+
@@ -1501,7 +1507,7 @@ function updateCount(){
       if(n||nVend){
         var avg=capConDato>0?(ponSum/capConDato):0; // % sobre el capital que SÍ trae dato (no se diluye)
         var el=document.getElementById('hMio');
-        if(el){ el.textContent=fmtPct(avg); el.classList.toggle('neg', avg<0); }
+        if(el){ el.innerHTML=fmtPct(avg); el.classList.toggle('neg', avg<0); }
         var lbl=document.getElementById('hMioLabel');
         if(lbl){
           if(sel==='all'){ lbl.textContent='Mi trimestre'; }
@@ -1718,7 +1724,7 @@ function updateCount(){
       }
       if(!isNaN(aTrimQ)&&!isNaN(aTrimS)){
         var algoTrim=(aTrimQ+aTrimS)/2;
-        var el=document.getElementById('hAlgo'); if(el) el.textContent=fmtPct(algoTrim); // arriba: TRIMESTRE
+        var el=document.getElementById('hAlgo'); if(el) el.innerHTML=fmtPct(algoTrim); // arriba: TRIMESTRE
         window.ALGO_TRIM_LIVE=algoTrim; window.ALGO_TRIM_Q=aTrimQ; window.ALGO_TRIM_S=aTrimS;
         if(window.pintarActualAlgo) window.pintarActualAlgo();
       }
