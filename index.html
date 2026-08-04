@@ -346,12 +346,12 @@
     <div id="heroShotSel" style="display:flex;gap:5px;margin:2px 0 12px"></div>
     <div class="duel-hero">
       <div class="dh-col">
-        <div class="label" id="hMioLabel">Mi rendimiento del trimestre</div>
+        <div class="label" id="hMioLabel">Mi trimestre</div>
         <div class="pct" id="hMio">&mdash;</div>
         <div class="dh-chip" id="hMioChip">&mdash;</div>
       </div>
       <div class="dh-col" id="algoOpen" style="cursor:pointer" onclick="if(window.abrirHist)window.abrirHist();">
-        <div class="label">Algoritmo del trimestre</div>
+        <div class="label">Algoritmo</div>
         <div class="pct algo" id="hAlgo">&mdash;</div>
         <div class="dh-chip algo">Trim <b id="hAlgoTrim">&mdash;</b></div>
       </div>
@@ -602,7 +602,7 @@
   <div class="foot" id="anFoot">Desliza las manijas o usa los atajos · no es asesoría de inversión</div>
 </div>
 
-<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v143</div>
+<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v144</div>
 
 <div class="wrap view" id="viewBalance">
   <div class="st-hero">
@@ -869,7 +869,7 @@ function updateCount(){
   window.META = META;
 
   var got = { precios:false, hist:false, claude:false };
-  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-143";
+  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-144";
   var estado={precios:false,historial:false,claude:false};
   function pinta(){
     var chip=document.getElementById('liveChip'); if(!chip) return;
@@ -1467,7 +1467,7 @@ function updateCount(){
         if(el){ el.textContent=fmtPct(avg); el.classList.toggle('neg', avg<0); }
         var lbl=document.getElementById('hMioLabel');
         if(lbl){
-          if(sel==='all'){ lbl.textContent='Mi rendimiento del trimestre'; }
+          if(sel==='all'){ lbl.textContent='Mi trimestre'; }
           else { var pp=sel.split("-"); var mm=["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"]; var idxC=(window.HERO_SHOTS||[]).indexOf(sel); lbl.innerHTML='Rendimiento · C'+(idxC+1)+' <span style="opacity:.6">('+(+pp[2])+' '+mm[(+pp[1])-1]+')</span>'; }
         }
         var pos=document.getElementById('hPos'); if(pos) pos.textContent=n;
