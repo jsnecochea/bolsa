@@ -354,7 +354,7 @@
       <div class="dh-col" id="algoOpen" style="cursor:pointer" onclick="if(window.abrirHist)window.abrirHist();">
         <div class="label">Algoritmo</div>
         <div class="pct algo" id="hAlgo">&mdash;</div>
-        <div class="dh-chip algo">Trim <b id="hAlgoTrim">&mdash;</b></div>
+        <div class="dh-chip algo">S&amp;P <b id="hSpTrim">&mdash;</b></div>
       </div>
     </div>
     <div class="statgrid">
@@ -603,7 +603,7 @@
   <div class="foot" id="anFoot">Desliza las manijas o usa los atajos · no es asesoría de inversión</div>
 </div>
 
-<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v146</div>
+<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v150</div>
 
 <div class="wrap view" id="viewBalance">
   <div class="st-hero">
@@ -870,7 +870,7 @@ function updateCount(){
   window.META = META;
 
   var got = { precios:false, hist:false, claude:false };
-  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-146";
+  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-150";
   var estado={precios:false,historial:false,claude:false};
   function pinta(){
     var chip=document.getElementById('liveChip'); if(!chip) return;
@@ -1303,7 +1303,8 @@ function updateCount(){
       var f1=R.length?R[0].fecha:'-', f2=R.length?R[R.length-1].fecha:'-';
       var ej=Object.keys(MM)[0];
       dg.textContent='diag · REND:'+R.length+' regs · con algo:'+conAlgo+' · '+f1+' a '+f2+
-        ' · tickers con mín/máx:'+Object.keys(MM).length+(ej?(' · ej '+ej+' '+MM[ej].min.toFixed(1)+'/'+MM[ej].max.toFixed(1)):'');
+        ' · tickers con mín/máx:'+Object.keys(MM).length+
+        (window.SIN_ESTRAT&&Object.keys(window.SIN_ESTRAT).length ? (' · \u26A0 SIN ESTRATEGIA: '+Object.keys(window.SIN_ESTRAT).join(',')) : '');
     }
     // acciones que SÍ tengo vigentes en cartera (monto>0 y sin fecha de venta)
     var enCartera={}; POS.forEach(function(p){ if(p.esMia) enCartera[p.tk]=true; });
@@ -1405,6 +1406,19 @@ function updateCount(){
       });
       cont.innerHTML=html;
     }
+    // MI rendimiento real de esa estrategia: ponderado por monto, cuenta vigentes Y vendidas
+    window.miRendEstrat=function(letra){
+      var P=window.POSICIONES||[], s=0, w=0;
+      P.forEach(function(p){
+        if(p.estrat!==letra) return;
+        if(!(p.esMia||p.vendida)) return;
+        if(isNaN(p.monto)||p.monto<=0||isNaN(p.mio)) return;
+        s+=p.mio*p.monto; w+=p.monto;
+      });
+      return w>0 ? (s/w) : NaN;
+    };
+    var yoQ=window.miRendEstrat('c'), yoS=window.miRendEstrat('s'), yoZ=window.miRendEstrat('z');
+
     var itemsQ=[
       {lbl:'Chicas (Sm2.6 St22)', v:L.q_chicas, tag:'', key:'q_chicas'},
       {lbl:'Viejas (Sm2.6 St22)', v:L.q_viejas, tag:'', key:'q_viejas'},
@@ -1607,6 +1621,22 @@ function updateCount(){
     }
     window.DIAG_COLS='tk:'+cTk+' compra:'+cCompra+' venta:'+cVenta+' monto:'+cMonto+' mio:'+cMio+' estrat:'+cEstrat+' vender:'+cMioV;
     if(cTk<0){ cTk=17; cTrim=18; cMes=19; cMio=20; } // respaldo a posición vieja
+    // Pre-pasada: registrar la estrategia declarada de cada ticker (para que los shots la hereden)
+    var ESTRAT_DECL={};
+    if(cEstrat>=0 && cTk>=0){
+      for(var pr=1; pr<rows.length; pr++){
+        var rr2=rows[pr]; if(!rr2) continue;
+        var tk2=(rr2[cTk]||"").split(" ")[0].replace(/[^A-Za-z]/g,"").toUpperCase();
+        if(!/^[A-Z]{1,6}$/.test(tk2)) continue;
+        var ev2=(rr2[cEstrat]||"").trim().toLowerCase();
+        var e2=null;
+        if(ev2==="quant"||ev2==="cuant"||ev2==="q"||ev2==="c") e2="c";
+        else if(ev2==="smart"||ev2==="s") e2="s";
+        else if(ev2==="chica"||ev2==="chicas"||ev2==="semilla"||ev2==="z") e2="z";
+        if(e2 && !ESTRAT_DECL[tk2]) ESTRAT_DECL[tk2]=e2;
+      }
+    }
+    window.ESTRAT_DECL=ESTRAT_DECL;
     var shotsDetectadas={};
     window.POSICIONES=[];
     window.ESTRAT_MAP={};
@@ -1648,7 +1678,13 @@ function updateCount(){
         else if(ev==="smart"||ev==="s") pEstrat="s";
         else if(ev==="chica"||ev==="chicas"||ev==="semilla"||ev==="z") pEstrat="z";
       }
-      if(!pEstrat) pEstrat=(META[tk]?META[tk][1]:"c");
+      // Shots (renglón sin estrategia): heredan la del renglón principal de ESA MISMA acción.
+      // Solo si la acción no aparece declarada en ninguna parte se recurre a META.
+      if(pEstrat){ ESTRAT_DECL[tk]=pEstrat; }
+      else {
+        pEstrat = ESTRAT_DECL[tk] || (META[tk]?META[tk][1]:null);
+        if(!pEstrat){ window.SIN_ESTRAT=window.SIN_ESTRAT||{}; window.SIN_ESTRAT[tk]=true; pEstrat="c"; }
+      }
       window.ESTRAT_MAP=window.ESTRAT_MAP||{}; window.ESTRAT_MAP[tk]=pEstrat;
       if(vendida){ window.VENDIDAS=window.VENDIDAS||{}; window.VENDIDAS[tk]={mio:pMio, fecha:ventaCel}; }
       if(cAct>=0 && !window.ESPEJO_ACT){ var av=(r[cAct]||"").trim(); if(av) window.ESPEJO_ACT=av; }
@@ -1677,16 +1713,31 @@ function updateCount(){
       var aTrimQ=esp('algo_trim_quant'), aTrimS=esp('algo_trim_smart');
       if(!isNaN(aMesQ)&&!isNaN(aMesS)){
         var algoMes=(aMesQ+aMesS)/2;
-        var el=document.getElementById('hAlgo'); if(el) el.textContent=fmtPct(algoMes);
+        window.ALGO_MES_LIVE=algoMes; // el mes se conserva por si se ocupa en otras vistas
         window.ALGO_MES_Q=aMesQ; window.ALGO_MES_S=aMesS;
       }
       if(!isNaN(aTrimQ)&&!isNaN(aTrimS)){
         var algoTrim=(aTrimQ+aTrimS)/2;
-        var tel=document.getElementById('hAlgoTrim'); if(tel) tel.textContent=fmtPct(algoTrim);
+        var el=document.getElementById('hAlgo'); if(el) el.textContent=fmtPct(algoTrim); // arriba: TRIMESTRE
         window.ALGO_TRIM_LIVE=algoTrim; window.ALGO_TRIM_Q=aTrimQ; window.ALGO_TRIM_S=aTrimS;
         if(window.pintarActualAlgo) window.pintarActualAlgo();
       }
       var semTrim=esp('sem_trim'); if(!isNaN(semTrim)){ window.ALGO_TRIM_SEM=semTrim; }
+      // Benchmark: S&P 500 en lo que va del trimestre (etiqueta sp500_trim del espejo)
+      (function(){
+        var spT=esp('sp500_trim');
+        if(isNaN(spT)){ // respaldo: calcularlo del precio actual contra el de inicio de trimestre
+          var px=esp('sp500'), ini=esp('sp500_ini_trim');
+          if(!isNaN(px)&&!isNaN(ini)&&ini>0) spT=(px/ini-1)*100;
+        }
+        window.SP_TRIM=spT;
+        var e=document.getElementById('hSpTrim');
+        if(e){
+          if(isNaN(spT)){ e.textContent='—'; }
+          else { e.textContent=(spT>=0?'+':'\u2212')+Math.abs(spT).toFixed(1)+'%';
+                 e.parentNode.style.color = spT>=0 ? '#4ade80' : '#ff8079'; }
+        }
+      })();
       var semMes=esp('sem_mes'); if(!isNaN(semMes)){ window.ALGO_MES_SEM=semMes; }
     }catch(e){ console.log("algo err",e); }
     got.precios=true; estado.precios=(Object.keys(LIVE).length>0); pinta(); tryUpdateAll();
