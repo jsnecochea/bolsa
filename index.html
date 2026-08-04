@@ -274,6 +274,10 @@
   .am-row{display:flex;align-items:center;gap:8px;margin-bottom:12px;min-height:20px}
   .am-lbl{width:74px;flex:none;display:flex;align-items:center;gap:5px;justify-content:flex-start;overflow:hidden}
   .am-lbl .tk{font-size:12.5px;font-weight:700;letter-spacing:-.01em;white-space:nowrap}
+  .am-own2{width:14px;flex:none;text-align:center;font-size:11px;font-weight:800;line-height:1}
+  .am-tk2{width:52px;flex:none;overflow:hidden;white-space:nowrap}
+  .am-tk2 .tk{font-size:12.5px;font-weight:700;letter-spacing:-.01em}
+  .am-m2{width:20px;flex:none;text-align:center}
   .am-fec{width:40px;flex:none;text-align:center;font-size:9px;color:var(--dim2);font-weight:600;white-space:nowrap}
   .am-lk{font-size:9.5px;color:#FFD426}
   .am-neg{width:52px;flex:none;text-align:right;font-size:13px;font-weight:700;color:#ff6b60}
@@ -282,7 +286,7 @@
   .am-own{width:12px;flex:none;font-size:11px;font-weight:800;color:#4ade80;text-align:center;line-height:1}
   .am-row.vend{opacity:.9}
   .am-sold{width:46px;flex:none;text-align:right;font-size:10px;font-weight:800;color:#FFD426;padding-right:6px}
-  .mt-mark{font-size:7.5px;font-weight:700;color:var(--dim2);opacity:.6;vertical-align:super;margin-left:2px}
+  .mt-mark{font-size:8px;font-weight:700;color:var(--dim2);opacity:.7}
   .am-mm{display:flex;flex-direction:column;align-items:flex-end;justify-content:center;width:44px;flex:none;margin-left:6px;line-height:1.2}
   .am-mm-v{font-size:9.5px;font-weight:700;font-variant-numeric:tabular-nums}
   .an-sold{width:46px;flex:none;text-align:right;font-size:10px;font-weight:800;color:#FFD426;padding-right:6px}
@@ -607,7 +611,7 @@
   <div class="foot" id="anFoot">Desliza las manijas o usa los atajos · no es asesoría de inversión</div>
 </div>
 
-<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v152</div>
+<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v154</div>
 
 <div class="wrap view" id="viewBalance">
   <div class="st-hero">
@@ -874,7 +878,7 @@ function updateCount(){
   window.META = META;
 
   var got = { precios:false, hist:false, claude:false };
-  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-152";
+  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-154";
   var estado={precios:false,historial:false,claude:false};
   function pinta(){
     var chip=document.getElementById('liveChip'); if(!chip) return;
@@ -1314,19 +1318,32 @@ function updateCount(){
     }
     // acciones que SÍ tengo vigentes en cartera (monto>0 y sin fecha de venta)
     var enCartera={}; POS.forEach(function(p){ if(p.esMia) enCartera[p.tk]=true; });
-    // ¿En qué mes del trimestre entró cada acción? (1 = desde el arranque)
+    // Bloques de compra POR ESTRATEGIA: la fecha más antigua del trimestre es el bloque 1
+    // (la selección original), y cada fecha posterior es un bloque nuevo: 2, 3, ...
     var mesTrim={};
     (function(){
       var hoy=new Date();
-      var qIniMes=Math.floor(hoy.getMonth()/3)*3;   // 0,3,6,9
+      var qIni=new Date(hoy.getFullYear(), Math.floor(hoy.getMonth()/3)*3, 1);
+      var lim=qIni.getFullYear()+'-'+('0'+(qIni.getMonth()+1)).slice(-2)+'-01';
+      var fechasPorEstrat={};
       POS.forEach(function(p){
-        if(!p.esMia || !p.compra) return;
-        var pp=String(p.compra).split('-'); if(pp.length!==3) return;
-        var m=parseInt(pp[1],10)-1, y=parseInt(pp[0],10);
-        if(y!==hoy.getFullYear()) return;
-        var idx=m-qIniMes+1;                        // 1, 2 o 3
-        if(idx<1||idx>3) return;
-        if(!mesTrim[p.tk] || idx<mesTrim[p.tk]) mesTrim[p.tk]=idx;  // la compra más antigua manda
+        if(!(p.esMia||p.vendida) || !p.compra || p.compra<lim) return;
+        var e=p.estrat||'?';
+        (fechasPorEstrat[e]=fechasPorEstrat[e]||{})[p.compra]=true;
+      });
+      var idxPorEstrat={};
+      Object.keys(fechasPorEstrat).forEach(function(e){
+        var fs=Object.keys(fechasPorEstrat[e]).sort();   // del más viejo al más nuevo
+        idxPorEstrat[e]={};
+        fs.forEach(function(f,i){ idxPorEstrat[e][f]=i+1; });
+      });
+      window.BLOQUES=idxPorEstrat;
+      POS.forEach(function(p){
+        if(!(p.esMia||p.vendida) || !p.compra || p.compra<lim) return;
+        var e=p.estrat||'?';
+        var idx=(idxPorEstrat[e]||{})[p.compra];
+        if(!idx) return;
+        if(!mesTrim[p.tk] || idx<mesTrim[p.tk]) mesTrim[p.tk]=idx;   // su primera entrada manda
       });
     })();
     function pinta(letra, contId, capId){
@@ -1336,11 +1353,13 @@ function updateCount(){
       var vistos={}, arr=[];
       POS.forEach(function(p){ if(p.estrat!==letra) return; if(vistos[p.tk]) return; vistos[p.tk]=true;
         var tr=(LIVE[p.tk]&&!isNaN(LIVE[p.tk].trim))?LIVE[p.tk].trim:NaN;
-        if(!isNaN(tr)) arr.push({tk:p.tk, v:tr}); });
+        // Si aún no trae Trim (recién comprada), se muestra igual con guion: no se esconde
+        if(isNaN(tr) && LIVE[p.tk] && !isNaN(LIVE[p.tk].mes)) tr=LIVE[p.tk].mes;
+        arr.push({tk:p.tk, v:tr, sinDato:isNaN(tr)}); });
       if(!arr.length){ cont.innerHTML=''; if(cap)cap.style.display='none'; return; }
       if(cap)cap.style.display='block';
-      arr.sort(function(a,b){return b.v-a.v;});
-      var mx=1; arr.forEach(function(x){ if(Math.abs(x.v)>mx)mx=Math.abs(x.v); });
+      arr.sort(function(a,b){return (isNaN(b.v)?-9999:b.v)-(isNaN(a.v)?-9999:a.v);});
+      var mx=1; arr.forEach(function(x){ if(!isNaN(x.v)&&Math.abs(x.v)>mx)mx=Math.abs(x.v); });
       function fpv(v){ return (v>=0?'+':'\u2212')+Math.abs(v).toFixed(1)+'%'; }
       var html='';
       arr.forEach(function(x){
@@ -1361,12 +1380,15 @@ function updateCount(){
                      : (enCartera[x.tk]?'<span class="am-own" title="La tengo en cartera">$</span>':'<span class="am-own off"></span>');
         // columna del precio de salida: dónde la vendí (amarillo) vs dónde va hoy (derecha)
         var salida = (vd&&!isNaN(vd.mio)) ? '<div class="am-sold">'+fpv(vd.mio)+'</div>' : '<div class="am-sold"></div>';
+        var val = x.sinDato ? '<div class="am-val" style="color:var(--dim2);font-size:10px">nueva</div>'
+                            : '<div class="am-val" style="color:'+(x.v>=0?'#4ade80':'#ff6b60')+'">'+fpv(x.v)+'</div>';
         html+='<div class="am-row'+(vd?' vend':'')+'">'+
-          '<div class="am-lbl tick" style="width:76px">'+mia+'<span class="tk"'+(vd?' style="color:#FFD426"':'')+'>'+x.tk+'</span>'+
-            (mesTrim[x.tk]>1?'<span class="mt-mark" title="Entr\u00f3 en el mes '+mesTrim[x.tk]+' del trimestre">'+mesTrim[x.tk]+'</span>':'')+'</div>'+
+          '<div class="am-own2">'+mia+'</div>'+
+          '<div class="am-tk2"><span class="tk"'+(vd?' style="color:#FFD426"':'')+'>'+x.tk+'</span></div>'+
+          '<div class="am-m2">'+(mesTrim[x.tk]>1?('<span class="mt-mark" title="Entr\u00f3 en la compra '+mesTrim[x.tk]+' del trimestre">C'+mesTrim[x.tk]+'</span>'):'')+'</div>'+
           salida+
           '<div class="am-track"><div class="am-zero"></div>'+bar+'</div>'+
-          '<div class="am-val" style="color:'+(x.v>=0?'#4ade80':'#ff6b60')+'">'+fpv(x.v)+'</div>'+
+          val+
           mmHtml+
         '</div>';
       });
@@ -1426,22 +1448,17 @@ function updateCount(){
     var yoQ=window.miRendEstrat('c'), yoS=window.miRendEstrat('s'), yoZ=window.miRendEstrat('z');
 
     var itemsQ=[
-      {lbl:'Chicas (Sm2.6 St22)', v:L.q_chicas, tag:'', key:'q_chicas'},
-      {lbl:'Viejas (Sm2.6 St22)', v:L.q_viejas, tag:'', key:'q_viejas'},
-      {lbl:'Strength 20 o más', v:L.q_str20, tag:'', key:'q_str20'},
-      {lbl:'Strength 22 o más', v:L.q_str22, tag:'', key:'q_str22'},
+      {lbl:'Mi selección', v:L.q_claude, tag:'mia', key:'q_claude'},
       {lbl:'8 mejores smart', v:L.q_8smart, tag:'', key:'q_8smart'},
-      {lbl:'Mi selección (industria)', v:L.q_claude, tag:'mia', key:'q_claude'},
-      {lbl:'Smart 2.6 o más', v:L.q_sm26, tag:'', key:'q_sm26'},
-      {lbl:'Smart 2.5 o más', v:L.q_sm25, tag:'', key:'q_sm25'},
       {lbl:'Todo el Cuant', v:L.q_trim, tag:'quant', key:'q_trim'}
     ];
     var itemsS=[
       {lbl:'Arranque 3.0 / 29', v:L.s_arranque, tag:'', key:'s_arranque'},
       {lbl:'Todo el Smart', v:L.s_trim, tag:'smart', key:'s_trim'},
-      {lbl:'Mi selección (industria)', v:L.s_claude, tag:'mia', key:'s_claude'}
+      {lbl:'Mi selección', v:L.s_claude, tag:'mia', key:'s_claude'}
     ];
     var itemsC=[
+      {lbl:'Mi selección', v:yoZ, tag:'mia', key:null},
       {lbl:'Todo el Chica', v:L.sem_trim, tag:'chica', key:'sem_trim'}
     ];
     // Escala compartida: el valor más extremo de las TRES estrategias
