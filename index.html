@@ -278,6 +278,7 @@
   .am-own{width:13px;flex:none;font-size:11px;font-weight:800;color:#4ade80;text-align:left}
   .am-row.vend{opacity:.9}
   .am-sold{width:46px;flex:none;text-align:right;font-size:10px;font-weight:800;color:#FFD426;padding-right:6px}
+  .mt-mark{font-size:7.5px;font-weight:700;color:var(--dim2);opacity:.6;vertical-align:super;margin-left:2px}
   .am-mm{display:flex;flex-direction:column;align-items:flex-end;justify-content:center;width:44px;flex:none;margin-left:6px;line-height:1.2}
   .am-mm-v{font-size:9.5px;font-weight:700;font-variant-numeric:tabular-nums}
   .an-sold{width:46px;flex:none;text-align:right;font-size:10px;font-weight:800;color:#FFD426;padding-right:6px}
@@ -602,7 +603,7 @@
   <div class="foot" id="anFoot">Desliza las manijas o usa los atajos · no es asesoría de inversión</div>
 </div>
 
-<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v145</div>
+<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v146</div>
 
 <div class="wrap view" id="viewBalance">
   <div class="st-hero">
@@ -869,7 +870,7 @@ function updateCount(){
   window.META = META;
 
   var got = { precios:false, hist:false, claude:false };
-  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-145";
+  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-146";
   var estado={precios:false,historial:false,claude:false};
   function pinta(){
     var chip=document.getElementById('liveChip'); if(!chip) return;
@@ -1306,6 +1307,21 @@ function updateCount(){
     }
     // acciones que SÍ tengo vigentes en cartera (monto>0 y sin fecha de venta)
     var enCartera={}; POS.forEach(function(p){ if(p.esMia) enCartera[p.tk]=true; });
+    // ¿En qué mes del trimestre entró cada acción? (1 = desde el arranque)
+    var mesTrim={};
+    (function(){
+      var hoy=new Date();
+      var qIniMes=Math.floor(hoy.getMonth()/3)*3;   // 0,3,6,9
+      POS.forEach(function(p){
+        if(!p.esMia || !p.compra) return;
+        var pp=String(p.compra).split('-'); if(pp.length!==3) return;
+        var m=parseInt(pp[1],10)-1, y=parseInt(pp[0],10);
+        if(y!==hoy.getFullYear()) return;
+        var idx=m-qIniMes+1;                        // 1, 2 o 3
+        if(idx<1||idx>3) return;
+        if(!mesTrim[p.tk] || idx<mesTrim[p.tk]) mesTrim[p.tk]=idx;  // la compra más antigua manda
+      });
+    })();
     function pinta(letra, contId, capId){
       var cont=document.getElementById(contId), cap=document.getElementById(capId);
       if(!cont) return;
@@ -1339,7 +1355,8 @@ function updateCount(){
         // columna del precio de salida: dónde la vendí (amarillo) vs dónde va hoy (derecha)
         var salida = (vd&&!isNaN(vd.mio)) ? '<div class="am-sold">'+fpv(vd.mio)+'</div>' : '<div class="am-sold"></div>';
         html+='<div class="am-row'+(vd?' vend':'')+'">'+
-          '<div class="am-lbl tick" style="width:76px">'+mia+'<span class="tk"'+(vd?' style="color:#FFD426"':'')+'>'+x.tk+'</span></div>'+
+          '<div class="am-lbl tick" style="width:76px">'+mia+'<span class="tk"'+(vd?' style="color:#FFD426"':'')+'>'+x.tk+'</span>'+
+            (mesTrim[x.tk]>1?'<span class="mt-mark" title="Entr\u00f3 en el mes '+mesTrim[x.tk]+' del trimestre">'+mesTrim[x.tk]+'</span>':'')+'</div>'+
           salida+
           '<div class="am-track"><div class="am-zero"></div>'+bar+'</div>'+
           '<div class="am-val" style="color:'+(x.v>=0?'#4ade80':'#ff6b60')+'">'+fpv(x.v)+'</div>'+
