@@ -602,7 +602,7 @@
   <div class="foot" id="anFoot">Desliza las manijas o usa los atajos · no es asesoría de inversión</div>
 </div>
 
-<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v144</div>
+<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v145</div>
 
 <div class="wrap view" id="viewBalance">
   <div class="st-hero">
@@ -869,7 +869,7 @@ function updateCount(){
   window.META = META;
 
   var got = { precios:false, hist:false, claude:false };
-  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-144";
+  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-145";
   var estado={precios:false,historial:false,claude:false};
   function pinta(){
     var chip=document.getElementById('liveChip'); if(!chip) return;
@@ -1054,10 +1054,16 @@ function updateCount(){
         var s=0,w=0; arr.forEach(function(p){s+=p.mio*p.monto;w+=p.monto;}); return w?s/w:0;
       }
       var yoQ=promEstrat('c'), yoS=promEstrat('s'), yoZ=promEstrat('z');
-      var alQ=(window.ALGO_MES_Q!=null&&!isNaN(window.ALGO_MES_Q))?window.ALGO_MES_Q:0;
-      var alS=(window.ALGO_MES_S!=null&&!isNaN(window.ALGO_MES_S))?window.ALGO_MES_S:0;
-      var alZ=(window.ALGO_MES_SEM!=null&&!isNaN(window.ALGO_MES_SEM))?window.ALGO_MES_SEM:0;
-      var hayZ=(POS.filter(function(p){return p.estrat==='z';}).length>0)||(window.ALGO_MES_SEM!=null&&!isNaN(window.ALGO_MES_SEM));
+      // Comparación pareja: MI trimestre (desde mi compra) contra el TRIMESTRE del algoritmo.
+      // Las chicas corren mensual, as\u00ed que para esa se usa el dato del mes.
+      function algoT(trim, mes){
+        if(trim!=null && !isNaN(trim)) return trim;
+        return (mes!=null && !isNaN(mes)) ? mes : 0;
+      }
+      var alQ=algoT(window.ALGO_TRIM_Q, window.ALGO_MES_Q);
+      var alS=algoT(window.ALGO_TRIM_S, window.ALGO_MES_S);
+      var alZ=(window.ALGO_MES_SEM!=null&&!isNaN(window.ALGO_MES_SEM))?window.ALGO_MES_SEM:algoT(window.ALGO_TRIM_SEM,0);
+      var hayZ=(POS.filter(function(p){return p.estrat==='z';}).length>0)||(window.ALGO_MES_SEM!=null&&!isNaN(window.ALGO_MES_SEM))||(window.ALGO_TRIM_SEM!=null&&!isNaN(window.ALGO_TRIM_SEM));
       var mx=Math.max(Math.abs(yoQ),Math.abs(yoS),Math.abs(alQ),Math.abs(alS),Math.abs(yoZ),Math.abs(alZ),1);
       function fpv(v){ return (v>=0?'+':'\u2212')+Math.abs(v).toFixed(1)+'%'; }
       function colv(v){ return v>=0?'#4ade80':'#ff6b60'; }
@@ -1079,8 +1085,8 @@ function updateCount(){
         return '<div class="yv-w">'+
           '<div class="yv-w-head"><span class="yv-w-dot" style="background:'+color+'"></span>'+
             '<span class="yv-w-name" style="color:'+color+'">'+nombre+'</span>'+chip+'</div>'+
-          linea('Tú', yo, color)+
-          linea('Algoritmo', algo, 'rgba(255,255,255,.28)')+
+          linea(nombre==='Chica'?'Tú (mes)':'Tú (trim)', yo, color)+
+          linea(nombre==='Chica'?'Algoritmo (mes)':'Algoritmo (trim)', algo, 'rgba(255,255,255,.28)')+
         '</div>';
       }
       yva.innerHTML=
