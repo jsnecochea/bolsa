@@ -611,7 +611,7 @@
   <div class="foot" id="anFoot">Desliza las manijas o usa los atajos · no es asesoría de inversión</div>
 </div>
 
-<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v154</div>
+<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v156</div>
 
 <div class="wrap view" id="viewBalance">
   <div class="st-hero">
@@ -878,7 +878,7 @@ function updateCount(){
   window.META = META;
 
   var got = { precios:false, hist:false, claude:false };
-  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-154";
+  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-156";
   var estado={precios:false,historial:false,claude:false};
   function pinta(){
     var chip=document.getElementById('liveChip'); if(!chip) return;
@@ -1754,6 +1754,9 @@ function updateCount(){
           if(!isNaN(px)&&!isNaN(ini)&&ini>0) spT=(px/ini-1)*100;
         }
         window.SP_TRIM=spT;
+        window.SP_DIAG='sp500='+(window.ESPEJO&&window.ESPEJO['sp500']!==undefined?window.ESPEJO['sp500']:'NO EXISTE')+
+                       ' · ini='+(window.ESPEJO&&window.ESPEJO['sp500_ini_trim']!==undefined?window.ESPEJO['sp500_ini_trim']:'NO EXISTE')+
+                       ' · trim='+(window.ESPEJO&&window.ESPEJO['sp500_trim']!==undefined?window.ESPEJO['sp500_trim']:'no');
         var e=document.getElementById('hSpTrim');
         if(e){
           if(isNaN(spT)){ e.textContent='—'; }
@@ -2135,12 +2138,17 @@ function updateCount(){
     return (window.META&&window.META[tk])?window.META[tk][1]:null;
   }
 
+  function estratDe(tk){
+    // La estrategia real la manda TU espejo; META es solo respaldo para tickers viejos
+    if(window.ESTRAT_MAP && window.ESTRAT_MAP[tk]) return window.ESTRAT_MAP[tk];
+    return metaStrat(tk);
+  }
   function tickersDe(rec, strat){
     if(strat==="algo") return Object.keys(rec.algo||{});
     var ks=Object.keys(rec.mias||{});
-    if(strat==="quant") return ks.filter(function(t){return metaStrat(t)==="c";});
-    if(strat==="smart") return ks.filter(function(t){return metaStrat(t)==="s";});
-    if(strat==="chica") return ks.filter(function(t){return metaStrat(t)==="z";});
+    if(strat==="quant") return ks.filter(function(t){return estratDe(t)==="c";});
+    if(strat==="smart") return ks.filter(function(t){return estratDe(t)==="s";});
+    if(strat==="chica") return ks.filter(function(t){return estratDe(t)==="z";});
     return ks; // cartera
   }
   function valDe(rec, strat, tk){ return strat==="algo" ? (rec.algo?rec.algo[tk]:NaN) : (rec.mias?rec.mias[tk]:NaN); }
@@ -2195,7 +2203,7 @@ function updateCount(){
     }
     function movStrat(strat){ var a=campo(strat,recA), b=campo(strat,recB); return (isNaN(a)||isNaN(b))?NaN:(b-a); }
 
-    var lblMap={cartera:'Mi cartera',quant:'Quant',smart:'Smart',chica:'Chica',algo:'Algoritmo'};
+    var lblMap={cartera:'Mi cartera',quant:'Quant',smart:'Smart',chica:'Chica',algo:'Algoritmo (todas)'};
     var mainVal=movStrat(stratSel);
     var mainEl=document.getElementById('anMainVal');
     mainEl.textContent=fp(mainVal); mainEl.style.color = (isNaN(mainVal)||mainVal>=0)?'#4ade80':'#ff5a5a';
