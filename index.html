@@ -612,7 +612,7 @@
   <div class="foot" id="anFoot">Desliza las manijas o usa los atajos · no es asesoría de inversión</div>
 </div>
 
-<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v161</div>
+<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v162</div>
 
 <div class="wrap view" id="viewBalance">
   <div class="st-hero">
@@ -879,7 +879,7 @@ function updateCount(){
   window.META = META;
 
   var got = { precios:false, hist:false, claude:false };
-  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-161";
+  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-162";
   var estado={precios:false,historial:false,claude:false};
   function pinta(){
     var chip=document.getElementById('liveChip'); if(!chip) return;
@@ -1672,6 +1672,7 @@ function updateCount(){
         var rr2=rows[pr]; if(!rr2) continue;
         var tk2=(rr2[cTk]||"").split(" ")[0].replace(/[^A-Za-z]/g,"").toUpperCase();
         if(!/^[A-Z]{1,6}$/.test(tk2)) continue;
+        if(/^(TICKER|TICKERS|ACCION|ACCIONES|SIMBOLO|SYMBOL|CLAVE|EMISORA|TOTAL|SUMA)$/.test(tk2)) continue;
         var ev2=(rr2[cEstrat]||"").trim().toLowerCase();
         var e2=null;
         if(ev2==="quant"||ev2==="cuant"||ev2==="q"||ev2==="c") e2="c";
@@ -1690,6 +1691,8 @@ function updateCount(){
       var raw=(r[cTk]||"").trim(); if(!raw) continue;
       var tk=raw.split(" ")[0].replace(/[^A-Za-z]/g,"").toUpperCase(); // tolera "AXTI. C"
       if(!/^[A-Z]{1,6}$/.test(tk)) continue;
+      // Palabras de encabezado que pasan como ticker válido: no son acciones
+      if(/^(TICKER|TICKERS|ACCION|ACCIONES|SIMBOLO|SYMBOL|CLAVE|EMISORA|TOTAL|SUMA)$/.test(tk)) continue;
       LIVE[tk]=LIVE[tk]||{};
       var fcIso=null;
       if(cCompra>=0){
@@ -1850,6 +1853,8 @@ function updateCount(){
       var raw=(r[iAcc]||"").trim(); if(!raw) continue;
       var tk=raw.split(" ")[0].replace(/[^A-Za-z]/g,"").toUpperCase(); // tolera "AXTI. C"
       if(!/^[A-Z]{1,6}$/.test(tk)) continue;
+      // Palabras de encabezado que pasan como ticker válido: no son acciones
+      if(/^(TICKER|TICKERS|ACCION|ACCIONES|SIMBOLO|SYMBOL|CLAVE|EMISORA|TOTAL|SUMA)$/.test(tk)) continue;
       var sm=(iSm>=0?num(r[iSm]):NaN), st=(iSt>=0?num(r[iSt]):NaN);
       if(isNaN(sm)&&isNaN(st)) continue;
       var fe=(iFe>=0?(r[iFe]||"").trim():"");
