@@ -614,7 +614,7 @@
   <div class="foot" id="anFoot">Desliza las manijas o usa los atajos · no es asesoría de inversión</div>
 </div>
 
-<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v166</div>
+<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v167</div>
 
 <div class="wrap view" id="viewBalance">
   <div class="st-hero">
@@ -881,7 +881,7 @@ function updateCount(){
   window.META = META;
 
   var got = { precios:false, hist:false, claude:false };
-  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-166";
+  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-167";
   var estado={precios:false,historial:false,claude:false};
   function pinta(){
     var chip=document.getElementById('liveChip'); if(!chip) return;
@@ -1329,6 +1329,7 @@ function updateCount(){
       dg.textContent='diag · REND:'+R.length+' regs · con algo:'+conAlgo+' · '+f1+' a '+f2+
         ' · tickers con mín/máx:'+Object.keys(MM).length+
         (window.SIN_ESTRAT&&Object.keys(window.SIN_ESTRAT).length ? (' · \u26A0 SIN ESTRATEGIA: '+Object.keys(window.SIN_ESTRAT).join(',')) : '');
+      dg.textContent+=' \u00b7 VEND['+((window.DIAG_VEND||[]).join(' ')||'-')+']';
     }
     // acciones que SÍ tengo vigentes en cartera (monto>0 y sin fecha de venta)
     var enCartera={}; POS.forEach(function(p){ if(p.esMia) enCartera[p.tk]=true; });
@@ -1707,7 +1708,7 @@ function updateCount(){
     var shotsDetectadas={};
     window.POSICIONES=[];
     window.ESTRAT_MAP={};
-    window.VENDIDAS={}; window.VENDIDAS_ALL={};
+    window.VENDIDAS={}; window.VENDIDAS_ALL={}; window.DIAG_VEND=[];
     for(var i=0;i<rows.length;i++){
       var r=rows[i]; if(!r) continue;
       var raw=(r[cTk]||"").trim(); if(!raw) continue;
@@ -1763,9 +1764,14 @@ function updateCount(){
         var mtRaw=(cMotivo>=0?(r[cMotivo]||"").trim().toUpperCase():"");
         var mt=/^C/.test(mtRaw)?"C":(/^M/.test(mtRaw)?"M":"");
         if(!mt){
-          var resto=raw.slice((raw.split(" ")[0]||"").length).replace(/[^A-Za-z]/g,"").toUpperCase();
-          mt = /C/.test(resto) ? "C" : "M";
+          // La marca debe ser una "C" SUELTA despues del ticker ("AXTI. C"), no una C
+          // que venga dentro de alguna palabra. Si no hay marca: rotacion de mes.
+          var partes=raw.split(/[\s.,;:\-]+/).filter(function(t){return t;});
+          var marca=partes.slice(1).some(function(t){ return t.toUpperCase()==="C"; });
+          mt = marca ? "C" : "M";
         }
+        window.DIAG_VEND=window.DIAG_VEND||[];
+        window.DIAG_VEND.push(tk+':\u00ab'+raw+'\u00bb\u2192'+mt);
         var reg={mio:pMio, fecha:ventaCel, viva:mioVivo, motivo:mt, monto:pMonto};
         window.VENDIDAS=window.VENDIDAS||{}; window.VENDIDAS[tk]=reg;
         // cada shot vendido es una posicion distinta: se guardan TODOS
