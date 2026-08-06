@@ -612,7 +612,7 @@
   <div class="foot" id="anFoot">Desliza las manijas o usa los atajos · no es asesoría de inversión</div>
 </div>
 
-<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v160</div>
+<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v161</div>
 
 <div class="wrap view" id="viewBalance">
   <div class="st-hero">
@@ -879,7 +879,7 @@ function updateCount(){
   window.META = META;
 
   var got = { precios:false, hist:false, claude:false };
-  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-160";
+  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-161";
   var estado={precios:false,historial:false,claude:false};
   function pinta(){
     var chip=document.getElementById('liveChip'); if(!chip) return;
@@ -1460,17 +1460,19 @@ function updateCount(){
     var yoQ=window.miRendEstrat('c'), yoS=window.miRendEstrat('s'), yoZ=window.miRendEstrat('z');
 
     var itemsQ=[
-      {lbl:'Mi selección', v:L.q_claude, tag:'mia', key:'q_claude'},
+      {lbl:'Mi rendimiento', v:yoQ, tag:'mia', key:null},
+      {lbl:'Selección industria', v:L.q_claude, tag:'', key:'q_claude'},
       {lbl:'8 mejores smart', v:L.q_8smart, tag:'', key:'q_8smart'},
       {lbl:'Todo el Cuant', v:L.q_trim, tag:'quant', key:'q_trim'}
     ];
     var itemsS=[
       {lbl:'Arranque 3.0 / 29', v:L.s_arranque, tag:'', key:'s_arranque'},
       {lbl:'Todo el Smart', v:L.s_trim, tag:'smart', key:'s_trim'},
-      {lbl:'Mi selección', v:L.s_claude, tag:'mia', key:'s_claude'}
+      {lbl:'Mi rendimiento', v:yoS, tag:'mia', key:null},
+      {lbl:'Selección industria', v:L.s_claude, tag:'', key:'s_claude'}
     ];
     var itemsC=[
-      {lbl:'Mi selección', v:yoZ, tag:'mia', key:null},
+      {lbl:'Mi rendimiento', v:yoZ, tag:'mia', key:null},
       {lbl:'Todo el Chica', v:L.sem_trim, tag:'chica', key:'sem_trim'}
     ];
     // Escala compartida: el valor más extremo de las TRES estrategias
