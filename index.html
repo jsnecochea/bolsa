@@ -614,7 +614,7 @@
   <div class="foot" id="anFoot">Desliza las manijas o usa los atajos · no es asesoría de inversión</div>
 </div>
 
-<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v167</div>
+<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v168</div>
 
 <div class="wrap view" id="viewBalance">
   <div class="st-hero">
@@ -881,7 +881,7 @@ function updateCount(){
   window.META = META;
 
   var got = { precios:false, hist:false, claude:false };
-  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-167";
+  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-168";
   var estado={precios:false,historial:false,claude:false};
   function pinta(){
     var chip=document.getElementById('liveChip'); if(!chip) return;
@@ -1766,8 +1766,9 @@ function updateCount(){
         if(!mt){
           // La marca debe ser una "C" SUELTA despues del ticker ("AXTI. C"), no una C
           // que venga dentro de alguna palabra. Si no hay marca: rotacion de mes.
-          var partes=raw.split(/[\s.,;:\-]+/).filter(function(t){return t;});
-          var marca=partes.slice(1).some(function(t){ return t.toUpperCase()==="C"; });
+          // Se parte tambien por comillas: acepta  AXTI C  /  AXTI. "C"  /  AXTI"C"
+          var partes=raw.split(/[\s.,;:\-"'\u00ab\u00bb\u201c\u201d\u2018\u2019]+/).filter(function(t){return t;});
+          var marca=partes.slice(1).some(function(t){ return t.replace(/[^A-Za-z]/g,"").toUpperCase()==="C"; });
           mt = marca ? "C" : "M";
         }
         window.DIAG_VEND=window.DIAG_VEND||[];
