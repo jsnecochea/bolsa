@@ -286,7 +286,9 @@
   .am-val{width:58px;flex:none;text-align:right;font-size:13px;font-weight:700}
   .am-own{width:12px;flex:none;font-size:11px;font-weight:800;color:#4ade80;text-align:center;line-height:1}
   .am-row.vend{opacity:.9}
-  .am-sold{width:46px;flex:none;text-align:right;font-size:10px;font-weight:800;color:#FFD426;padding-right:6px}
+  .am-sold{width:46px;flex:none;text-align:right;font-size:10px;font-weight:800;color:#FFD426;padding-right:2px}
+  .am-hold{width:46px;flex:none;text-align:right;font-size:10px;font-weight:700;padding-right:6px;opacity:.85}
+  .am-why{width:11px;flex:none;text-align:center;font-size:9.5px;font-weight:900;line-height:1}
   .mt-mark{font-size:8px;font-weight:700;color:var(--dim2);opacity:.7}
   .am-mm{display:flex;flex-direction:column;align-items:flex-end;justify-content:center;width:44px;flex:none;margin-left:6px;line-height:1.2}
   .am-mm-v{font-size:9.5px;font-weight:700;font-variant-numeric:tabular-nums}
@@ -612,7 +614,7 @@
   <div class="foot" id="anFoot">Desliza las manijas o usa los atajos · no es asesoría de inversión</div>
 </div>
 
-<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v162</div>
+<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v165</div>
 
 <div class="wrap view" id="viewBalance">
   <div class="st-hero">
@@ -879,7 +881,7 @@ function updateCount(){
   window.META = META;
 
   var got = { precios:false, hist:false, claude:false };
-  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-162";
+  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-165";
   var estado={precios:false,historial:false,claude:false};
   function pinta(){
     var chip=document.getElementById('liveChip'); if(!chip) return;
@@ -1392,13 +1394,24 @@ function updateCount(){
                      : (enCartera[x.tk]?'<span class="am-own" title="La tengo en cartera">$</span>':'<span class="am-own off"></span>');
         // columna del precio de salida: dónde la vendí (amarillo) vs dónde va hoy (derecha)
         var salida = (vd&&!isNaN(vd.mio)) ? '<div class="am-sold">'+fpv(vd.mio)+'</div>' : '<div class="am-sold"></div>';
+        // motivo de la venta: C = cambio de rating a C, M = rotacion de mes
+        var why='<div class="am-why"></div>';
+        if(vd&&vd.motivo==='C') why='<div class="am-why" style="color:#ff6b60" title="Vendida porque cambi\u00f3 a rating C">C</div>';
+        else if(vd&&vd.motivo==='M') why='<div class="am-why" style="color:#BF5AF2" title="Vendida por rotaci\u00f3n de mes">M</div>';
+        // que iria HOY si NO la hubiera vendido: mide el acierto de la salida
+        var hold='<div class="am-hold"></div>';
+        if(vd && !isNaN(vd.viva) && (isNaN(vd.mio) || Math.abs(vd.viva-vd.mio)>=0.05)){
+          hold='<div class="am-hold" style="color:'+(vd.viva>=0?'#4ade80':'#ff6b60')+'" title="Lo que ir\u00eda hoy si NO la hubiera vendido">'+fpv(vd.viva)+'</div>';
+        }
         var val = x.sinDato ? '<div class="am-val" style="color:var(--dim2);font-size:10px">nueva</div>'
                             : '<div class="am-val" style="color:'+(x.v>=0?'#4ade80':'#ff6b60')+'">'+fpv(x.v)+'</div>';
         html+='<div class="am-row'+(vd?' vend':'')+'">'+
           '<div class="am-own2">'+mia+'</div>'+
           '<div class="am-tk2"><span class="tk"'+(vd?' style="color:#FFD426"':'')+'>'+x.tk+'</span></div>'+
+          why+
           '<div class="am-m2">'+(mesTrim[x.tk]>1?('<span class="mt-mark" title="Entr\u00f3 en la compra '+mesTrim[x.tk]+' del trimestre">C'+mesTrim[x.tk]+'</span>'):'')+'</div>'+
           salida+
+          hold+
           '<div class="am-track"><div class="am-zero"></div>'+bar+'</div>'+
           val+
           mmHtml+
@@ -1645,7 +1658,7 @@ function updateCount(){
       }
     })();
     // Ubicar columnas del bloque de acciones por su encabezado (Ticker/Trim/Mes/Mío)
-    var cTk=-1,cTrim=-1,cMes=-1,cMio=-1,cCompra=-1,cMonto=-1,cEstrat=-1,cVenta=-1,cMioV=-1,cAct=-1;
+    var cTk=-1,cTrim=-1,cMes=-1,cMio=-1,cCompra=-1,cMonto=-1,cEstrat=-1,cVenta=-1,cMioV=-1,cAct=-1,cMotivo=-1;
     for(var hr=0; hr<rows.length && cTk<0; hr++){
       var hh=rows[hr]||[];
       for(var hc=0; hc<hh.length; hc++){
@@ -1659,9 +1672,10 @@ function updateCount(){
         else if(v==="estrategia"||v==="estrat"){ cEstrat=hc; }
         else if(v==="venta"){ cVenta=hc; }
         else if(/vend/.test(v) && /(rend|m[ií]o)/.test(v)){ cMioV=hc; } // "mi rendimiento al vender", "rend al vender", etc.
+        else if(v==="motivo"||v==="motivo venta"||v==="por que"||v==="por qu\u00e9"){ cMotivo=hc; }
         else if(v==="actualizado"||v==="hora"){ cAct=hc; }
       }
-      if(cTk<0){ cTrim=cMes=cMio=cCompra=cMonto=cEstrat=cVenta=cMioV=cAct=-1; } // no era la fila correcta
+      if(cTk<0){ cTrim=cMes=cMio=cCompra=cMonto=cEstrat=cVenta=cMioV=cAct=cMotivo=-1; } // no era la fila correcta
     }
     window.DIAG_COLS='tk:'+cTk+' compra:'+cCompra+' venta:'+cVenta+' monto:'+cMonto+' mio:'+cMio+' estrat:'+cEstrat+' vender:'+cMioV;
     if(cTk<0){ cTk=17; cTrim=18; cMes=19; cMio=20; } // respaldo a posición vieja
@@ -1713,6 +1727,7 @@ function updateCount(){
       var esMia=comprada&&!esFechaVenta;   // vigente: sigue cotizando
       var vendida=comprada&&esFechaVenta;  // cerrada: rendimiento congelado al vender
       // Si ya se vendió, el rendimiento REAL es el de la columna "al vender" (congelado), no el de precio en vivo
+      var mioVivo=pMio;   // lo que iria HOY si no la hubiera vendido (columna Mio, formula viva)
       if(vendida && cMioV>=0){
         var mv=num(r[cMioV]);
         if(!isNaN(mv)) pMio=mv;
@@ -1733,7 +1748,18 @@ function updateCount(){
         if(!pEstrat){ window.SIN_ESTRAT=window.SIN_ESTRAT||{}; window.SIN_ESTRAT[tk]=true; pEstrat="c"; }
       }
       window.ESTRAT_MAP=window.ESTRAT_MAP||{}; window.ESTRAT_MAP[tk]=pEstrat;
-      if(vendida){ window.VENDIDAS=window.VENDIDAS||{}; window.VENDIDAS[tk]={mio:pMio, fecha:ventaCel}; }
+      if(vendida){
+        // Motivo de la venta. 1) columna "motivo" si existe. 2) si no, la marca en el propio
+        // ticker: el usuario escribe "AXTI. C" cuando la vendio por cambio a rating C.
+        // Vendida sin marca = rotacion de mes.
+        var mtRaw=(cMotivo>=0?(r[cMotivo]||"").trim().toUpperCase():"");
+        var mt=/^C/.test(mtRaw)?"C":(/^M/.test(mtRaw)?"M":"");
+        if(!mt){
+          var resto=raw.slice((raw.split(" ")[0]||"").length).replace(/[^A-Za-z]/g,"").toUpperCase();
+          mt = /C/.test(resto) ? "C" : "M";
+        }
+        window.VENDIDAS=window.VENDIDAS||{}; window.VENDIDAS[tk]={mio:pMio, fecha:ventaCel, viva:mioVivo, motivo:mt};
+      }
       if(cAct>=0 && !window.ESPEJO_ACT){ var av=(r[cAct]||"").trim(); if(av) window.ESPEJO_ACT=av; }
       // cada renglón = una posición (shot) independiente
       window.POSICIONES.push({tk:tk, compra:fcIso, trim:pTrim, mes:pMes, mio:pMio, monto:pMonto, estrat:pEstrat, esMia:esMia, vendida:vendida, venta:ventaCel});
