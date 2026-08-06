@@ -25,6 +25,7 @@
   .duel-hero{position:relative;z-index:1;display:flex;gap:10px}
   .dh-col{flex:1;min-width:0}
   .pct .sg{font-size:.58em;font-weight:600;letter-spacing:0;margin-right:.02em;vertical-align:.14em}
+  .pct .pc{font-size:.5em;font-weight:600;letter-spacing:0;margin-left:.04em;vertical-align:.42em}
   .pct{font-size:52px;font-weight:700;letter-spacing:-0.04em;line-height:.9;background:linear-gradient(180deg,#fff,#7ee89f);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
   .pct.algo{background:linear-gradient(180deg,#ffd9d5,#ff4d42);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
   .pct.neg{background:linear-gradient(180deg,#ffd9d5,#ff4d42);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
@@ -611,7 +612,7 @@
   <div class="foot" id="anFoot">Desliza las manijas o usa los atajos · no es asesoría de inversión</div>
 </div>
 
-<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v156</div>
+<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v160</div>
 
 <div class="wrap view" id="viewBalance">
   <div class="st-hero">
@@ -878,7 +879,7 @@ function updateCount(){
   window.META = META;
 
   var got = { precios:false, hist:false, claude:false };
-  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-156";
+  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-160";
   var estado={precios:false,historial:false,claude:false};
   function pinta(){
     var chip=document.getElementById('liveChip'); if(!chip) return;
@@ -892,7 +893,7 @@ function updateCount(){
     else { chip.style.color='#ff8079'; chip.textContent='sin conexión'; }
   }
 
-  function fmtPct(v){ return '<span class="sg">'+(v>=0?'+':'\u2212')+'</span>'+Math.abs(v).toFixed(1)+'%'; }
+  function fmtPct(v){ return '<span class="sg">'+(v>=0?'+':'\u2212')+'</span>'+Math.abs(v).toFixed(1)+'<span class="pc">%</span>'; }
   function fmtPct2(v){ return (v>=0?'+':'\u2212')+Math.abs(v).toFixed(2)+'%'; }
 
 
@@ -1057,10 +1058,16 @@ function updateCount(){
     // --- Yo vs algoritmo (rendimiento mío ponderado por monto, por estrategia) ---
     var yva=document.getElementById('yvaList');
     if(yva){
+      window.DIAG_ESTRAT=window.DIAG_ESTRAT||{};
+      function letraDe(n){ return n==='Quant'?'c':(n==='Smart'?'s':'z'); }
       function promEstrat(letra){
-        var arr=POS.filter(function(p){return p.estrat===letra && !isNaN(p.mio) && !isNaN(p.monto) && p.monto>0;});
+        var todas=POS.filter(function(p){return p.estrat===letra && !isNaN(p.monto) && p.monto>0;});
+        var arr=todas.filter(function(p){return !isNaN(p.mio);});
+        var fuera=todas.filter(function(p){return isNaN(p.mio);}).map(function(p){return p.tk;});
+        var s=0,w=0; arr.forEach(function(p){s+=p.mio*p.monto;w+=p.monto;});
+        window.DIAG_ESTRAT[letra]={n:arr.length, cap:w, ganado:Math.round(s/100), fuera:fuera};
         if(!arr.length) return 0;
-        var s=0,w=0; arr.forEach(function(p){s+=p.mio*p.monto;w+=p.monto;}); return w?s/w:0;
+        return w?s/w:0;
       }
       var yoQ=promEstrat('c'), yoS=promEstrat('s'), yoZ=promEstrat('z');
       // Comparación pareja: MI trimestre (desde mi compra) contra el TRIMESTRE del algoritmo.
@@ -1096,6 +1103,11 @@ function updateCount(){
             '<span class="yv-w-name" style="color:'+color+'">'+nombre+'</span>'+chip+'</div>'+
           linea('Tú (trim)', yo, color)+
           linea('Algoritmo (trim)', algo, 'rgba(255,255,255,.28)')+
+          (function(){ var d=window.DIAG_ESTRAT&&window.DIAG_ESTRAT[letraDe(nombre)];
+            if(!d) return '';
+            return '<div style="font-size:8.5px;color:#6b6b78;margin-top:4px">'+d.n+' pos · $'+
+              d.cap.toLocaleString('es-MX')+' · '+(d.ganado>=0?'+':'')+'$'+d.ganado.toLocaleString('es-MX')+
+              (d.fuera.length?(' · FUERA: '+d.fuera.join(',')):'')+'</div>'; })()+
         '</div>';
       }
       yva.innerHTML=
@@ -1548,7 +1560,14 @@ function updateCount(){
         var vEl=document.getElementById('hVend');
         if(vEl){ vEl.innerHTML = capVend>0 ? ('&#128274; $'+Math.round(capVend).toLocaleString('es-MX')+' ya vendido') : ''; }
         var dg=document.getElementById('hDiag');
-        if(dg){ dg.textContent='diag · vig:'+n+' · vend:'+nVend+' · sin dato:'+sinDato+' · inv:'+Math.round(invVigente).toLocaleString('es-MX')+' · cap:'+Math.round(capTotal).toLocaleString('es-MX')+' · prom:'+avg.toFixed(2)+'% · espejo:'+(window.ESPEJO_ACT||'sin col'); }
+        if(dg){ dg.textContent='diag · vig:'+n+' · vend:'+nVend+' · sin dato:'+sinDato+
+          ' · inv:'+Math.round(invVigente).toLocaleString('es-MX')+
+          ' · cap:'+Math.round(capTotal).toLocaleString('es-MX')+
+          ' · prom:'+avg.toFixed(2)+'%'+
+          ' · fuente:'+(window.FUENTE_DATOS||'?')+
+          ' | ETIQ:'+(window.ESPEJO?Object.keys(window.ESPEJO).length:0)+
+          ' | ALGO '+(window.SP_DIAG_ALGO||'?')+
+          ' | SP '+(window.SP_DIAG||'?'); }
         actualizarMovers();
       }
       try{ generaAlertas(); }catch(e){ console.log("alertas err",e); }
@@ -1733,7 +1752,11 @@ function updateCount(){
     // Algoritmo desde columna W (índice 22): filas 2-5 (rows[1]..rows[4])
     try{
       var aMesQ=esp('algo_mes_quant'), aMesS=esp('algo_mes_smart');
-      var aTrimQ=esp('algo_trim_quant'), aTrimS=esp('algo_trim_smart');
+      // Trimestral del algoritmo: se aceptan varios nombres de etiqueta, y si no hay, se usa el mes
+      function primeroValido(){ for(var i=0;i<arguments.length;i++){ var v=arguments[i]; if(v!=null&&!isNaN(v)) return v; } return NaN; }
+      var aTrimQ=primeroValido(esp('algo_trim_quant'), esp('q_trim'), esp('quant_trim'));
+      var aTrimS=primeroValido(esp('algo_trim_smart'), esp('s_trim'), esp('smart_trim'));
+      window.SP_DIAG_ALGO='trimQ='+(isNaN(aTrimQ)?'NO':aTrimQ)+' trimS='+(isNaN(aTrimS)?'NO':aTrimS);
       if(!isNaN(aMesQ)&&!isNaN(aMesS)){
         var algoMes=(aMesQ+aMesS)/2;
         window.ALGO_MES_LIVE=algoMes; // el mes se conserva por si se ocupa en otras vistas
@@ -1744,6 +1767,9 @@ function updateCount(){
         var el=document.getElementById('hAlgo'); if(el) el.innerHTML=fmtPct(algoTrim); // arriba: TRIMESTRE
         window.ALGO_TRIM_LIVE=algoTrim; window.ALGO_TRIM_Q=aTrimQ; window.ALGO_TRIM_S=aTrimS;
         if(window.pintarActualAlgo) window.pintarActualAlgo();
+      } else if(window.ALGO_MES_LIVE!=null && !isNaN(window.ALGO_MES_LIVE)){
+        var el2=document.getElementById('hAlgo'); if(el2) el2.innerHTML=fmtPct(window.ALGO_MES_LIVE); // respaldo: mes
+        window.SP_DIAG_ALGO+=' (usando MES, falta trimestral)';
       }
       var semTrim=esp('sem_trim'); if(!isNaN(semTrim)){ window.ALGO_TRIM_SEM=semTrim; }
       // Benchmark: S&P 500 en lo que va del trimestre (etiqueta sp500_trim del espejo)
