@@ -186,7 +186,9 @@
   .an-handle{position:absolute;top:4px;width:26px;height:26px;border-radius:50%;background:#12121a;border:2px solid #3aa0ff;transform:translateX(-50%);cursor:grab;touch-action:none;box-shadow:0 2px 8px rgba(0,0,0,.5);z-index:5}
   .an-bubble{position:absolute;top:-14px;transform:translateX(-50%);background:#fff;color:#000;font-size:10px;font-weight:600;padding:2px 6px;border-radius:4px;white-space:nowrap;display:none}
   .an-row{display:flex;align-items:center;gap:8px;margin-bottom:11px}
-  .an-tk{width:44px;font-size:12px;font-weight:600}
+  .an-tk{width:46px;font-size:12px;font-weight:600;flex:none}
+  .an-dot{width:17px;flex:none;display:flex;align-items:center}
+  .an-lk{width:14px;flex:none;text-align:center;font-size:9px;color:#FFD426}
   .an-track{flex:1;position:relative;height:16px}
   .an-zero{position:absolute;left:50%;top:0;bottom:0;width:1px;background:rgba(255,255,255,.18)}
   .an-bar{position:absolute;top:2px;height:12px}
@@ -372,7 +374,6 @@
       <div class="stat"><div class="s-lbl">Invertido</div><div class="s-val" id="hInv">&mdash;</div><div id="hVend" style="font-size:9.5px;color:#FFD426;font-weight:700;margin-top:3px"></div></div>
       <div class="stat"><div class="s-lbl">Acciones</div><div class="s-val" id="hPos">&mdash;</div><div id="hPosSub" style="font-size:9.5px;color:var(--dim2);font-weight:600;margin-top:3px"></div></div>
     </div>
-    <div id="hDiag" style="font-size:9px;color:#6b6b78;text-align:center;margin-top:6px;font-variant-numeric:tabular-nums"></div>
     <div class="strip">
       <div class="pill-card"><div class="pulse" id="mktPulse"></div><div><div class="pc-lbl">Mercado</div><div class="pc-val" id="mktVal">&mdash;</div><div id="mktDist" style="font-size:9.5px;color:var(--dim2);font-weight:600;margin-top:1px"></div></div></div>
       <div class="pill-card"><div><div class="pc-lbl">Días para rotar</div><div class="pc-val" id="hDiasRot">&mdash;</div><div id="hDiasSub" style="font-size:9.5px;color:var(--dim2);font-weight:600;margin-top:1px"></div></div></div>
@@ -387,12 +388,9 @@
     <div id="yvaList"></div>
   </div>
 
-  <div class="rk-card">
-    <h3>Todas mis acciones desde mi compra</h3>
-    <div class="rk-top" style="margin-bottom:14px">
-      <div class="rk-name" style="font-size:15px" id="allMineCount">&mdash;</div>
-      <div class="rk-tag"><span class="dv-dot c" style="width:13px;height:13px">Q</span> Quant &nbsp; <span class="dv-dot s" style="width:13px;height:13px">S</span> Smart &nbsp; <span class="dv-dot z" style="width:13px;height:13px">C</span> Chica</div>
-    </div>
+  <!-- Desglose por accion: vive en la pestana Estrategias -->
+  <div style="display:none">
+    <div id="allMineCount"></div>
     <div id="allMineList"></div>
   </div>
 
@@ -422,7 +420,6 @@
   </div>
 
   <div id="labTrims" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:4px;"></div>
-  <div id="labDiag" style="font-size:9.5px;color:#6b6b78;margin:2px 0 6px;font-variant-numeric:tabular-nums"></div>
 
   <div class="rk-card">
     <div class="rk-top"><div class="rk-name q">Quant</div><div class="rk-tag">trimestre</div></div>
@@ -481,7 +478,6 @@
   <div style="display:flex;gap:14px;margin-bottom:10px;flex-wrap:wrap;font-size:11.5px;color:var(--dim);font-weight:600">
     <span style="display:flex;align-items:center;gap:5px"><span style="width:14px;height:3px;border-radius:2px;background:#ff6b60"></span>Algoritmo</span>
     <span style="display:flex;align-items:center;gap:5px"><span style="width:14px;height:3px;border-radius:2px;background:#0A84FF"></span>Quant</span>
-    <span style="display:flex;align-items:center;gap:5px"><span style="width:14px;height:3px;border-radius:2px;background:#00C7BE"></span>Smart</span>
     <span style="display:flex;align-items:center;gap:5px"><span style="width:14px;height:3px;border-radius:2px;background:#BF5AF2"></span>Chica</span>
   </div>
   <div id="histChart2"></div>
@@ -502,7 +498,7 @@
         <div class="sc-v"><div class="sc-l">Mín</div><div class="sc-n down" id="qMin">—</div></div>
       </div>
     </div>
-    <div class="strat-card" style="--acc:#00C7BE">
+    <div class="strat-card" style="--acc:#00C7BE;display:none">
       <div class="sc-name"><span class="sc-dot"></span>Smart</div>
       <div class="sc-vals">
         <div class="sc-v"><div class="sc-l">Máx</div><div class="sc-n up" id="sMax">—</div></div>
@@ -614,7 +610,7 @@
   <div class="foot" id="anFoot">Desliza las manijas o usa los atajos · no es asesoría de inversión</div>
 </div>
 
-<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v173</div>
+<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v177</div>
 
 <div class="wrap view" id="viewBalance">
   <div class="st-hero">
@@ -880,7 +876,7 @@ function updateCount(){
   window.META = META;
 
   var got = { precios:false, hist:false, claude:false };
-  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-173";
+  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-177";
   var estado={precios:false,historial:false,claude:false};
   function pinta(){
     var chip=document.getElementById('liveChip'); if(!chip) return;
@@ -1329,17 +1325,6 @@ function updateCount(){
   window.dibujarAccEstrat=function(){
     var POS=window.POSICIONES||[];
     var MM=window.accMinMax();
-    var dg=document.getElementById('labDiag');
-    if(dg){
-      var R=window.REND||[];
-      var conAlgo=R.filter(function(x){return x.algo&&Object.keys(x.algo).length;}).length;
-      var f1=R.length?R[0].fecha:'-', f2=R.length?R[R.length-1].fecha:'-';
-      var ej=Object.keys(MM)[0];
-      dg.textContent='diag · REND:'+R.length+' regs · con algo:'+conAlgo+' · '+f1+' a '+f2+
-        ' · tickers con mín/máx:'+Object.keys(MM).length+
-        (window.SIN_ESTRAT&&Object.keys(window.SIN_ESTRAT).length ? (' · \u26A0 SIN ESTRATEGIA: '+Object.keys(window.SIN_ESTRAT).join(',')) : '');
-      dg.textContent+=' \u00b7 VEND['+((window.DIAG_VEND||[]).join(' ')||'-')+']';
-    }
     // acciones que SÍ tengo vigentes en cartera (monto>0 y sin fecha de venta)
     var enCartera={}; POS.forEach(function(p){ if(p.esMia) enCartera[p.tk]=true; });
     // Bloques de compra POR ESTRATEGIA: la fecha más antigua del trimestre es el bloque 1
@@ -1520,11 +1505,7 @@ function updateCount(){
     if(window.dibujarAccEstrat){ try{window.dibujarAccEstrat();}catch(e){} }
     // Diagnóstico: si Chica viene sin datos, mostrar qué etiquetas relacionadas ve la app
     if(isNaN(L.sem_trim)||L.sem_trim===0){
-      var lc=document.getElementById('labChica');
-      if(lc && window.ESPEJO){
-        var rel=Object.keys(window.ESPEJO).filter(function(k){return /sem|chic|semil/i.test(k);});
-        lc.innerHTML+='<div style="font-size:10px;color:var(--dim2);margin-top:6px">diag · etiquetas vistas: '+(rel.length?rel.map(function(k){return k+'='+window.ESPEJO[k];}).join(' · '):'ninguna con sem/chica')+'</div>';
-      }
+
     }
   };
 
@@ -1536,7 +1517,6 @@ function updateCount(){
       // Diagnóstico temporal: muestra qué detectó la app
       var pos=(window.POSICIONES||[]);
       var conFecha=pos.filter(function(p){return p.compra;}).length;
-      cont.innerHTML='<div style="font-size:10px;color:var(--dim2)">diag · posiciones:'+pos.length+' · con fecha:'+conFecha+' · fechas:'+(ds.join(', ')||'ninguna')+'<br>cols · '+(window.DIAG_COLS||'?')+'</div>';
       return;
     }
     function fmtF(iso){ var p=iso.split("-"); if(p.length!==3)return iso; var m=["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"]; return (+p[2])+" "+m[(+p[1])-1]; }
@@ -1628,15 +1608,6 @@ function updateCount(){
         if(invEl){ invEl.innerHTML='$'+Math.round(inv).toLocaleString('es-MX'); }
         var vEl=document.getElementById('hVend');
         if(vEl){ vEl.innerHTML = capVend>0 ? ('&#128274; $'+Math.round(capVend).toLocaleString('es-MX')+' ya vendido') : ''; }
-        var dg=document.getElementById('hDiag');
-        if(dg){ dg.textContent='diag · vig:'+n+' · vend:'+nVend+' · sin dato:'+sinDato+
-          ' · inv:'+Math.round(invVigente).toLocaleString('es-MX')+
-          ' · cap:'+Math.round(capTotal).toLocaleString('es-MX')+
-          ' · prom:'+avg.toFixed(2)+'%'+
-          ' · fuente:'+(window.FUENTE_DATOS||'?')+
-          ' | ETIQ:'+(window.ESPEJO?Object.keys(window.ESPEJO).length:0)+
-          ' | ALGO '+(window.SP_DIAG_ALGO||'?')+
-          ' | SP '+(window.SP_DIAG||'?'); }
         actualizarMovers();
       }
       try{ generaAlertas(); }catch(e){ console.log("alertas err",e); }
@@ -1915,10 +1886,19 @@ function updateCount(){
         else if(fchS.indexOf("/")>0){ var bS=fchS.split("/"); pS=new Date(+bS[2],+bS[1]-1,+bS[0]); }
         if(pS){ var wS=pS.getDay(); if(wS===0||wS===6) continue; } } // salta sáb/dom
       var q=(iQT>=0?num(r[iQT]):NaN), sm=(iST>=0?num(r[iST]):NaN);
-      if(isNaN(q)||isNaN(sm)) continue;
-      serie.push({fecha:fchS, val:(q+sm)/2});
+      var sem=(iSemT>=0?num(r[iSemT]):NaN);
+      // Algoritmo = mezcla REAL de la cartera: 70% Quant + 30% Chica (el Smart ya no cuenta)
+      function mezcla70(a,b){
+        var acum=0,w=0;
+        if(!isNaN(a)){ acum+=a*0.70; w+=0.70; }
+        if(!isNaN(b)){ acum+=b*0.30; w+=0.30; }
+        return w>0 ? acum/w : NaN;
+      }
+      var algoMix=mezcla70(q,sem);
+      if(isNaN(algoMix)) continue;
+      serie.push({fecha:fchS, val:algoMix});
       var yq=(iYQ>=0?num(r[iYQ]):NaN), ys=(iYS>=0?num(r[iYS]):NaN);
-      estrat.push({fecha:fchS, hora:(ix('hora')>=0?(r[ix('hora')]||'').trim():''), algoQ:q, algoS:sm, algo:(q+sm)/2, algoSem:(iSemT>=0?num(r[iSemT]):NaN), miQ:yq, miS:ys,
+      estrat.push({fecha:fchS, hora:(ix('hora')>=0?(r[ix('hora')]||'').trim():''), algoQ:q, algoS:sm, algo:algoMix, algoSem:sem, miQ:yq, miS:ys,
                    mi:((!isNaN(yq)&&!isNaN(ys))?(yq+ys)/2:(isNaN(yq)?ys:yq))});
       var d=(iIQ>=0?num(r[iIQ]):NaN), e=(iIS>=0?num(r[iIS]):NaN);
       if(!isNaN(d)||!isNaN(e)){ ultInv=(isNaN(d)?0:d)+(isNaN(e)?0:e); }
@@ -2273,9 +2253,19 @@ function updateCount(){
     return metaStrat(tk);
   }
   window.estratDe=estratDe;
+  // Tickers que REALMENTE compré: monto > 0 en el espejo (vigentes o ya vendidos).
+  // Los renglones con monto 0 o vacío son seguimiento del algoritmo, no compras.
+  function tickersMios(){
+    var s={};
+    (window.POSICIONES||[]).forEach(function(p){
+      if((p.esMia||p.vendida) && p.tk && !isNaN(p.monto) && p.monto>0) s[p.tk]=true;
+    });
+    return s;
+  }
   function tickersDe(rec, strat){
     if(strat==="algo") return Object.keys(rec.algo||{});
-    var ks=Object.keys(rec.mias||{});
+    var mios=tickersMios(), hayMios=Object.keys(mios).length>0;
+    var ks=Object.keys(rec.mias||{}).filter(function(t){ return hayMios ? !!mios[t] : true; });
     if(strat==="quant") return ks.filter(function(t){return estratDe(t)==="c";});
     if(strat==="smart") return ks.filter(function(t){return estratDe(t)==="s";});
     if(strat==="chica") return ks.filter(function(t){return estratDe(t)==="z";});
@@ -2333,7 +2323,7 @@ function updateCount(){
     }
     function movStrat(strat){ var a=campo(strat,recA), b=campo(strat,recB); return (isNaN(a)||isNaN(b))?NaN:(b-a); }
 
-    var lblMap={cartera:'Mi cartera',quant:'Quant',smart:'Smart',chica:'Chica',algo:'Algoritmo (todas)'};
+    var lblMap={cartera:'Mi cartera',quant:'Quant',smart:'Smart',chica:'Chica',algo:'Algoritmo (70/30)'};
     var mainVal=movStrat(stratSel);
     var mainEl=document.getElementById('anMainVal');
     mainEl.textContent=fp(mainVal); mainEl.style.color = (isNaN(mainVal)||mainVal>=0)?'#4ade80':'#ff5a5a';
@@ -2346,7 +2336,7 @@ function updateCount(){
       else { notaEl.style.display='none'; }
     }
 
-    var comps=[]; ['algo','quant','smart','chica','cartera'].forEach(function(k){ if(k===stratSel) return; comps.push({k:k,v:movStrat(k)}); });
+    var comps=[]; ['algo','quant','chica','cartera'].forEach(function(k){ if(k===stratSel) return; comps.push({k:k,v:movStrat(k)}); });
     document.getElementById('anCompare').innerHTML=comps.map(function(c){
       var col=(isNaN(c.v)||c.v>=0)?'#4ade80':'#ff5a5a';
       var txt=isNaN(c.v)?'—':fp(c.v);
@@ -2374,29 +2364,44 @@ function updateCount(){
     var fA=masCercana(recA.fecha), fB=masCercana(recB.fecha);
     var rA=fA?rendMap[fA]:null, rB=fB?rendMap[fB]:null;
     if(!rA || !rB || fA===fB){
-      var diag='REND registros:'+(window.REND?window.REND.length:0)+' · fechas:'+rendFechas.length+' ('+rendFechas.join(', ')+')';
-      if(window.__RENDRAW){ var R=window.__RENDRAW; diag+='<br>fetch: '+(R.error?('ERROR '+R.error):('bytes:'+R.len+' filas:'+R.filas+' parseadas:'+R.parseadas))+'<br>inicio: '+(R.ini||''); }
-      var m0=(window.REND&&window.REND[0])?window.REND[0]:null;
-      if(m0){ diag+=' · mias:'+Object.keys(m0.mias||{}).length+' · algo:'+Object.keys(m0.algo||{}).length; }
       var msg = (rendFechas.length<2)
         ? 'El desglose por acción se activa cuando el robot de rendimiento tenga al menos dos días.<br>Se va llenando con los días.'
         : 'Aún no hay dos fechas distintas de rendimiento dentro de este tramo.';
-      document.getElementById('anList').innerHTML='<div style="text-align:center;color:var(--dim2);padding:20px 0;font-size:13px">'+msg+'<br><span style="font-size:10px;opacity:.7">diag · '+diag+'</span></div>';
+      document.getElementById('anList').innerHTML='<div style="text-align:center;color:var(--dim2);padding:20px 0;font-size:13px">'+msg+'</div>';
     } else {
       var notaAprox=(fA!==recA.fecha||fB!==recB.fecha)?'<div style="font-size:10px;color:var(--dim2);text-align:center;margin-bottom:8px">Fechas más cercanas con datos: '+fmtFecha(fA)+' → '+fmtFecha(fB)+'</div>':'';
       var tks=tickersDe(rB, stratSel), filas=[];
-      tks.forEach(function(tk){ var a=valDe(rA,stratSel,tk), b=valDe(rB,stratSel,tk); if(isNaN(a)||isNaN(b))return; filas.push({tk:tk,chg:(b-a)*100}); });
+      // Fechas del tramo, en orden, para poder rescatar acciones que entraron despues
+      var fechasTramo=rendFechas.filter(function(f){ return f>=fA && f<=fB; });
+      tks.forEach(function(tk){
+        var a=valDe(rA,stratSel,tk), b=valDe(rB,stratSel,tk);
+        if(isNaN(b)) return;
+        var tarde=false;
+        if(isNaN(a)){
+          // Entro despues del arranque: se toma su PRIMER dato disponible dentro del tramo
+          for(var i=0;i<fechasTramo.length;i++){
+            var v=valDe(rendMap[fechasTramo[i]], stratSel, tk);
+            if(!isNaN(v)){ a=v; tarde=(fechasTramo[i]!==fA); break; }
+          }
+        }
+        if(isNaN(a)) return;
+        filas.push({tk:tk, chg:(b-a)*100, tarde:tarde});
+      });
       filas.sort(function(a,b){return b.chg-a.chg;});
       var nF=filas.length||1, mx=1; filas.forEach(function(x){ if(Math.abs(x.chg)>mx)mx=Math.abs(x.chg); });
-      var diag2='<div style="font-size:10px;color:var(--dim2);text-align:center;margin-bottom:6px">diag · rA('+fA+'):'+Object.keys(rA.mias||{}).length+'m/'+Object.keys(rA.algo||{}).length+'a · rB('+fB+'):'+Object.keys(rB.mias||{}).length+'m/'+Object.keys(rB.algo||{}).length+'a · tks:'+tks.length+' · filas:'+filas.length+'</div>';
-      var html=notaAprox+diag2;
+      var hayTarde=filas.some(function(x){return x.tarde;});
+      var notaTarde=hayTarde?'<div style="font-size:10px;color:var(--dim2);text-align:center;margin-bottom:6px">* comprada después del arranque · mide desde su primer día</div>':'';
+      var html=notaAprox+notaTarde;
       filas.forEach(function(x){
         var w=(Math.abs(x.chg)/mx*50).toFixed(1), apt=(x.chg/nF), pos=x.chg>=0;
         var bar= pos?'<div class="an-bar" style="left:50%;width:'+w+'%;background:#1baf7a;border-radius:0 3px 3px 0"></div>'
                      :'<div class="an-bar" style="right:50%;width:'+w+'%;background:#e24b4a;border-radius:3px 0 0 3px"></div>';
         var vd=(window.VENDIDAS&&window.VENDIDAS[x.tk])?window.VENDIDAS[x.tk]:null;
         var salida=(vd&&!isNaN(vd.mio))?('<div class="an-sold">'+(vd.mio>=0?'+':'\u2212')+Math.abs(vd.mio).toFixed(1)+'%</div>'):'<div class="an-sold"></div>';
-        html+='<div class="an-row'+(vd?' vend':'')+'"><div class="an-tk"'+(vd?' style="color:#FFD426"':'')+'>'+(vd?'\uD83D\uDD12 ':'')+x.tk+'</div>'+salida+'<div class="an-track"><div class="an-zero"></div>'+bar+'</div>'+
+        var stx=estratDe(x.tk);
+        var dotx='<div class="an-dot"><span class="dv-dot '+(stx||'c')+'" style="width:15px;height:15px;font-size:8px">'+(stx==='c'?'Q':(stx==='s'?'S':'C'))+'</span></div>';
+        var lkx='<div class="an-lk">'+(vd?'\uD83D\uDD12':'')+'</div>';
+        html+='<div class="an-row'+(vd?' vend':'')+'">'+dotx+'<div class="an-tk"'+(vd?' style="color:#FFD426"':'')+'>'+x.tk+(x.tarde?'<span style="color:var(--dim2);font-weight:700">*</span>':'')+'</div>'+lkx+salida+'<div class="an-track"><div class="an-zero"></div>'+bar+'</div>'+
           '<div class="an-chg" style="color:'+(pos?'#4ade80':'#ff5a5a')+'">'+fp(x.chg)+'</div>'+
           '<div class="an-apt">'+(apt>=0?'+':'\u2212')+Math.abs(apt).toFixed(1)+'</div></div>';
       });
