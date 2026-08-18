@@ -614,7 +614,7 @@
   <div class="foot" id="anFoot">Desliza las manijas o usa los atajos · no es asesoría de inversión</div>
 </div>
 
-<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v171</div>
+<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v173</div>
 
 <div class="wrap view" id="viewBalance">
   <div class="st-hero">
@@ -880,7 +880,7 @@ function updateCount(){
   window.META = META;
 
   var got = { precios:false, hist:false, claude:false };
-  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-171";
+  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-173";
   var estado={precios:false,historial:false,claude:false};
   function pinta(){
     var chip=document.getElementById('liveChip'); if(!chip) return;
@@ -1111,10 +1111,12 @@ function updateCount(){
               (d.fuera.length?(' · FUERA: '+d.fuera.join(',')):'')+'</div>'; })()+
         '</div>';
       }
+      // El Smart se abandona: su bloque solo aparece mientras queden posiciones vivas
+      var haySmartVivo=POS.filter(function(p){return p.esMia && p.estrat==='s';}).length>0;
       yva.innerHTML=
         bloque('Quant', '#0A84FF', yoQ, alQ, true)+
-        bloque('Smart', '#00C7BE', yoS, alS, true)+
-        bloque('Chica', '#BF5AF2', yoZ, alZ, hayZ);
+        bloque('Chica', '#BF5AF2', yoZ, alZ, hayZ)+
+        bloque('Smart', '#00C7BE', yoS, alS, haySmartVivo);
     }
     // --- Todas mis acciones desde mi compra (una fila por posición del shot) ---
     var aml=document.getElementById('allMineList');
@@ -1144,7 +1146,8 @@ function updateCount(){
             '<div class="am-lbl tick">'+dot+'<span class="tk" style="color:#FFD426">'+p.tk+'</span></div>'+
             '<div class="am-fec"><span class="am-lk">&#128274;</span></div>'+
             '<div class="am-track"><div class="am-zero"></div></div>'+
-            '<div class="am-val" style="color:#FFD426;font-size:9px">falta %</div>'+mmHtml+'</div>';
+            '<div class="am-hold" style="color:#FFD426;font-size:9px">falta</div>'+
+            '<div class="am-val" style="color:var(--dim2)">\u2014</div>'+mmHtml+'</div>';
           return;
         }
         var half=Math.min(50,(Math.abs(v)/mx2*50));
@@ -1154,12 +1157,19 @@ function updateCount(){
           : (v>=0
             ? '<div class="am-bar g" style="left:50%;width:'+half.toFixed(1)+'%"></div>'
             : '<div class="am-bar r" style="left:'+(50-half).toFixed(1)+'%;width:'+half.toFixed(1)+'%"></div>');
-        var lock = cong?'<span style="font-size:9px;color:#FFD426;margin-left:4px" title="Vendida · rendimiento congelado">&#128274;</span>':'';
+        // Vendidas: despues de la barra va el % DE SALIDA (ambar) y en la columna
+        // principal el % de HOY, como si no se hubiera vendido.
+        var salida = cong ? '<div class="am-hold" style="color:#FFD426" title="% al que la vendiste">'+fpv(v)+'</div>' : '<div class="am-hold"></div>';
+        var hoyV = cong ? p.viva : v;
+        var hoyHtml = (hoyV!=null && !isNaN(hoyV))
+          ? '<div class="am-val" style="color:'+(hoyV>=0?'#4ade80':'#ff6b60')+'"'+(cong?' title="Lo que iria hoy si NO la hubieras vendido"':'')+'>'+fpv(hoyV)+'</div>'
+          : '<div class="am-val" style="color:var(--dim2)">\u2014</div>';
         html+='<div class="am-row'+(cong?' vend':'')+'">'+
           '<div class="am-lbl tick">'+dot+'<span class="tk"'+(cong?' style="color:#FFD426"':'')+'>'+p.tk+'</span></div>'+
           '<div class="am-fec">'+(cong?'<span class="am-lk">&#128274;</span>':fb)+'</div>'+
           '<div class="am-track"><div class="am-zero"></div>'+bar+'</div>'+
-          '<div class="am-val" style="color:'+(cong?'#FFD426':(v>=0?'#4ade80':'#ff6b60'))+'">'+fpv(v)+'</div>'+
+          salida+
+          hoyHtml+
           mmHtml+
         '</div>';
       });
@@ -1816,7 +1826,7 @@ function updateCount(){
       }
       if(cAct>=0 && !window.ESPEJO_ACT){ var av=(r[cAct]||"").trim(); if(av) window.ESPEJO_ACT=av; }
       // cada renglón = una posición (shot) independiente
-      window.POSICIONES.push({tk:tk, compra:fcIso, trim:pTrim, mes:pMes, mio:pMio, monto:pMonto, estrat:pEstrat, esMia:esMia, vendida:vendida, venta:ventaCel});
+      window.POSICIONES.push({tk:tk, compra:fcIso, trim:pTrim, mes:pMes, mio:pMio, viva:mioVivo, monto:pMonto, estrat:pEstrat, esMia:esMia, vendida:vendida, venta:ventaCel});
       // LIVE[tk] guarda la última leída (para score/alertas por acción)
       LIVE[tk].trim=pTrim; LIVE[tk].mes=pMes; LIVE[tk].mio=pMio;
     }
@@ -1851,7 +1861,7 @@ function updateCount(){
       var aTrimC=primeroValido(esp('algo_trim_semilla'), esp('sem_trim'), esp('semilla_trim'), esp('chica_trim'));
       window.SP_DIAG_ALGO+=' trimC='+(isNaN(aTrimC)?'NO':aTrimC);
       if(!isNaN(aTrimQ)||!isNaN(aTrimC)){
-        var wQ=2/3, wC=1/3, algoTrim, sumW=0, acum=0;
+        var wQ=0.70, wC=0.30, algoTrim, sumW=0, acum=0;
         if(!isNaN(aTrimQ)){ acum+=aTrimQ*wQ; sumW+=wQ; }
         if(!isNaN(aTrimC)){ acum+=aTrimC*wC; sumW+=wC; }
         algoTrim = sumW>0 ? acum/sumW : NaN;
