@@ -610,29 +610,26 @@
   <div class="foot" id="anFoot">Desliza las manijas o usa los atajos · no es asesoría de inversión</div>
 </div>
 
-<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v181</div>
+<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v186</div>
 
 <div class="wrap view" id="viewBalance">
   <div class="st-hero">
     <h1>Balance</h1>
-    <p>Todo lo que has puesto y lo que ha dejado.</p>
+    <p>Lo que ha dejado cada mes.</p>
   </div>
 
-  <div class="card">
-    <div class="card-title">Resumen del mes</div>
-    <div class="bal-stats" id="balStats"></div>
-  </div>
-
-  <div class="card">
-    <div class="card-title">Posiciones &middot; una por compra</div>
-    <div class="bal-head">
-      <div class="bh-tk">Acción</div><div class="bh-n">Puse</div><div class="bh-n">Vale hoy</div><div class="bh-n">Rend</div><div class="bh-n">Utilidad</div>
-    </div>
+  <div style="display:none">
+    <div id="balStats"></div>
     <div id="balTabla"></div>
   </div>
 
+  <div class="card" id="balAnioCard">
+    <div class="card-title">Lo que va del año &middot; enero a julio 2026</div>
+    <div id="balAnio"></div>
+  </div>
+
   <div class="card" id="balMesCard">
-    <div class="card-title">Historial por mes</div>
+    <div class="card-title">Mes a mes</div>
     <div id="balMeses"></div>
   </div>
 
@@ -876,7 +873,7 @@ function updateCount(){
   window.META = META;
 
   var got = { precios:false, hist:false, claude:false };
-  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-181";
+  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-186";
   var estado={precios:false,historial:false,claude:false};
   function pinta(){
     var chip=document.getElementById('liveChip'); if(!chip) return;
@@ -2577,6 +2574,110 @@ function updateCount(){
       return;
     }
     var porMes={}; H.forEach(function(x){ porMes[x.mes]=x; });
+
+    // ---- Acumulado del año: tú vs S&P vs Quant vs Chica ----
+    (function(){
+      var box=document.getElementById('balAnio'); if(!box) return;
+      // Rendimiento mensual de cada estrategia en 2026 (dictado de Trendrating)
+      // Rendimiento mensual de cada estrategia: se lee de las columnas M y N de MENSUAL.
+      // Si la hoja no lo trae, se usa el respaldo capturado a mano.
+      var Q2026={'01':8.5,'02':15.9,'03':-7.5,'04':18,'05':16.9,'06':3.6,'07':-11};
+      var C2026={'01':11.4,'02':26.2,'03':5.6,'04':12.2,'05':1.5,'06':7.6,'07':0.8};
+      var qHoja={}, cHoja={}, anio=String(new Date().getFullYear());
+      H.forEach(function(r){
+        var p=r.mes.split('-'); if(p[0]!==anio) return;
+        if(r.tQ!=null && !isNaN(r.tQ)) qHoja[p[1]]=r.tQ;
+        if(r.tC!=null && !isNaN(r.tC)) cHoja[p[1]]=r.tC;
+      });
+      if(Object.keys(qHoja).length) Q2026=qHoja;
+      if(Object.keys(cHoja).length) C2026=cHoja;
+      function comp(o){ var g=1,n=0; for(var k in o){ g*=(1+o[k]/100); n++; } return n?((g-1)*100):null; }
+      // Dos medidas distintas:
+      //  · sobre lo INVERTIDO  -> mide qué tan bien van tus compraventas
+      //  · sobre la CUENTA     -> cuánto creció el patrimonio completo
+      var gInv=1, gGlob=1, ganado=0, hayMio=false, sumInv=0, nMeses=0;
+      H.slice().sort(function(a,b){return a.mes<b.mes?-1:1;}).forEach(function(r){
+        var sig=porMes[mesSiguiente(r.mes)];
+        var cierre=(sig&&sig.ibIni)?sig.ibIni:null;
+        var inv=(!isNaN(r.invFin)&&r.invFin>0)?r.invFin:((!isNaN(r.invMax)&&r.invMax>0)?r.invMax:null);
+        if(r.ibIni&&cierre&&inv){
+          var cr=cierre-r.ibIni;
+          gInv*=(1+cr/inv); gGlob*=(1+cr/r.ibIni);
+          ganado+=cr; sumInv+=inv; nMeses++; hayMio=true;
+        }
+      });
+      var mioInv  = hayMio ? (gInv-1)*100  : null;
+      var mioGlob = hayMio ? (gGlob-1)*100 : null;
+      var invProm = nMeses ? (sumInv/nMeses) : null;
+      var sp = (window.SP500_YTD!=null) ? window.SP500_YTD : null;
+      var filas=[
+        {n:'Mío · sobre lo invertido', v:mioInv,      col:'#4ade80', big:true},
+        {n:'Quant',                    v:comp(Q2026), col:'#0A84FF'},
+        {n:'Chica',                    v:comp(C2026), col:'#BF5AF2'},
+        {n:'S&P 500',                  v:sp,          col:'#8e8e93'}
+      ];
+      var h='';
+      filas.forEach(function(f){
+        if(f.v==null||isNaN(f.v)) return;
+        var col=f.v>=0?'#4ade80':'#ff6b60';
+        h+='<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.05)">'+
+          '<span style="width:9px;height:9px;border-radius:3px;background:'+f.col+';flex:none"></span>'+
+          '<span style="flex:1;font-size:13.5px;font-weight:700">'+f.n+'</span>'+
+          '<span style="font-size:19px;font-weight:800;color:'+col+';font-variant-numeric:tabular-nums">'+
+            (f.v>=0?'+':'\u2212')+Math.abs(f.v).toFixed(1)+'%</span>'+
+        '</div>';
+      });
+      if(mioGlob!=null){
+        h+='<div style="margin-top:10px;padding-top:9px;border-top:1px dashed rgba(255,255,255,.08)">'+
+          '<div style="display:flex;align-items:center;gap:10px">'+
+            '<span style="flex:1;font-size:12px;color:var(--dim2);font-weight:700">Sobre la cuenta completa</span>'+
+            '<span style="font-size:14px;font-weight:800;color:'+(mioGlob>=0?'#4ade80':'#ff6b60')+'">'+
+              (mioGlob>=0?'+':'\u2212')+Math.abs(mioGlob).toFixed(1)+'%</span>'+
+          '</div>'+
+          '<div style="font-size:9.5px;color:var(--dim2);font-weight:600;margin-top:4px">'+
+            (ganado>=0?'+':'\u2212')+'$'+Math.abs(Math.round(ganado)).toLocaleString('es-MX')+
+            (invProm?(' \u00b7 invertido promedio $'+Math.round(invProm).toLocaleString('es-MX')):'')+'</div>'+
+        '</div>';
+      }
+      h+='<div style="font-size:9.5px;color:var(--dim2);font-weight:600;margin-top:8px;line-height:1.5">'+
+         'Sobre lo invertido mide tus compraventas. Sobre la cuenta mide el patrimonio completo.</div>';
+
+      // AUDITORÍA: lo que dice Trendrating vs lo que reconstruye tu bitácora diaria.
+      // Diferencias mayores a 3 puntos se marcan; menores se tratan como ruido.
+      (function(){
+        var R=window.REND||[]; if(!R.length) return;
+        function rendMesBitacora(mes, campo){
+          var dias=R.filter(function(x){ return String(x.fecha).slice(0,7)===mes; });
+          if(dias.length<2) return null;
+          dias.sort(function(a,b){ return a.fecha<b.fecha?-1:1; });
+          var a=dias[0][campo], b=dias[dias.length-1][campo];
+          if(a==null||b==null||isNaN(a)||isNaN(b)) return null;
+          return b-a;
+        }
+        var avisos=[];
+        H.forEach(function(r){
+          [['algoQ','tQ','Quant'],['algoSem','tC','Chica']].forEach(function(par){
+            var bit=rendMesBitacora(r.mes, par[0]);
+            var tr=r[par[1]];
+            if(bit==null||tr==null||isNaN(tr)) return;
+            var dif=Math.abs(tr-bit);
+            if(dif>=3) avisos.push({mes:r.mes, est:par[2], tr:tr, bit:bit, dif:dif});
+          });
+        });
+        if(!avisos.length) return;
+        var a='<div style="background:rgba(255,212,38,.10);border:1px solid rgba(255,212,38,.30);'+
+          'border-radius:10px;padding:10px 12px;margin-top:12px">'+
+          '<div style="color:#FFD426;font-size:12px;font-weight:800;margin-bottom:5px">Revisar: no coinciden</div>';
+        avisos.forEach(function(x){
+          a+='<div style="font-size:10.5px;color:var(--dim2);font-weight:600;margin-top:3px">'+
+            x.mes+' '+x.est+' \u00b7 Trendrating '+x.tr.toFixed(1)+'% vs bit\u00e1cora '+x.bit.toFixed(1)+'%'+
+            ' \u00b7 <b style="color:#FFD426">'+x.dif.toFixed(1)+' pts</b></div>';
+        });
+        a+='</div>';
+        h+=a;
+      })();
+      box.innerHTML=h;
+    })();
     function mesSiguiente(m){
       var p=m.split('-'), y=+p[0], mm=+p[1]+1;
       if(mm>12){ mm=1; y++; }
@@ -2682,7 +2783,8 @@ function updateCount(){
           H.push({mes:mes, invMax:money_(r[1]), invFin:money_(r[2]), vendido:money_(r[3]),
                   desp:money_(r[4]), util:money_(r[5]), rend:pct_(r[6]),
                   aQ:pct_(r[7]), aS:pct_(r[8]), aC:pct_(r[9]),
-                  ibIni:money_(r[11])});
+                  ibIni:money_(r[11]),
+                  tQ:pct_(r[12]), tC:pct_(r[13])});
         }
         window.MENSUAL=H;
         pintarMeses();
