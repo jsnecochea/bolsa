@@ -610,7 +610,7 @@
   <div class="foot" id="anFoot">Desliza las manijas o usa los atajos · no es asesoría de inversión</div>
 </div>
 
-<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v177</div>
+<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v181</div>
 
 <div class="wrap view" id="viewBalance">
   <div class="st-hero">
@@ -876,7 +876,7 @@ function updateCount(){
   window.META = META;
 
   var got = { precios:false, hist:false, claude:false };
-  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-177";
+  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-181";
   var estado={precios:false,historial:false,claude:false};
   function pinta(){
     var chip=document.getElementById('liveChip'); if(!chip) return;
@@ -2576,26 +2576,75 @@ function updateCount(){
         'A\u00fan sin datos. Corre <b>guardarMensual</b> en tu robot y ponle su activador diario.</div>';
       return;
     }
+    var porMes={}; H.forEach(function(x){ porMes[x.mes]=x; });
+    function mesSiguiente(m){
+      var p=m.split('-'), y=+p[0], mm=+p[1]+1;
+      if(mm>12){ mm=1; y++; }
+      return y+'-'+('0'+mm).slice(-2);
+    }
+    // Aviso: falta capturar el saldo de IB del mes en curso
     var html='';
-    H.slice().sort(function(a,b){return a.mes<b.mes?1:-1;}).forEach(function(r){
-      function chip(lbl,v,col){
-        var t=isNaN(v)?'\u2014':((v>=0?'+':'\u2212')+Math.abs(v).toFixed(1)+'%');
-        return '<span style="display:inline-flex;align-items:center;gap:3px;margin-right:7px">'+
-          '<span style="width:13px;height:13px;border-radius:4px;background:'+col+';color:#fff;font-size:8px;font-weight:800;display:inline-flex;align-items:center;justify-content:center">'+lbl+'</span>'+
-          '<span style="font-size:10.5px;font-weight:700;color:'+(isNaN(v)?'var(--dim2)':(v>=0?'#4ade80':'#ff6b60'))+'">'+t+'</span></span>';
+    (function(){
+      var hoy=new Date();
+      var mAct=hoy.getFullYear()+'-'+('0'+(hoy.getMonth()+1)).slice(-2);
+      var reg=porMes[mAct];
+      if(!reg || !reg.ibIni){
+        html+='<div style="background:rgba(255,212,38,.10);border:1px solid rgba(255,212,38,.30);color:#FFD426;'+
+          'font-size:11.5px;line-height:1.5;padding:10px 12px;border-radius:10px;margin-bottom:12px;font-weight:600">'+
+          'Falta el saldo de Interactive Brokers de este mes.<br>'+
+          '<span style="opacity:.85;font-weight:500">Cap\u00e9turalo en la pesta\u00f1a <b>MENSUAL</b>, columna <b>ib_inicio</b>, en el rengl\u00f3n '+mAct+'.</span></div>';
       }
-      var col=(isNaN(r.util)||r.util>=0)?'#4ade80':'#ff6b60';
-      html+='<div style="padding:11px 0;border-bottom:1px solid rgba(255,255,255,.05)">'+
+    })();
+    H.slice().sort(function(a,b){return a.mes<b.mes?1:-1;}).forEach(function(r){
+      function pc(v,neg){
+        if(v==null||isNaN(v)) return '<span style="color:var(--dim2)">\u2014</span>';
+        var col = v>=0 ? '#4ade80' : '#ff6b60';
+        return '<span style="color:'+col+';font-weight:700">'+(v>=0?'+':'\u2212')+Math.abs(v).toFixed(1)+'%</span>';
+      }
+      // Fila comparativa: MI rendimiento vs lo que dio la ESTRATEGIA ese mes
+      // Rendimiento de la ESTRATEGIA en el mes (lo que dio el algoritmo)
+      function linea(lbl,nom,col,algo){
+        if(algo==null||isNaN(algo)) return '';
+        return '<div style="display:flex;align-items:center;gap:8px;margin-top:5px">'+
+          '<span style="width:15px;height:15px;border-radius:5px;background:'+col+';color:#fff;font-size:8px;font-weight:800;display:inline-flex;align-items:center;justify-content:center;flex:none">'+lbl+'</span>'+
+          '<span style="flex:1;font-size:11px;color:var(--dim2);font-weight:600">'+nom+'</span>'+
+          '<span style="font-size:12px;text-align:right">'+pc(algo)+'</span>'+
+        '</div>';
+      }
+      // Interactive Brokers: capturas el saldo del día 1 de cada mes.
+      // El cierre de un mes es el ib_inicio del mes SIGUIENTE.
+      var sig=porMes[mesSiguiente(r.mes)];
+      var cierre=(sig&&sig.ibIni)?sig.ibIni:null;
+      var crecio=(r.ibIni&&cierre)?(cierre-r.ibIni):null;
+      // Rendimiento REAL del mes = lo que creció la cuenta / lo que tenías invertido
+      var invMes=(!isNaN(r.invFin)&&r.invFin>0)?r.invFin:((!isNaN(r.invMax)&&r.invMax>0)?r.invMax:null);
+      var rendReal=(crecio!=null&&invMes)?(crecio/invMes*100):null;
+      var mostrarUtil = crecio!=null ? crecio : (isNaN(r.util)?null:r.util);
+      var mostrarPct  = rendReal!=null ? rendReal : (isNaN(r.rend)?null:r.rend);
+      var col=(mostrarUtil==null||mostrarUtil>=0)?'#4ade80':'#ff6b60';
+      var ib='';
+      if(r.ibIni||cierre){
+        ib='<div style="margin-top:7px;padding-top:6px;border-top:1px dashed rgba(255,255,255,.07);font-size:10px;color:var(--dim2);font-weight:600">'+
+           'Cuenta IB: $'+(r.ibIni?Math.round(r.ibIni).toLocaleString('es-MX'):'\u2014')+
+           ' \u2192 '+(cierre?('$'+Math.round(cierre).toLocaleString('es-MX')):'<span style="opacity:.6">pendiente</span>')+
+           '</div>';
+      }
+      html+='<div style="padding:12px 0;border-bottom:1px solid rgba(255,255,255,.05)">'+
         '<div style="display:flex;align-items:baseline;gap:8px">'+
           '<div style="flex:1;font-size:14px;font-weight:800">'+nMes(r.mes)+'</div>'+
           '<div style="font-size:17px;font-weight:800;color:'+col+';font-variant-numeric:tabular-nums">'+
-            (isNaN(r.util)?'\u2014':((r.util<0?'\u2212':'')+'$'+Math.abs(Math.round(r.util)).toLocaleString('es-MX')))+'</div>'+
-          '<div style="font-size:11px;font-weight:700;color:'+col+'">'+(isNaN(r.rend)?'':((r.rend>=0?'+':'\u2212')+Math.abs(r.rend).toFixed(1)+'%'))+'</div>'+
+            (mostrarUtil==null?'\u2014':((mostrarUtil<0?'\u2212':'+')+'$'+Math.abs(Math.round(mostrarUtil)).toLocaleString('es-MX')))+'</div>'+
+          '<div style="font-size:12px;font-weight:800;color:'+col+'">'+(mostrarPct==null?'':((mostrarPct>=0?'+':'\u2212')+Math.abs(mostrarPct).toFixed(1)+'%'))+'</div>'+
         '</div>'+
-        '<div style="font-size:9.5px;color:var(--dim2);font-weight:600;margin-top:2px">m\u00e1x invertido $'+
-          (isNaN(r.invMax)?'\u2014':Math.round(r.invMax).toLocaleString('es-MX'))+
-          (r.vendido>0?(' \u00b7 vendido $'+Math.round(r.vendido).toLocaleString('es-MX')):'')+'</div>'+
-        '<div style="margin-top:6px">'+chip('Q',r.q,'#0A84FF')+chip('S',r.s,'#00C7BE')+chip('C',r.c,'#BF5AF2')+'</div>'+
+        '<div style="font-size:9.5px;color:var(--dim2);font-weight:600;margin-top:2px">invertido $'+
+          (invMes?invMes.toLocaleString('es-MX'):'\u2014')+
+          (r.vendido>0?(' \u00b7 vendido $'+Math.round(r.vendido).toLocaleString('es-MX')):'')+
+          (rendReal!=null?' \u00b7 sobre lo invertido':'')+'</div>'+
+        '<div style="margin-top:7px">'+
+          linea('Q','Quant','#0A84FF',r.aQ)+
+          linea('C','Chica','#BF5AF2',r.aC)+
+          linea('S','Smart','#00C7BE',r.aS)+
+        '</div>'+ ib +
       '</div>';
     });
     mc.innerHTML=html;
@@ -2625,9 +2674,15 @@ function updateCount(){
           var r=rows[i]; if(!r||!r[0]) continue;
           var mes=String(r[0]).trim();
           if(!/^\d{4}-\d{2}$/.test(mes)) continue;
+          // Formato actual del robot:
+          // 0 mes · 1 invertido_max · 2 invertido_fin · 3 vendido · 4 desplegado
+          // 5 utilidad · 6 mi_rend · 7 quant_mes · 8 smart_mes · 9 chica_mes
+          // 10 actualizado · 11 ib_inicio  (esta la capturas tú; el cierre del mes
+          //                                  es el ib_inicio del mes siguiente)
           H.push({mes:mes, invMax:money_(r[1]), invFin:money_(r[2]), vendido:money_(r[3]),
                   desp:money_(r[4]), util:money_(r[5]), rend:pct_(r[6]),
-                  q:pct_(r[7]), s:pct_(r[8]), c:pct_(r[9])});
+                  aQ:pct_(r[7]), aS:pct_(r[8]), aC:pct_(r[9]),
+                  ibIni:money_(r[11])});
         }
         window.MENSUAL=H;
         pintarMeses();
