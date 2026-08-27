@@ -610,7 +610,7 @@
   <div class="foot" id="anFoot">Desliza las manijas o usa los atajos · no es asesoría de inversión</div>
 </div>
 
-<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v189</div>
+<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v191</div>
 
 <div class="wrap view" id="viewBalance">
   <div class="st-hero">
@@ -813,8 +813,12 @@ function updateCount(){
 /* ====== LECTURA EN VIVO DESDE GOOGLE SHEETS ====== */
 (function(){
   var BASE = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ1gnRj1TvcXXF66yAreWKo6RON27GE3K2pZWq8LSxb98SNZeKpFuYaeHgovJTO9zM1QSeHb-cxWJ2N/pub";
-  var GID = { precios:"288876761", historial:"1844874580", claude:"1972938992", rendimiento:"161922984" };
-  var FILE_ID = "1Z3MeyaSkFfk16AQg2yNC-SYts9SbcXT0JbFW_73DT9o";
+  // Archivo BITACORA BOLSA
+  // La app lee la BITACORA (posiciones) y el ESPEJO (solo referencias del S&P).
+  var GID = { bitacora:"192690260", precios:"1127250102", historial:"1844874580",
+              claude:"192690260", rendimiento:"161922984",
+              espejo:"288876761", mensual:"981573348" };
+  var FILE_ID = "1dEMsL08v6y9UwicZV_lScgIWJVF6X4G0ED9MNQlI8zo";
   // gviz lee la HOJA VIVA (no la foto que Google publica y cachea). Respaldo: la publicación.
   function urlLive(gid){ return "https://docs.google.com/spreadsheets/d/"+FILE_ID+"/gviz/tq?tqx=out:csv&headers=1&gid="+gid+"&_="+Date.now(); }
   function url(gid){ return BASE + "?gid=" + gid + "&single=true&output=csv&_=" + Date.now(); }
@@ -873,7 +877,7 @@ function updateCount(){
   window.META = META;
 
   var got = { precios:false, hist:false, claude:false };
-  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-189";
+  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-191";
   var estado={precios:false,historial:false,claude:false};
   function pinta(){
     var chip=document.getElementById('liveChip'); if(!chip) return;
@@ -1675,8 +1679,23 @@ function updateCount(){
     }
   }
 
-  // precios: col16=Q Ticker,17=R Trim,18=S Mes,19=T Mio
-  fetchCSV(GID.precios).then(function(txt){
+  // ESPEJO: solo referencias del S&P (sp500, sp500_ma200, sp500_ini_trim)
+  window.ESPEJO = window.ESPEJO || {};
+  fetchCSV(GID.espejo).then(function(txt){
+    var rows=parseCSV(txt);
+    for (var ri=0; ri<rows.length; ri++){
+      var rr=rows[ri]; if(!rr) continue;
+      for (var ci=0; ci<rr.length; ci++){
+        var celda=(rr[ci]||"").trim();
+        if(celda && /^[a-z][a-z0-9_]+$/.test(celda)){
+          window.ESPEJO[celda]=(rr[ci+1]!==undefined?rr[ci+1]:"");
+        }
+      }
+    }
+  }).catch(function(e){ console.log('espejo err',e); });
+
+  // BITACORA: posiciones (una fila por compra) + etiquetas del S&P que viven en el espejo
+  fetchCSV(GID.bitacora).then(function(txt){
     var rows=parseCSV(txt);
     // Mapa etiqueta -> valor (escanea toda la hoja; etiqueta en una celda, valor en la de al lado)
     window.ESPEJO = {};
