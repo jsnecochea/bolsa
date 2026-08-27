@@ -614,7 +614,7 @@
   <div class="foot" id="anFoot">Desliza las manijas o usa los atajos · no es asesoría de inversión</div>
 </div>
 
-<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v193</div>
+<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v194</div>
 
 <div class="wrap view" id="viewBalance">
   <div class="st-hero">
@@ -881,7 +881,7 @@ function updateCount(){
   window.META = META;
 
   var got = { precios:false, hist:false, claude:false };
-  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-193";
+  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-194";
   var estado={precios:false,historial:false,claude:false};
   function pinta(){
     var chip=document.getElementById('liveChip'); if(!chip) return;
@@ -1811,21 +1811,25 @@ function updateCount(){
     })();
     // Ubicar columnas del bloque de acciones por su encabezado (Ticker/Trim/Mes/Mío)
     var cTk=-1,cTrim=-1,cMes=-1,cMio=-1,cCompra=-1,cMonto=-1,cEstrat=-1,cVenta=-1,cMioV=-1,cAct=-1,cMotivo=-1;
+    // Detector TOLERANTE: acepta los encabezados de la bitácora nueva
+    // ("Acción", "Fecha Compra", "Monto Invertido ($)", "DESDE INICIO TRIM"...)
+    // y los del espejo viejo ("ticker", "compra", "monto", "trim"...).
     for(var hr=0; hr<rows.length && cTk<0; hr++){
       var hh=rows[hr]||[];
       for(var hc=0; hc<hh.length; hc++){
         var v=(hh[hc]||"").trim().toLowerCase();
-        if(v==="ticker"){ cTk=hc; }
-        else if(v==="trim"){ cTrim=hc; }
-        else if(v==="mes"){ cMes=hc; }
-        else if(v==="mío"||v==="mio"){ cMio=hc; }
-        else if(v==="compra"){ cCompra=hc; }
-        else if(v==="monto"){ cMonto=hc; }
-        else if(v==="estrategia"||v==="estrat"){ cEstrat=hc; }
-        else if(v==="venta"){ cVenta=hc; }
-        else if(/vend/.test(v) && /(rend|m[ií]o)/.test(v)){ cMioV=hc; } // "mi rendimiento al vender", "rend al vender", etc.
-        else if(v==="motivo"||v==="motivo venta"||v==="por que"||v==="por qu\u00e9"){ cMotivo=hc; }
-        else if(v==="actualizado"||v==="hora"){ cAct=hc; }
+        if(!v) continue;
+        if(cTk<0 && (v==="ticker" || v==="accion" || v==="acción")) { cTk=hc; continue; }
+        if(cEstrat<0 && (v==="estrategia" || v==="estrat" || v.indexOf("estrat")===0)) { cEstrat=hc; continue; }
+        if(cCompra<0 && (v==="compra" || v.indexOf("fecha compra")>=0)) { cCompra=hc; continue; }
+        if(cVenta<0 && (v==="venta" || v.indexOf("fecha venta")>=0)) { cVenta=hc; continue; }
+        if(cMonto<0 && (v==="monto" || v.indexOf("monto invertido")>=0 || v.indexOf("monto")>=0)) { cMonto=hc; continue; }
+        if(cMioV<0 && /vend/.test(v) && /(rend|m[ií]o)/.test(v)) { cMioV=hc; continue; }
+        if(cMio<0 && (v==="mío" || v==="mio" || v.indexOf("rend yo hoy")>=0)) { cMio=hc; continue; }
+        if(cTrim<0 && (v==="trim" || v.indexOf("desde inicio trim")>=0)) { cTrim=hc; continue; }
+        if(cMes<0 && (v==="mes" || v.indexOf("desde inicio mes")>=0)) { cMes=hc; continue; }
+        if(cMotivo<0 && (v==="motivo"||v==="motivo venta")) { cMotivo=hc; continue; }
+        if(cAct<0 && (v==="actualizado"||v==="hora")) { cAct=hc; continue; }
       }
       if(cTk<0){ cTrim=cMes=cMio=cCompra=cMonto=cEstrat=cVenta=cMioV=cAct=cMotivo=-1; } // no era la fila correcta
     }
