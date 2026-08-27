@@ -364,10 +364,10 @@
         <div class="pct" id="hMio">&mdash;</div>
         <div class="dh-chip" id="hMioChip">&mdash;</div>
       </div>
-      <div class="dh-col" id="algoOpen" style="cursor:pointer" onclick="if(window.abrirHist)window.abrirHist();">
-        <div class="label">Algoritmo</div>
-        <div class="pct algo" id="hAlgo">&mdash;</div>
-        <div class="dh-chip algo">S&amp;P <b id="hSpTrim">&mdash;</b></div>
+      <div class="dh-col">
+        <div class="label">Mi mes</div>
+        <div class="pct" id="hMioMes">&mdash;</div>
+        <div class="dh-chip" id="hMioMesChip">&mdash;</div>
       </div>
     </div>
     <div class="statgrid">
@@ -375,8 +375,12 @@
       <div class="stat"><div class="s-lbl">Acciones</div><div class="s-val" id="hPos">&mdash;</div><div id="hPosSub" style="font-size:9.5px;color:var(--dim2);font-weight:600;margin-top:3px"></div></div>
     </div>
     <div class="strip">
-      <div class="pill-card"><div class="pulse" id="mktPulse"></div><div><div class="pc-lbl">Mercado</div><div class="pc-val" id="mktVal">&mdash;</div><div id="mktDist" style="font-size:9.5px;color:var(--dim2);font-weight:600;margin-top:1px"></div></div></div>
+      <div class="pill-card"><div><div class="pc-lbl">S&amp;P 500 · trim</div><div class="pc-val" id="hSpTrim">&mdash;</div><div style="font-size:9.5px;color:var(--dim2);font-weight:600;margin-top:1px">referencia</div></div></div>
       <div class="pill-card"><div><div class="pc-lbl">Días para rotar</div><div class="pc-val" id="hDiasRot">&mdash;</div><div id="hDiasSub" style="font-size:9.5px;color:var(--dim2);font-weight:600;margin-top:1px"></div></div></div>
+    </div>
+    <div class="strip" style="margin-top:8px">
+      <div class="pill-card"><div class="pulse" id="mktPulse"></div><div><div class="pc-lbl">Mercado</div><div class="pc-val" id="mktVal">&mdash;</div><div id="mktDist" style="font-size:9.5px;color:var(--dim2);font-weight:600;margin-top:1px"></div></div></div>
+      <div class="pill-card" id="algoOpen" style="cursor:pointer" onclick="if(window.abrirHist)window.abrirHist();"><div><div class="pc-lbl">Histórico</div><div class="pc-val" style="font-size:15px">ver gráfica</div><div id="hAlgo" style="font-size:9.5px;color:var(--dim2);font-weight:600;margin-top:1px"></div></div></div>
     </div>
   </div>
 
@@ -610,7 +614,7 @@
   <div class="foot" id="anFoot">Desliza las manijas o usa los atajos · no es asesoría de inversión</div>
 </div>
 
-<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v192</div>
+<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v193</div>
 
 <div class="wrap view" id="viewBalance">
   <div class="st-hero">
@@ -877,7 +881,7 @@ function updateCount(){
   window.META = META;
 
   var got = { precios:false, hist:false, claude:false };
-  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-192";
+  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-193";
   var estado={precios:false,historial:false,claude:false};
   function pinta(){
     var chip=document.getElementById('liveChip'); if(!chip) return;
@@ -1643,6 +1647,41 @@ function updateCount(){
         if(invEl){ invEl.innerHTML='$'+Math.round(inv).toLocaleString('es-MX'); }
         var vEl=document.getElementById('hVend');
         if(vEl){ vEl.innerHTML = capVend>0 ? ('&#128274; $'+Math.round(capVend).toLocaleString('es-MX')+' ya vendido') : ''; }
+
+        // ---- MI MES: rendimiento del mes en curso, ponderado por monto ----
+        (function(){
+          var em=document.getElementById('hMioMes'); if(!em) return;
+          var hoy=new Date();
+          var iniMes=new Date(hoy.getFullYear(), hoy.getMonth(), 1);
+          var sM=0, wM=0, ganM=0;
+          usar.forEach(function(p){
+            if(!(p.esMia||p.vendida)) return;
+            if(!p.monto || p.monto<=0) return;
+            var v = (p.mes!=null && !isNaN(p.mes)) ? p.mes : null;
+            // si la compra es de ESTE mes, el rendimiento del mes es el de la posición
+            if(p.compra){
+              var pr=String(p.compra).split('-');
+              if(pr.length===3){
+                var d=new Date(+pr[0],(+pr[1])-1,+pr[2]);
+                if(!isNaN(d.getTime()) && d>=iniMes){
+                  var pm = p.vendida ? p.mio : p.mio;
+                  if(pm!=null && !isNaN(pm)) v=pm;
+                }
+              }
+            }
+            if(v==null||isNaN(v)) return;
+            sM+=v*p.monto; wM+=p.monto; ganM+=v*p.monto/100;
+          });
+          if(!wM){ em.textContent='—'; return; }
+          var avgM=sM/wM;
+          em.innerHTML=fmtPct(avgM); em.classList.toggle('neg', avgM<0);
+          var chM=document.getElementById('hMioMesChip');
+          if(chM){
+            chM.innerHTML=(ganM>=0?'↑':'↓')+' $'+Math.round(Math.abs(ganM)).toLocaleString('es-MX');
+            chM.style.color = ganM>=0 ? '' : '#ff8079';
+          }
+        })();
+
         actualizarMovers();
       }
       try{ generaAlertas(); }catch(e){ console.log("alertas err",e); }
