@@ -428,8 +428,8 @@
     <div id="accQuant"></div>
   </div>
 
-  <div class="rk-card" id="cardSmart" style="display:none">
-    <div class="rk-top"><div class="rk-name s">Smart</div><div class="rk-tag">en salida &middot; 1 oct</div></div>
+  <div class="rk-card" id="cardSmart">
+    <div class="rk-top"><div class="rk-name s">SR</div><div class="rk-tag">en salida &middot; 1 oct</div></div>
     <div id="labSmart"></div>
     <div class="strat-acc-cap" id="capSmart" style="display:none">Acciones · desde inicio de trimestre</div>
     <div id="accSmart"></div>
@@ -456,7 +456,7 @@
     <button class="ac-sbtn on" data-k="ret">Mío</button>
     <button class="ac-sbtn" data-k="mes">Mes</button>
     <button class="ac-sbtn" data-k="trim">Trimestre</button>
-    <button class="ac-sbtn" data-k="smart">Smart</button>
+    <button class="ac-sbtn" data-k="smart">SR</button>
     <button class="ac-sbtn" data-k="stren">Strength</button>
   </div>
   <div id="acShotSel" style="display:flex;flex-wrap:wrap;gap:6px;margin:2px 0 12px"></div>
@@ -498,8 +498,8 @@
         <div class="sc-v"><div class="sc-l">Mín</div><div class="sc-n down" id="qMin">—</div></div>
       </div>
     </div>
-    <div class="strat-card" style="--acc:#00C7BE;display:none">
-      <div class="sc-name"><span class="sc-dot"></span>Smart</div>
+    <div class="strat-card" style="--acc:#00C7BE">
+      <div class="sc-name"><span class="sc-dot"></span>SR</div>
       <div class="sc-vals">
         <div class="sc-v"><div class="sc-l">Máx</div><div class="sc-n up" id="sMax">—</div></div>
         <div class="sc-v mid"><div class="sc-l">Actual</div><div class="sc-n now" id="sNow">—</div></div>
@@ -567,7 +567,7 @@
   <div id="anSelStrat" style="display:flex;gap:6px;margin-bottom:14px;">
     <div class="an-strat on" data-k="cartera">Cartera</div>
     <div class="an-strat" data-k="quant">Quant</div>
-    <div class="an-strat" data-k="smart">Smart</div>
+    <div class="an-strat" data-k="smart">SR</div>
     <div class="an-strat" data-k="chica">Chica</div>
     <div class="an-strat" data-k="algo">Algo</div>
   </div>
@@ -610,7 +610,7 @@
   <div class="foot" id="anFoot">Desliza las manijas o usa los atajos · no es asesoría de inversión</div>
 </div>
 
-<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v186</div>
+<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v189</div>
 
 <div class="wrap view" id="viewBalance">
   <div class="st-hero">
@@ -755,7 +755,7 @@ function renderAcc(key){
         '<div class="ac-r"><div class="l">M\u00edo</div><div class="n '+(vend?'':cl(ret))+'"'+(vend?' style="color:#FFD426"':'')+'>'+pct(ret)+'</div></div>'+
         '<div class="ac-r"><div class="l">Mes</div><div class="n '+cl(mes)+'">'+pct(mes)+'</div></div>'+
         '<div class="ac-r"><div class="l">Trim</div><div class="n '+cl(trim)+'">'+pct(trim)+'</div></div>'+
-        '<div class="ac-r sc"><div class="l">Smart</div><div class="n">'+sm.toFixed(2)+'</div></div>'+
+        '<div class="ac-r sc"><div class="l">SR</div><div class="n">'+sm.toFixed(2)+'</div></div>'+
         '<div class="ac-r sc"><div class="l">Stren</div><div class="n">'+sr.toFixed(1)+'</div></div>'+
       '</div>'+
     '</div>';
@@ -873,7 +873,7 @@ function updateCount(){
   window.META = META;
 
   var got = { precios:false, hist:false, claude:false };
-  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-186";
+  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-189";
   var estado={precios:false,historial:false,claude:false};
   function pinta(){
     var chip=document.getElementById('liveChip'); if(!chip) return;
@@ -1053,7 +1053,7 @@ function updateCount(){
     var yva=document.getElementById('yvaList');
     if(yva){
       window.DIAG_ESTRAT=window.DIAG_ESTRAT||{};
-      function letraDe(n){ return n==='Quant'?'c':(n==='Smart'?'s':'z'); }
+      function letraDe(n){ var k=String(n).toUpperCase(); return /QUANT|3M/.test(k)?'c':(/SR|SMART/.test(k)?'s':'z'); }
       function promEstrat(letra){
         var todas=POS.filter(function(p){return p.estrat===letra && !isNaN(p.monto) && p.monto>0;});
         var arr=todas.filter(function(p){return !isNaN(p.mio);});
@@ -1104,12 +1104,52 @@ function updateCount(){
               (d.fuera.length?(' · FUERA: '+d.fuera.join(',')):'')+'</div>'; })()+
         '</div>';
       }
-      // El Smart se abandona: su bloque solo aparece mientras queden posiciones vivas
-      var haySmartVivo=POS.filter(function(p){return p.esMia && p.estrat==='s';}).length>0;
-      yva.innerHTML=
-        bloque('Quant', '#0A84FF', yoQ, alQ, true)+
-        bloque('Chica', '#BF5AF2', yoZ, alZ, hayZ)+
-        bloque('Smart', '#00C7BE', yoS, alS, haySmartVivo);
+      // ---- Estrategias DINAMICAS ----
+      // Se descubren solas leyendo la columna ESTRAT de la bitacora.
+      // Si dejas de usar una, desaparece. Si agregas una nueva, aparece sola.
+      // Solo se muestran las que tienen posiciones del TRIMESTRE en curso.
+      (function(){
+        var hoy=new Date();
+        var iniTrim=new Date(hoy.getFullYear(), Math.floor(hoy.getMonth()/3)*3, 1);
+        var PAL=['#0A84FF','#BF5AF2','#00C7BE','#FF9F0A','#FF375F','#5E5CE6','#30D158','#FFD426'];
+        var grupos={}, orden=[];
+        POS.forEach(function(p){
+          if(!p.esMia && !p.vendida) return;
+          if(!p.monto || p.monto<=0) return;
+          var nom=String(p.estratNom||p.estrat||'').trim().toUpperCase();
+          if(!nom) return;
+          if(p.compra){
+            var pr=String(p.compra).split('-');
+            if(pr.length===3){
+              var d=new Date(+pr[0],(+pr[1])-1,+pr[2]);
+              if(!isNaN(d.getTime()) && d<iniTrim) return;   // trimestre anterior
+            }
+          }
+          if(!grupos[nom]){ grupos[nom]={s:0,w:0,algoS:0,algoN:0}; orden.push(nom); }
+          if(!isNaN(p.mio)){ grupos[nom].s+=p.mio*p.monto; grupos[nom].w+=p.monto; }
+        });
+        // rendimiento del ALGORITMO por estrategia: todas las de esa estrategia
+        // compradas en el mes de arranque del trimestre, tengan monto o no
+        var mesArr=Math.floor(hoy.getMonth()/3)*3;
+        POS.forEach(function(p){
+          var nom=String(p.estratNom||p.estrat||'').trim().toUpperCase();
+          if(!nom || !grupos[nom] || !p.compra) return;
+          var pr=String(p.compra).split('-'); if(pr.length!==3) return;
+          var d=new Date(+pr[0],(+pr[1])-1,+pr[2]);
+          if(isNaN(d.getTime())||d.getFullYear()!==hoy.getFullYear()||d.getMonth()!==mesArr) return;
+          if(p.trim==null||isNaN(p.trim)) return;
+          grupos[nom].algoS+=p.trim; grupos[nom].algoN++;
+        });
+        var html='';
+        orden.forEach(function(nom,i){
+          var g=grupos[nom];
+          if(!g.w) return;
+          var yo=g.s/g.w;
+          var algo=g.algoN?(g.algoS/g.algoN):0;
+          html+=bloque(nom, PAL[i%PAL.length], yo, algo, true);
+        });
+        yva.innerHTML = html || '<div style="text-align:center;color:var(--dim2);padding:16px 0;font-size:13px">Sin posiciones en el trimestre</div>';
+      })();
     }
     // --- Todas mis acciones desde mi compra (una fila por posición del shot) ---
     var aml=document.getElementById('allMineList');
@@ -1491,13 +1531,7 @@ function updateCount(){
       .map(function(it){return isNaN(it.v)?0:Math.abs(it.v);}))||1;
     card(itemsQ, 'labQuant', mxGlobal);
     card(itemsS, 'labSmart', mxGlobal);
-    // El Smart se abandona: la tarjeta solo aparece mientras queden posiciones vivas
-    (function(){
-      var cs=document.getElementById('cardSmart'); if(!cs) return;
-      var vivas=(window.POSICIONES||[]).filter(function(p){
-        return p.esMia && window.estratDe && window.estratDe(p.tk)==='s'; }).length;
-      cs.style.display = vivas>0 ? '' : 'none';
-    })();
+    var _cs=document.getElementById('cardSmart'); if(_cs) _cs.style.display='';
     card(itemsC, 'labChica', mxGlobal);
     if(window.dibujarAccEstrat){ try{window.dibujarAccEstrat();}catch(e){} }
     // Diagnóstico: si Chica viene sin datos, mostrar qué etiquetas relacionadas ve la app
@@ -1655,7 +1689,45 @@ function updateCount(){
         }
       }
     }
-    function esp(et){ return (window.ESPEJO && window.ESPEJO[et]!==undefined)? num(window.ESPEJO[et]) : NaN; }
+    function esp(et){
+      // 1) si la etiqueta existe y trae numero, se usa
+      var v = (window.ESPEJO && window.ESPEJO[et]!==undefined)? num(window.ESPEJO[et]) : NaN;
+      if(!isNaN(v)) return v;
+      // 2) si no, la app CALCULA la estrategia desde las posiciones del espejo
+      return calcEstrategia(et);
+    }
+
+    // Rendimiento de una ESTRATEGIA calculado desde el espejo.
+    // Toma los renglones de esa estrategia comprados en el MES DE ARRANQUE del
+    // trimestre (ene, abr, jul, oct) — comprados o en monto 0, da igual — y
+    // promedia su columna de trimestre. Para el mes, usa el mes en curso.
+    function calcEstrategia(et){
+      var P = window.POSICIONES || [];
+      if(!P.length) return NaN;
+      var k = String(et).toLowerCase();
+      var letra = /^(q|quant|algo_\w*_?quant)/.test(k) ? 'c'
+                : /^(s|smart|sr|algo_\w*_?smart)/.test(k) ? 's'
+                : /(sem|chica|semilla)/.test(k) ? 'z' : null;
+      if(!letra) return NaN;
+      var esMes = /_mes$/.test(k);
+      var hoy = new Date();
+      var mesArranque = Math.floor(hoy.getMonth()/3)*3;   // 0, 3, 6 o 9
+      var objetivo = esMes ? hoy.getMonth() : mesArranque;
+      var suma=0, n=0;
+      P.forEach(function(p){
+        if(!p.compra) return;
+        if(window.estratDe && window.estratDe(p.tk)!==letra) return;
+        var pr=String(p.compra).split('-'); if(pr.length<3) return;
+        var d=new Date(+pr[0], (+pr[1])-1, +pr[2]);
+        if(isNaN(d.getTime())) return;
+        if(d.getFullYear()!==hoy.getFullYear() || d.getMonth()!==objetivo) return;
+        var v = esMes ? p.mes : p.trim;
+        if(v==null || isNaN(v)) return;
+        suma+=v; n++;
+      });
+      return n ? (suma/n) : NaN;
+    }
+    window.calcEstrategia=calcEstrategia;
     // --- Semáforo de mercado: S&P 500 contra su media de 200 días ---
     (function(){
       var val=document.getElementById('mktVal'), dist=document.getElementById('mktDist'), pul=document.getElementById('mktPulse');
@@ -1754,14 +1826,20 @@ function updateCount(){
         var mv=num(r[cMioV]);
         if(!isNaN(mv)) pMio=mv;
       }
-      // estrategia del renglón (desde el espejo); si no hay columna, respaldo a META
-      var pEstrat=null;
+      // estrategia del renglón (desde la bitácora); si no hay columna, respaldo a META
+      var pEstrat=null, pEstratNom=null;
       if(cEstrat>=0){
-        var ev=(r[cEstrat]||"").trim().toLowerCase();
+        var evRaw=(r[cEstrat]||"").trim();
+        var ev=evRaw.toLowerCase();
+        if(evRaw) pEstratNom=evRaw.toUpperCase();   // nombre TAL CUAL lo escribiste
         if(ev==="quant"||ev==="cuant"||ev==="q"||ev==="c") pEstrat="c";
-        else if(ev==="smart"||ev==="s") pEstrat="s";
+        else if(ev==="smart"||ev==="s"||ev==="sr") pEstrat="s";
         else if(ev==="chica"||ev==="chicas"||ev==="semilla"||ev==="z") pEstrat="z";
+        else if(evRaw) pEstrat="c";   // estrategia nueva: se agrupa por su nombre
       }
+      // los shots sin estrategia heredan el nombre del renglón principal
+      if(pEstratNom){ window.__ULT_ESTRAT_NOM = pEstratNom; }
+      else if(window.__ULT_ESTRAT_NOM){ pEstratNom = window.__ULT_ESTRAT_NOM; }
       // Shots (renglón sin estrategia): heredan la del renglón principal de ESA MISMA acción.
       // Solo si la acción no aparece declarada en ninguna parte se recurre a META.
       if(pEstrat){ ESTRAT_DECL[tk]=pEstrat; }
@@ -1794,7 +1872,7 @@ function updateCount(){
       }
       if(cAct>=0 && !window.ESPEJO_ACT){ var av=(r[cAct]||"").trim(); if(av) window.ESPEJO_ACT=av; }
       // cada renglón = una posición (shot) independiente
-      window.POSICIONES.push({tk:tk, compra:fcIso, trim:pTrim, mes:pMes, mio:pMio, viva:mioVivo, monto:pMonto, estrat:pEstrat, esMia:esMia, vendida:vendida, venta:ventaCel});
+      window.POSICIONES.push({tk:tk, compra:fcIso, trim:pTrim, mes:pMes, mio:pMio, viva:mioVivo, monto:pMonto, estrat:pEstrat, estratNom:pEstratNom, esMia:esMia, vendida:vendida, venta:ventaCel});
       // LIVE[tk] guarda la última leída (para score/alertas por acción)
       LIVE[tk].trim=pTrim; LIVE[tk].mes=pMes; LIVE[tk].mio=pMio;
     }
@@ -1825,13 +1903,12 @@ function updateCount(){
         window.ALGO_MES_LIVE=algoMes; // el mes se conserva por si se ocupa en otras vistas
         window.ALGO_MES_Q=aMesQ; window.ALGO_MES_S=aMesS;
       }
-      // MEZCLA REAL DE LA CARTERA: 2/3 Quant + 1/3 Chica (el Smart ya no cuenta)
+      // ALGORITMO = 50% Quant 3M + 50% Quant Since Rate (la Chica no entra)
       var aTrimC=primeroValido(esp('algo_trim_semilla'), esp('sem_trim'), esp('semilla_trim'), esp('chica_trim'));
-      window.SP_DIAG_ALGO+=' trimC='+(isNaN(aTrimC)?'NO':aTrimC);
-      if(!isNaN(aTrimQ)||!isNaN(aTrimC)){
-        var wQ=0.70, wC=0.30, algoTrim, sumW=0, acum=0;
+      if(!isNaN(aTrimQ)||!isNaN(aTrimS)){
+        var wQ=0.50, wC=0.50, algoTrim, sumW=0, acum=0;
         if(!isNaN(aTrimQ)){ acum+=aTrimQ*wQ; sumW+=wQ; }
-        if(!isNaN(aTrimC)){ acum+=aTrimC*wC; sumW+=wC; }
+        if(!isNaN(aTrimS)){ acum+=aTrimS*wC; sumW+=wC; }
         algoTrim = sumW>0 ? acum/sumW : NaN;
         var el=document.getElementById('hAlgo'); if(el) el.innerHTML=fmtPct(algoTrim); // arriba: TRIMESTRE
         window.ALGO_TRIM_LIVE=algoTrim; window.ALGO_TRIM_Q=aTrimQ; window.ALGO_TRIM_C=aTrimC; window.ALGO_TRIM_S=aTrimS;
@@ -1884,14 +1961,14 @@ function updateCount(){
         if(pS){ var wS=pS.getDay(); if(wS===0||wS===6) continue; } } // salta sáb/dom
       var q=(iQT>=0?num(r[iQT]):NaN), sm=(iST>=0?num(r[iST]):NaN);
       var sem=(iSemT>=0?num(r[iSemT]):NaN);
-      // Algoritmo = mezcla REAL de la cartera: 70% Quant + 30% Chica (el Smart ya no cuenta)
-      function mezcla70(a,b){
+      // Algoritmo = 50% Quant 3M + 50% Quant Since Rate
+      function mezcla50(a,b){
         var acum=0,w=0;
-        if(!isNaN(a)){ acum+=a*0.70; w+=0.70; }
-        if(!isNaN(b)){ acum+=b*0.30; w+=0.30; }
+        if(!isNaN(a)){ acum+=a*0.50; w+=0.50; }
+        if(!isNaN(b)){ acum+=b*0.50; w+=0.50; }
         return w>0 ? acum/w : NaN;
       }
-      var algoMix=mezcla70(q,sem);
+      var algoMix=mezcla50(q,sm);
       if(isNaN(algoMix)) continue;
       serie.push({fecha:fchS, val:algoMix});
       var yq=(iYQ>=0?num(r[iYQ]):NaN), ys=(iYS>=0?num(r[iYS]):NaN);
@@ -2320,7 +2397,7 @@ function updateCount(){
     }
     function movStrat(strat){ var a=campo(strat,recA), b=campo(strat,recB); return (isNaN(a)||isNaN(b))?NaN:(b-a); }
 
-    var lblMap={cartera:'Mi cartera',quant:'Quant',smart:'Smart',chica:'Chica',algo:'Algoritmo (70/30)'};
+    var lblMap={cartera:'Mi cartera',quant:'Quant 3M',smart:'Quant SR',chica:'Chica',algo:'Algoritmo (50/50)'};
     var mainVal=movStrat(stratSel);
     var mainEl=document.getElementById('anMainVal');
     mainEl.textContent=fp(mainVal); mainEl.style.color = (isNaN(mainVal)||mainVal>=0)?'#4ade80':'#ff5a5a';
@@ -2333,7 +2410,7 @@ function updateCount(){
       else { notaEl.style.display='none'; }
     }
 
-    var comps=[]; ['algo','quant','chica','cartera'].forEach(function(k){ if(k===stratSel) return; comps.push({k:k,v:movStrat(k)}); });
+    var comps=[]; ['algo','quant','smart','chica','cartera'].forEach(function(k){ if(k===stratSel) return; comps.push({k:k,v:movStrat(k)}); });
     document.getElementById('anCompare').innerHTML=comps.map(function(c){
       var col=(isNaN(c.v)||c.v>=0)?'#4ade80':'#ff5a5a';
       var txt=isNaN(c.v)?'—':fp(c.v);
@@ -2742,9 +2819,9 @@ function updateCount(){
           (r.vendido>0?(' \u00b7 vendido $'+Math.round(r.vendido).toLocaleString('es-MX')):'')+
           (rendReal!=null?' \u00b7 sobre lo invertido':'')+'</div>'+
         '<div style="margin-top:7px">'+
-          linea('Q','Quant','#0A84FF',r.aQ)+
+          linea('Q','Quant 3M','#0A84FF',r.aQ)+
           linea('C','Chica','#BF5AF2',r.aC)+
-          linea('S','Smart','#00C7BE',r.aS)+
+          linea('S','SR','#00C7BE',r.aS)+
         '</div>'+ ib +
       '</div>';
     });
