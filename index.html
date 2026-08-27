@@ -614,7 +614,7 @@
   <div class="foot" id="anFoot">Desliza las manijas o usa los atajos · no es asesoría de inversión</div>
 </div>
 
-<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v194</div>
+<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v195</div>
 
 <div class="wrap view" id="viewBalance">
   <div class="st-hero">
@@ -881,7 +881,7 @@ function updateCount(){
   window.META = META;
 
   var got = { precios:false, hist:false, claude:false };
-  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-194";
+  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-195";
   var estado={precios:false,historial:false,claude:false};
   function pinta(){
     var chip=document.getElementById('liveChip'); if(!chip) return;
@@ -1578,7 +1578,18 @@ function updateCount(){
       if(window.renderHeroShotSel) window.renderHeroShotSel();
       // Filtrar por la compra seleccionada (o todas)
       var sel=window.heroShotSel||'all';
-      var usar = POS.filter(function(p){ return (p.esMia||p.vendida) && (sel==='all' || p.compra===sel); });
+      // SOLO el trimestre en curso: las compras de trimestres anteriores
+      // (mayo, junio...) no deben contar en "Mi trimestre".
+      var _hoy=new Date();
+      var _iniTrim=new Date(_hoy.getFullYear(), Math.floor(_hoy.getMonth()/3)*3, 1);
+      function enTrimestre(p){
+        if(!p.compra) return false;
+        var pr=String(p.compra).split('-'); if(pr.length!==3) return false;
+        var d=new Date(+pr[0], (+pr[1])-1, +pr[2]);
+        return !isNaN(d.getTime()) && d>=_iniTrim;
+      }
+      window.enTrimestre=enTrimestre;
+      var usar = POS.filter(function(p){ return (p.esMia||p.vendida) && enTrimestre(p) && (sel==='all' || p.compra===sel); });
       var invVigente=0, capTotal=0, capConDato=0, ponSum=0, n=0, nVend=0, sinDato=0, capVend=0;
       usar.forEach(function(p){
         var mt=p.monto;
