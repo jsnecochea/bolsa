@@ -614,7 +614,7 @@
   <div class="foot" id="anFoot">Desliza las manijas o usa los atajos · no es asesoría de inversión</div>
 </div>
 
-<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v195</div>
+<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v198</div>
 
 <div class="wrap view" id="viewBalance">
   <div class="st-hero">
@@ -881,7 +881,7 @@ function updateCount(){
   window.META = META;
 
   var got = { precios:false, hist:false, claude:false };
-  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-195";
+  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-198";
   var estado={precios:false,historial:false,claude:false};
   function pinta(){
     var chip=document.getElementById('liveChip'); if(!chip) return;
@@ -1112,6 +1112,19 @@ function updateCount(){
               (d.fuera.length?(' · FUERA: '+d.fuera.join(',')):'')+'</div>'; })()+
         '</div>';
       }
+      // Una estrategia se mide POR MES si su nombre trae la palabra "MENSUAL".
+      // El resto se mide por TRIMESTRE. Así no hay que marcar nada aparte.
+      function esMensual(nom){ return /MENSUAL/.test(String(nom).toUpperCase()); }
+      function enPeriodo(p, nom){
+        if(!p.compra) return false;
+        var pr=String(p.compra).split('-'); if(pr.length!==3) return false;
+        var d=new Date(+pr[0], (+pr[1])-1, +pr[2]);
+        if(isNaN(d.getTime())) return false;
+        var h=new Date();
+        if(esMensual(nom)) return d>=new Date(h.getFullYear(), h.getMonth(), 1);
+        return d>=new Date(h.getFullYear(), Math.floor(h.getMonth()/3)*3, 1);
+      }
+
       // ---- Estrategias DINAMICAS ----
       // Se descubren solas leyendo la columna ESTRAT de la bitacora.
       // Si dejas de usar una, desaparece. Si agregas una nueva, aparece sola.
@@ -1126,35 +1139,91 @@ function updateCount(){
           if(!p.monto || p.monto<=0) return;
           var nom=String(p.estratNom||p.estrat||'').trim().toUpperCase();
           if(!nom) return;
-          if(p.compra){
-            var pr=String(p.compra).split('-');
-            if(pr.length===3){
-              var d=new Date(+pr[0],(+pr[1])-1,+pr[2]);
-              if(!isNaN(d.getTime()) && d<iniTrim) return;   // trimestre anterior
-            }
-          }
-          if(!grupos[nom]){ grupos[nom]={s:0,w:0,algoS:0,algoN:0}; orden.push(nom); }
+          if(!enPeriodo(p, nom)) return;   // fuera de su periodo (mes o trimestre)
+          if(!grupos[nom]){ grupos[nom]={s:0,w:0,algoS:0,algoN:0,mensual:esMensual(nom)}; orden.push(nom); }
           if(!isNaN(p.mio)){ grupos[nom].s+=p.mio*p.monto; grupos[nom].w+=p.monto; }
         });
-        // rendimiento del ALGORITMO por estrategia: todas las de esa estrategia
-        // compradas en el mes de arranque del trimestre, tengan monto o no
-        var mesArr=Math.floor(hoy.getMonth()/3)*3;
+        // Rendimiento del ALGORITMO por estrategia.
+        // Son las acciones de la LISTA ORIGINAL del trimestre: las únicas que
+        // traen dato en "DESDE INICIO TRIM". Los shots posteriores (2do, 3er
+        // tramo) NO tienen ese dato y por eso no ensucian el cálculo.
         POS.forEach(function(p){
           var nom=String(p.estratNom||p.estrat||'').trim().toUpperCase();
           if(!nom || !grupos[nom] || !p.compra) return;
-          var pr=String(p.compra).split('-'); if(pr.length!==3) return;
-          var d=new Date(+pr[0],(+pr[1])-1,+pr[2]);
-          if(isNaN(d.getTime())||d.getFullYear()!==hoy.getFullYear()||d.getMonth()!==mesArr) return;
-          if(p.trim==null||isNaN(p.trim)) return;
-          grupos[nom].algoS+=p.trim; grupos[nom].algoN++;
+          if(!enPeriodo(p, nom)) return;
+          // mensual -> columna MES · trimestral -> columna TRIM
+          var v = grupos[nom].mensual ? p.mes : p.trim;
+          if(v==null||isNaN(v)) return;
+          grupos[nom].algoS+=v; grupos[nom].algoN++;
         });
+        // Para las MENSUALES: rendimiento de cada mes del trimestre en curso,
+        // y arriba el COMPUESTO de esos meses, comparable con las trimestrales.
+        var MM=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+        function mesesDelTrim(nom){
+          var h=new Date(), m0=Math.floor(h.getMonth()/3)*3;
+          var out=[];
+          for(var k=m0; k<=h.getMonth(); k++){
+            var sA=0,nA=0,sY=0,wY=0;
+            POS.forEach(function(p){
+              var n2=String(p.estratNom||p.estrat||'').trim().toUpperCase();
+              if(n2!==nom || !p.compra) return;
+              var pr=String(p.compra).split('-'); if(pr.length!==3) return;
+              var d=new Date(+pr[0],(+pr[1])-1,+pr[2]);
+              if(isNaN(d.getTime())||d.getFullYear()!==h.getFullYear()||d.getMonth()!==k) return;
+              if(p.mes!=null && !isNaN(p.mes)){ sA+=p.mes; nA++; }
+              if(p.monto>0 && p.mio!=null && !isNaN(p.mio)){ sY+=p.mio*p.monto; wY+=p.monto; }
+            });
+            if(nA||wY) out.push({m:k, algo:nA?sA/nA:null, yo:wY?sY/wY:null});
+          }
+          return out;
+        }
+        function comp(lista, campo){
+          var g=1, n=0;
+          lista.forEach(function(x){ if(x[campo]!=null){ g*=(1+x[campo]/100); n++; } });
+          return n?((g-1)*100):null;
+        }
+        function fp(v){
+          if(v==null||isNaN(v)) return '<span style="color:var(--dim2)">—</span>';
+          return '<span style="color:'+(v>=0?'#4ade80':'#ff6b60')+';font-weight:800">'+
+                 (v>=0?'+':'\u2212')+Math.abs(v).toFixed(1)+'%</span>';
+        }
+
         var html='';
         orden.forEach(function(nom,i){
           var g=grupos[nom];
           if(!g.w) return;
-          var yo=g.s/g.w;
-          var algo=g.algoN?(g.algoS/g.algoN):0;
-          html+=bloque(nom, PAL[i%PAL.length], yo, algo, true);
+          var col=PAL[i%PAL.length];
+          if(!g.mensual){
+            html+=bloque(nom, col, g.s/g.w, g.algoN?(g.algoS/g.algoN):0, true);
+            return;
+          }
+          // ---- ficha MENSUAL ----
+          var ms=mesesDelTrim(nom);
+          var cA=comp(ms,'algo'), cY=comp(ms,'yo');
+          var h2='<div style="border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:11px 12px;margin-bottom:10px">'+
+            '<div style="display:flex;align-items:center;gap:8px;margin-bottom:9px">'+
+              '<span style="width:9px;height:9px;border-radius:3px;background:'+col+';flex:none"></span>'+
+              '<span style="flex:1;font-size:13.5px;font-weight:800">'+nom+'</span>'+
+              '<span style="font-size:9.5px;color:var(--dim2);font-weight:700">trimestre a la fecha</span>'+
+            '</div>'+
+            '<div style="display:flex;gap:10px;margin-bottom:10px">'+
+              '<div style="flex:1;text-align:center;background:rgba(255,255,255,.03);border-radius:9px;padding:7px">'+
+                '<div style="font-size:9.5px;color:var(--dim2);font-weight:700;margin-bottom:2px">M\u00cdO</div>'+
+                '<div style="font-size:19px">'+fp(cY)+'</div></div>'+
+              '<div style="flex:1;text-align:center;background:rgba(255,255,255,.03);border-radius:9px;padding:7px">'+
+                '<div style="font-size:9.5px;color:var(--dim2);font-weight:700;margin-bottom:2px">ALGORITMO</div>'+
+                '<div style="font-size:19px">'+fp(cA)+'</div></div>'+
+            '</div>'+
+            '<div style="display:flex;gap:6px">';
+          ms.forEach(function(x){
+            h2+='<div style="flex:1;text-align:center;padding:6px 2px;border-top:1px solid rgba(255,255,255,.06)">'+
+              '<div style="font-size:9.5px;color:var(--dim2);font-weight:700;text-transform:uppercase;margin-bottom:3px">'+MM[x.m]+'</div>'+
+              '<div style="font-size:12.5px;margin-bottom:1px">'+fp(x.yo)+'</div>'+
+              '<div style="font-size:10px;opacity:.65">'+fp(x.algo)+'</div>'+
+            '</div>';
+          });
+          h2+='</div><div style="font-size:9px;color:var(--dim2);font-weight:600;text-align:center;margin-top:5px">arriba m\u00edo &middot; abajo algoritmo</div></div>';
+          html+=h2;
         });
         yva.innerHTML = html || '<div style="text-align:center;color:var(--dim2);padding:16px 0;font-size:13px">Sin posiciones en el trimestre</div>';
       })();
