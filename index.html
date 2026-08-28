@@ -628,7 +628,7 @@
   <div class="foot" id="anFoot">Desliza las manijas o usa los atajos · no es asesoría de inversión</div>
 </div>
 
-<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v288</div>
+<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v289</div>
 
 <div class="wrap view" id="viewBalance">
   <div class="st-hero">
@@ -1005,7 +1005,7 @@ function updateCount(){
   window.META = META;
 
   var got = { precios:false, hist:false, claude:false };
-  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-288";
+  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-289";
 
   /* ===================== AUDITORIA INTERNA =====================
      No se muestra en pantalla. Escribe en window.AUDIT y en la consola.
@@ -1768,6 +1768,8 @@ window.M = (function(){
         if(!p){ difs.push(h.tk+' '+h.compra+': la app NO la tiene'); return; }
         function cmp(campo, vh, va){
           if(vh===null && (va===null||va===undefined||isNaN(va))) return;
+          // la hoja venia en "Loading" y la app lo calculo: es correcto
+          if(vh===null && va!==null && va!==undefined && !isNaN(va)) return;
           if(vh===null || va===null || va===undefined || isNaN(va)){
             difs.push(h.tk+' '+h.compra+' '+campo+': hoja='+vh+' app='+va); return;
           }
@@ -2200,6 +2202,13 @@ window.M = (function(){
           window.verificarDatos().then(function(){ try{ window.auditar(); }catch(e){} });
         }
       }
+    }catch(e){}
+
+    // --- 6v. cuantos rendimientos hubo que calcular por "Loading" ---
+    try{
+      var cv=window.__CALC_VIVO||0, cs=window.__CALC_SERIE||0;
+      if(cv||cs) chk('calculados_por_loading', true,
+        cv+' con precio en vivo · '+cs+' con la serie de precios', false);
     }catch(e){}
 
     // --- 7. cordura ---
@@ -3401,7 +3410,7 @@ window.M = (function(){
       }
     })();
     // Ubicar columnas del bloque de acciones por su encabezado (Ticker/Trim/Mes/Mío)
-    var cTk=-1,cTrim=-1,cMes=-1,cMio=-1,cCompra=-1,cMonto=-1,cEstrat=-1,cVenta=-1,cMioV=-1,cAct=-1,cMotivo=-1,cPxC=-1;
+    var cTk=-1,cTrim=-1,cMes=-1,cMio=-1,cCompra=-1,cMonto=-1,cEstrat=-1,cVenta=-1,cMioV=-1,cAct=-1,cMotivo=-1,cPxC=-1,cPxHoy=-1,cTrimPx=-1,cMesPx=-1;
     // Detector TOLERANTE: acepta los encabezados de la bitácora nueva
     // ("Acción", "Fecha Compra", "Monto Invertido ($)", "DESDE INICIO TRIM"...)
     // y los del espejo viejo ("ticker", "compra", "monto", "trim"...).
@@ -3443,6 +3452,9 @@ window.M = (function(){
       cTrim   = buscar(H2, ["trim"], ["desde inicio trim"]);
       cMes    = buscar(H2, ["mes"], ["desde inicio mes"]);
       cPxC    = buscar(H2, [], ["precio de compra"]);
+      cPxHoy  = buscar(H2, [], ["precio hoy"]);
+      cTrimPx = buscar(H2, [], ["precio inicio trim"]);
+      cMesPx  = buscar(H2, [], ["precio inicio mes"]);
       cMotivo = buscar(H2, ["motivo","motivo venta"], []);
       cAct    = buscar(H2, ["actualizado","hora"], []);
       // la de "al vender" no puede ser la misma que "rend yo hoy"
@@ -3456,7 +3468,7 @@ window.M = (function(){
       }
       window.__BITCOLS={tk:cTk,est:cEstrat,compra:cCompra,venta:cVenta,
                         monto:cMonto,mio:cMio,mioV:cMioV,trim:cTrim,mes:cMes,pxC:cPxC};
-      if(cTk<0){ cTrim=cMes=cMio=cCompra=cMonto=cEstrat=cVenta=cMioV=cAct=cMotivo=cPxC=-1; } // no era la fila correcta
+      if(cTk<0){ cTrim=cMes=cMio=cCompra=cMonto=cEstrat=cVenta=cMioV=cAct=cMotivo=cPxC=cPxHoy=cTrimPx=cMesPx=-1; } // no era la fila correcta
     }
     window.DIAG_COLS='tk:'+cTk+' compra:'+cCompra+' venta:'+cVenta+' monto:'+cMonto+' mio:'+cMio+' estrat:'+cEstrat+' vender:'+cMioV;
     if(cTk<0){ cTk=17; cTrim=18; cMes=19; cMio=20; } // respaldo a posición vieja
@@ -3501,11 +3513,34 @@ window.M = (function(){
         }
       }
       var pTrim=num(r[cTrim]), pMes=num(r[cMes]), pMio=num(r[cMio]);
-      if(!window.__DIAG_FIX && String(r[cTk]||'').indexOf('FIX')===0){
-        window.__DIAG_FIX=1;
-        console.log('%c FILA FIX cruda ('+r.length+' columnas):', 'color:#FF9F0A;font-weight:bold');
-        console.log('   ', JSON.stringify(r));
-        console.log('   cMio='+cMio+' valor='+JSON.stringify(r[cMio])+' -> num='+pMio);
+      var pxHoyCel = (cPxHoy>=0) ? num(r[cPxHoy]) : NaN;
+      var pxCompCel = (cPxC>=0) ? num(r[cPxC]) : NaN;
+
+      /* RESPALDO CONTRA "Loading..."
+         Google a veces exporta las celdas con formula como "Loading..."
+         mientras recalcula. Cuando eso pasa, el rendimiento se calcula
+         aqui con PRECIO HOY y PRECIO DE COMPRA, que estan en la misma
+         fila. Sigue siendo EN VIVO, no del cierre del dia.
+         Ultimo recurso: la serie de precios guardada.                */
+      if(isNaN(pMio) && !isNaN(pxCompCel) && pxCompCel>0){
+        if(!isNaN(pxHoyCel) && pxHoyCel>0){
+          pMio = (pxHoyCel/pxCompCel - 1)*100;
+          window.__CALC_VIVO=(window.__CALC_VIVO||0)+1;
+        } else if(window.pxEn && tk){
+          var hh=new Date();
+          var isoHoy=hh.getFullYear()+'-'+('0'+(hh.getMonth()+1)).slice(-2)+'-'+('0'+hh.getDate()).slice(-2);
+          var pxSerie=window.pxEn(tk, isoHoy);
+          if(pxSerie){ pMio=(pxSerie/pxCompCel-1)*100; window.__CALC_SERIE=(window.__CALC_SERIE||0)+1; }
+        }
+      }
+      // lo mismo para trimestre y mes
+      if(isNaN(pTrim) && cTrimPx>=0){
+        var pIT=num(r[cTrimPx]);
+        if(!isNaN(pIT) && pIT>0 && !isNaN(pxHoyCel) && pxHoyCel>0) pTrim=(pxHoyCel/pIT-1)*100;
+      }
+      if(isNaN(pMes) && cMesPx>=0){
+        var pIM=num(r[cMesPx]);
+        if(!isNaN(pIM) && pIM>0 && !isNaN(pxHoyCel) && pxHoyCel>0) pMes=(pxHoyCel/pIM-1)*100;
       }
       var pMonto=(cMonto>=0?num(r[cMonto]):NaN); // monto real del espejo (NaN si vacío)
       var ventaCel=(cVenta>=0?(r[cVenta]||"").trim():"");
