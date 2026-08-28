@@ -613,7 +613,7 @@
   <div class="foot" id="anFoot">Desliza las manijas o usa los atajos · no es asesoría de inversión</div>
 </div>
 
-<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v263</div>
+<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v264</div>
 
 <div class="wrap view" id="viewBalance">
   <div class="st-hero">
@@ -945,7 +945,7 @@ function updateCount(){
   window.META = META;
 
   var got = { precios:false, hist:false, claude:false };
-  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-263";
+  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-264";
 
   /* ===================== AUDITORIA INTERNA =====================
      No se muestra en pantalla. Escribe en window.AUDIT y en la consola.
@@ -4164,7 +4164,7 @@ window.M = (function(){
         var hayQ=H.some(function(r){ return r.tQ!=null && !isNaN(r.tQ); });
         var hayZ=H.some(function(r){ return r.tC!=null && !isNaN(r.tC); });
         function corto(s){ s=String(s).toUpperCase(); return s.length>9? s.slice(0,9) : s; }
-        h+='<div style="display:flex;gap:4px;font-size:9px;color:var(--dim2);font-weight:700;padding:0 2px 6px;border-bottom:1px solid rgba(255,255,255,.08)">'+
+        h+='<div style="display:flex;gap:12px;font-size:9px;color:var(--dim2);font-weight:700;padding:0 2px 6px;border-bottom:1px solid rgba(255,255,255,.08)">'+
              '<span style="width:30px;flex:none">MES</span>'+
              '<span style="flex:1.35;text-align:right">INVERTIDO</span>'+
              '<span style="flex:1.35;text-align:right">GANANCIA</span>'+
@@ -4181,7 +4181,7 @@ window.M = (function(){
           var cg = f.gan>=0 ? '#4ade80' : '#ff6b60';
           var cp = (f.pct==null) ? 'var(--dim2)' : (f.pct>=0?'#4ade80':'#ff6b60');
           var reg = porMes[f.mes] || {};
-          h+='<div style="display:flex;gap:4px;align-items:center;padding:8px 2px;border-bottom:1px solid rgba(255,255,255,.04);font-variant-numeric:tabular-nums">'+
+          h+='<div style="display:flex;gap:12px;align-items:center;padding:8px 2px;border-bottom:1px solid rgba(255,255,255,.04);font-variant-numeric:tabular-nums">'+
              '<span style="width:32px;flex:none;font-size:11px;font-weight:800;text-transform:uppercase;color:var(--dim2)">'+
                MMx[+f.mes.split('-')[1]]+'</span>'+
              '<span style="flex:1.2;text-align:right;font-size:12px;font-weight:700">$'+
@@ -4195,7 +4195,7 @@ window.M = (function(){
              '</div>';
         });
         var cT = totGan>=0 ? '#4ade80' : '#ff6b60';
-        h+='<div style="display:flex;align-items:center;padding:10px 2px 4px;border-top:1px solid rgba(255,255,255,.12);margin-top:4px;font-variant-numeric:tabular-nums">'+
+        h+='<div style="display:flex;gap:12px;align-items:center;padding:10px 2px 4px;border-top:1px solid rgba(255,255,255,.12);margin-top:4px;font-variant-numeric:tabular-nums">'+
            '<span style="width:30px;flex:none;font-size:11px;font-weight:800;color:var(--dim2)">TOT</span>'+
            '<span style="flex:1;text-align:right;font-size:12.5px;font-weight:700;color:var(--dim2)">$'+
              Math.round(totInv/nA).toLocaleString('es-MX')+' prom</span>'+
