@@ -613,7 +613,7 @@
   <div class="foot" id="anFoot">Desliza las manijas o usa los atajos · no es asesoría de inversión</div>
 </div>
 
-<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v265</div>
+<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v267</div>
 
 <div class="wrap view" id="viewBalance">
   <div class="st-hero">
@@ -945,7 +945,7 @@ function updateCount(){
   window.META = META;
 
   var got = { precios:false, hist:false, claude:false };
-  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-265";
+  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-267";
 
   /* ===================== AUDITORIA INTERNA =====================
      No se muestra en pantalla. Escribe en window.AUDIT y en la consola.
@@ -1105,9 +1105,8 @@ function updateCount(){
 
       // S&P del año
       (function(){
-        var px=window.G.n(window.ESPEJO&&window.ESPEJO.sp500);
-        var ini=window.G.n(window.ESPEJO&&window.ESPEJO.sp500_ini_anio);
-        items.push({n:'S&P 500', v:(px!==null&&ini!==null&&ini>0)?((px/ini-1)*100):null, col:'#8e8e93'});
+        var v=(window.M&&window.M.sp500Anio)? window.M.sp500Anio() : NaN;
+        items.push({n:'S&P 500', v:(isNaN(v)?null:v), col:'#8e8e93'});
       })();
 
       // Mío: ganancia total sobre invertido promedio
@@ -1546,10 +1545,33 @@ window.M = (function(){
       }
       return { algo: promedio(L, r), mio: pond(L.filter(function(p){return p.monto>0;}), r) };
     },
-    sp500: function(){
+    // S&P del trimestre. Tres caminos, en orden:
+    //  1) la serie de precios (SPY), que es la misma fuente de tus acciones
+    //  2) las etiquetas del espejo
+    //  3) NaN -> guion
+    sp500: function(){ return API._sp('trim'); },
+    sp500Anio: function(){ return API._sp('anio'); },
+    _sp: function(cual){
+      var h=new Date();
+      var ini = (cual==='anio')
+        ? new Date(h.getFullYear()-1, 11, 31)
+        : new Date(h.getFullYear(), Math.floor(h.getMonth()/3)*3, 1);
+      // 1) desde la serie de precios
+      if(window.pxEn && (window.PXFECHAS||[]).length){
+        var tk=null;
+        ['SPY','SPX','VOO','IVV'].forEach(function(t){
+          if(!tk && window.pxEn(t, iso(h))) tk=t;
+        });
+        if(tk){
+          var pa=window.pxEn(tk, iso(ini)), pb=window.pxEn(tk, iso(h));
+          if(pa && pb) return (pb/pa-1)*100;
+        }
+      }
+      // 2) desde las etiquetas del espejo
       var a=num(window.ESPEJO&&window.ESPEJO.sp500);
-      var b=num(window.ESPEJO&&window.ESPEJO.sp500_ini_trim);
-      return (!isNaN(a)&&!isNaN(b)&&b>0) ? (a/b-1)*100 : NaN;
+      var b=num(window.ESPEJO&&(cual==='anio'?window.ESPEJO.sp500_ini_anio:window.ESPEJO.sp500_ini_trim));
+      if(!isNaN(a)&&!isNaN(b)&&b>0) return (a/b-1)*100;
+      return NaN;
     }
   };
   return API;
@@ -2951,6 +2973,8 @@ window.M = (function(){
   // ESPEJO: solo referencias del S&P (sp500, sp500_ma200, sp500_ini_trim)
   window.ESPEJO = window.ESPEJO || {};
   fetchCSV(GID.espejo).then(function(txt){
+    console.log('%c ESPEJO: llegaron '+txt.length+' caracteres', 'color:#0A84FF;font-weight:bold');
+    console.log('   primeros 200:', txt.slice(0,200));
     var rows=parseCSV(txt);
     for (var ri=0; ri<rows.length; ri++){
       var rr=rows[ri]; if(!rr) continue;
@@ -2967,7 +2991,7 @@ window.M = (function(){
     [0,500,2000].forEach(function(ms){
       setTimeout(function(){ try{ if(window.pintarHome) window.pintarHome(); }catch(e){} }, ms);
     });
-  }).catch(function(e){ console.log('espejo err',e); });
+  }).catch(function(e){ console.log('%c ESPEJO FALLO: '+(e&&e.message), 'color:#ff6b60;font-weight:bold'); });
 
   // BITACORA: posiciones (una fila por compra) + etiquetas del S&P que viven en el espejo
   fetchCSV(GID.bitacora).then(function(txt){
