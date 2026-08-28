@@ -385,7 +385,7 @@
   </div>
 
   <!-- RENDIMIENTO POR COMPRA -->
-  <div class="section-cap">Mi rendimiento por compra</div>
+  <div class="section-cap">Mi rendimiento por estrategia</div>
 
   <div class="rk-card" style="margin-top:0">
     <h3>Mi rendimiento vs el algoritmo</h3>
@@ -614,7 +614,7 @@
   <div class="foot" id="anFoot">Desliza las manijas o usa los atajos · no es asesoría de inversión</div>
 </div>
 
-<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v213</div>
+<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v217</div>
 
 <div class="wrap view" id="viewBalance">
   <div class="st-hero">
@@ -889,7 +889,7 @@ function updateCount(){
   window.META = META;
 
   var got = { precios:false, hist:false, claude:false };
-  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-213";
+  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-217";
 
   /* ===================== AUDITORIA INTERNA =====================
      No se muestra en pantalla. Escribe en window.AUDIT y en la consola.
@@ -1032,31 +1032,41 @@ function updateCount(){
       }
       var m0=Math.floor(M.hoy.getMonth()/3)*3, meses=[];
       for(var k=m0;k<=M.hoy.getMonth();k++){ meses.push({m:k, r:M.mesDe(nom,k)}); }
+      meses.reverse();   // el mes mas reciente arriba
       function g(x){ var p=1,n=0; meses.forEach(function(z){ var v=z.r[x].pct; if(!isNaN(v)){p*=(1+v/100);n++;} });
                      return n?((p-1)*100):NaN; }
-      function pc(v){ if(v==null||isNaN(v)) return '<span style="color:var(--dim2)">—</span>';
-        return '<span style="color:'+(v>=0?'#4ade80':'#ff6b60')+';font-weight:800">'+
+      function pc(v,tam){ var t=tam||14;
+        if(v==null||isNaN(v)) return '<span style="color:var(--dim2);font-size:'+t+'px">—</span>';
+        return '<span style="color:'+(v>=0?'#4ade80':'#ff6b60')+';font-weight:800;font-size:'+t+'px">'+
                (v>=0?'+':'\u2212')+Math.abs(v).toFixed(1)+'%</span>'; }
+      var difM = (!isNaN(g('mio'))&&!isNaN(g('algo'))) ? (g('mio')-g('algo')) : NaN;
       html+='<div style="border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:11px 12px;margin-bottom:10px">'+
-        '<div style="display:flex;align-items:center;gap:8px;margin-bottom:9px">'+
+        '<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">'+
           '<span style="width:9px;height:9px;border-radius:3px;background:'+col+';flex:none"></span>'+
           '<span style="flex:1;font-size:13.5px;font-weight:800">'+nom+'</span>'+
-          '<span style="font-size:9.5px;color:var(--dim2);font-weight:700">trimestre a la fecha</span></div>'+
-        '<div style="display:flex;gap:10px;margin-bottom:10px">'+
-          '<div style="flex:1;text-align:center;background:rgba(255,255,255,.03);border-radius:9px;padding:7px">'+
-            '<div style="font-size:9.5px;color:var(--dim2);font-weight:700;margin-bottom:2px">M\u00cdO</div>'+
-            '<div style="font-size:19px">'+pc(g('mio'))+'</div></div>'+
-          '<div style="flex:1;text-align:center;background:rgba(255,255,255,.03);border-radius:9px;padding:7px">'+
-            '<div style="font-size:9.5px;color:var(--dim2);font-weight:700;margin-bottom:2px">ALGORITMO</div>'+
-            '<div style="font-size:19px">'+pc(g('algo'))+'</div></div></div>'+
-        '<div style="display:flex;gap:6px">';
+          (isNaN(difM)?'':'<span style="font-size:10.5px;font-weight:800;padding:3px 8px;border-radius:20px;background:'+
+            (difM>=0?'rgba(74,222,128,.15);color:#4ade80':'rgba(255,107,96,.15);color:#ff6b60')+'">'+
+            (difM>=0?'\u25b2 ':'\u25bc ')+Math.abs(difM).toFixed(1)+' pts</span>')+
+        '</div>'+
+        '<div style="display:flex;gap:10px;margin-bottom:12px">'+
+          '<div style="flex:1;text-align:center;background:rgba(255,255,255,.03);border-radius:9px;padding:8px">'+
+            '<div style="font-size:9.5px;color:var(--dim2);font-weight:700;margin-bottom:3px">M\u00cdO (trim)</div>'+
+            '<div>'+pc(g('mio'),20)+'</div></div>'+
+          '<div style="flex:1;text-align:center;background:rgba(255,255,255,.03);border-radius:9px;padding:8px">'+
+            '<div style="font-size:9.5px;color:var(--dim2);font-weight:700;margin-bottom:3px">ALGORITMO (trim)</div>'+
+            '<div>'+pc(g('algo'),20)+'</div></div>'+
+        '</div>'+
+        '<div style="display:flex;font-size:9.5px;color:var(--dim2);font-weight:700;padding:0 4px 5px;border-bottom:1px solid rgba(255,255,255,.06)">'+
+          '<span style="width:52px">MES</span>'+
+          '<span style="flex:1;text-align:center">M\u00cdO</span>'+
+          '<span style="flex:1;text-align:center">ALGORITMO</span></div>';
       meses.forEach(function(z){
-        html+='<div style="flex:1;text-align:center;padding:6px 2px;border-top:1px solid rgba(255,255,255,.06)">'+
-          '<div style="font-size:9.5px;color:var(--dim2);font-weight:700;text-transform:uppercase;margin-bottom:3px">'+MM[z.m]+'</div>'+
-          '<div style="font-size:12.5px;margin-bottom:1px">'+pc(z.r.mio.pct)+'</div>'+
-          '<div style="font-size:10px;opacity:.65">'+pc(z.r.algo.pct)+'</div></div>';
+        html+='<div style="display:flex;align-items:center;padding:8px 4px;border-bottom:1px solid rgba(255,255,255,.04)">'+
+          '<span style="width:52px;font-size:11.5px;font-weight:800;text-transform:uppercase;color:var(--dim2)">'+MM[z.m]+'</span>'+
+          '<span style="flex:1;text-align:center">'+pc(z.r.mio.pct,16)+'</span>'+
+          '<span style="flex:1;text-align:center">'+pc(z.r.algo.pct,16)+'</span></div>';
       });
-      html+='</div><div style="font-size:9px;color:var(--dim2);font-weight:600;text-align:center;margin-top:5px">arriba m\u00edo &middot; abajo algoritmo</div></div>';
+      html+='</div>';
     });
     cont.innerHTML = html || '<div style="text-align:center;color:var(--dim2);padding:16px 0;font-size:13px">Sin posiciones en el trimestre</div>';
   };
@@ -2152,7 +2162,18 @@ window.M = (function(){
     var POS=window.POSICIONES||[];
     if(got.precios && (POS.length || tickers.length)){
       // Cuentan vigentes Y vendidas (la ganancia/pérdida realizada no desaparece)
-      var setF={}; POS.forEach(function(p){ if((p.esMia||p.vendida) && p.compra) setF[p.compra]=true; });
+      // SOLO las compras del TRIMESTRE en curso: C1 = la que arrancó el
+      // trimestre, C2 = segundo shot, y así. Las de trimestres anteriores
+      // no generan boton.
+      var _h=new Date(), _it=new Date(_h.getFullYear(), Math.floor(_h.getMonth()/3)*3, 1);
+      var setF={};
+      POS.forEach(function(p){
+        if(!((p.esMia||p.vendida) && p.compra)) return;
+        var pr=String(p.compra).split('-'); if(pr.length!==3) return;
+        var d=new Date(+pr[0],(+pr[1])-1,+pr[2]);
+        if(isNaN(d.getTime()) || d<_it) return;
+        setF[p.compra]=true;
+      });
       window.HERO_SHOTS=Object.keys(setF).sort();
       if(window.renderHeroShotSel) window.renderHeroShotSel();
       // Filtrar por la compra seleccionada (o todas)
@@ -2651,6 +2672,33 @@ window.M = (function(){
       if(!isNaN(d)||!isNaN(e)){ ultInv=(isNaN(d)?0:d)+(isNaN(e)?0:e); }
     }
     window.HIST=serie;
+    // ---- CHICA: se reinicia en CERO cada mes (es estrategia mensual) ----
+    // El historial trae la serie corrida desde inicio de trimestre; aqui se
+    // le resta el valor del ultimo dia del mes anterior para que cada mes
+    // arranque en 0 y se vea el escalon en el cambio de mes.
+    (function(){
+      var baseMes = {};   // 'YYYY-MM' -> valor de cierre del mes anterior
+      var ultPorMes = {};
+      estrat.forEach(function(x){
+        if(x.algoSem==null || isNaN(x.algoSem)) return;
+        var k=String(x.fecha).slice(0,7);
+        ultPorMes[k]=x.algoSem;
+      });
+      estrat.forEach(function(x){
+        if(x.algoSem==null || isNaN(x.algoSem)){ x.chicaMes=NaN; return; }
+        var k=String(x.fecha).slice(0,7);
+        if(baseMes[k]===undefined){
+          // buscar el cierre del mes anterior
+          var y=+k.slice(0,4), m=+k.slice(5,7)-1;
+          var pm=new Date(y, m-1, 1);
+          var kp=pm.getFullYear()+'-'+('0'+(pm.getMonth()+1)).slice(-2);
+          baseMes[k] = (ultPorMes[kp]!==undefined) ? ultPorMes[kp] : 0;
+        }
+        var b=baseMes[k];
+        // reiniciar: (1+actual)/(1+base) - 1, en porcentaje
+        x.chicaMes = ((1+x.algoSem/100)/(1+b/100) - 1)*100;
+      });
+    })();
     window.HISTSTRAT=estrat;
     if(window.construirLabHist){ try{ window.construirLabHist(rows, H); }catch(e){ console.log("labhist err",e); } }
     if(ultInv!=null){ window.INVERTIDO=ultInv; }
@@ -3064,13 +3112,28 @@ window.M = (function(){
       if(strat==="cartera") return rec.mi;         // mi rendimiento total
       if(strat==="quant") return rec.algoQ;        // algoritmo Quant (desde inicio trim)
       if(strat==="smart") return rec.algoS;        // algoritmo Smart (desde inicio trim)
-      if(strat==="chica") return rec.algoSem;      // algoritmo Chica (semilla, desde inicio trim)
+      if(strat==="chica") return (rec.chicaMes!=null && !isNaN(rec.chicaMes)) ? rec.chicaMes : rec.algoSem;  // Chica: reinicia cada mes
       if(strat==="algo") return rec.algo;          // algoritmo combinado
       return NaN;
     }
     function movStrat(strat){ var a=campo(strat,recA), b=campo(strat,recB); return (isNaN(a)||isNaN(b))?NaN:(b-a); }
 
-    var lblMap={cartera:'Mi cartera',quant:'Quant 3M',smart:'Quant SR',chica:'Chica',algo:'Algoritmo (50/50)'};
+    // Los nombres salen de la BITACORA (columna ESTRAT), no se inventan.
+    var _es = (window.M && window.M.estrategias) ? window.M.estrategias() : [];
+    function nomDe(letra){
+      for(var i=0;i<_es.length;i++){
+        var n=_es[i], u=n.toUpperCase();
+        if(letra==='q' && /QUANT|3M/.test(u) && !/SR|SMART/.test(u)) return n;
+        if(letra==='s' && /(SR|SMART)/.test(u)) return n;
+        if(letra==='z' && /(CHICA|SEMILLA|MENSUAL)/.test(u)) return n;
+      }
+      return null;
+    }
+    var lblMap={ cartera:'Mi cartera',
+                 quant: nomDe('q')||'Quant',
+                 smart: nomDe('s')||'—',
+                 chica: nomDe('z')||'Chica',
+                 algo:'Algoritmo (50/50)' };
     var mainVal=movStrat(stratSel);
     var mainEl=document.getElementById('anMainVal');
     mainEl.textContent=fp(mainVal); mainEl.style.color = (isNaN(mainVal)||mainVal>=0)?'#4ade80':'#ff5a5a';
@@ -3083,7 +3146,7 @@ window.M = (function(){
       else { notaEl.style.display='none'; }
     }
 
-    var comps=[]; ['algo','quant','smart','chica','cartera'].forEach(function(k){ if(k===stratSel) return; comps.push({k:k,v:movStrat(k)}); });
+    var comps=[]; ['quant','smart','chica','cartera'].forEach(function(k){ if(k===stratSel) return; comps.push({k:k,v:movStrat(k)}); });
     document.getElementById('anCompare').innerHTML=comps.map(function(c){
       var col=(isNaN(c.v)||c.v>=0)?'#4ade80':'#ff5a5a';
       var txt=isNaN(c.v)?'—':fp(c.v);
@@ -3492,9 +3555,9 @@ window.M = (function(){
           (r.vendido>0?(' \u00b7 vendido $'+Math.round(r.vendido).toLocaleString('es-MX')):'')+
           (rendReal!=null?' \u00b7 sobre lo invertido':'')+'</div>'+
         '<div style="margin-top:7px">'+
-          linea('Q','Quant 3M','#0A84FF',r.aQ)+
+          linea('Q',(nomDe('q')||'Quant'),'#0A84FF',r.aQ)+
           linea('C','Chica','#BF5AF2',r.aC)+
-          linea('S','SR','#00C7BE',r.aS)+
+          linea('S',(nomDe('s')||'SR'),'#00C7BE',r.aS)+
         '</div>'+ ib +
       '</div>';
     });
