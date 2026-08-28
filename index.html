@@ -613,7 +613,7 @@
   <div class="foot" id="anFoot">Desliza las manijas o usa los atajos · no es asesoría de inversión</div>
 </div>
 
-<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v272</div>
+<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v274</div>
 
 <div class="wrap view" id="viewBalance">
   <div class="st-hero">
@@ -946,7 +946,7 @@ function updateCount(){
   window.META = META;
 
   var got = { precios:false, hist:false, claude:false };
-  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-272";
+  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-274";
 
   /* ===================== AUDITORIA INTERNA =====================
      No se muestra en pantalla. Escribe en window.AUDIT y en la consola.
@@ -1132,11 +1132,11 @@ function updateCount(){
           if(r.mes===mesHoy) tieneMesHoy=true; else cerrados++;
           n++; gan+=u; sumInv+=inv;
         });
-        if(!tieneMesHoy && window.M && window.M.miMes){
-          var t=window.M.miMes();
-          var inv2=window.M.invertido()+window.M.yaVendido();
-          if(t && t.pct!=null && !isNaN(t.pct) && inv2>0){
-            n++; gan += inv2*t.pct/100; sumInv += inv2; vivo=true;
+        if(!tieneMesHoy && window.M && window.M.utilidadMes){
+          var U=window.M.utilidadMes();      // mismo criterio que la hoja
+          if(U && U.monto>0 && !isNaN(U.dinero)){
+            n++; gan += U.dinero; sumInv += U.monto; vivo=true;
+            window.__MES_VIVO={ pct:U.pct, dinero:U.dinero, monto:U.monto, n:U.n, fuera:U.fuera };
           }
         }
         window.__ANIO_DETALLE={ cerrados:cerrados, enVivo:vivo, meses:n,
@@ -1506,6 +1506,37 @@ window.M = (function(){
     },
     miTrimestre: function(){ return pond(delTrimestre(), rPos); },
     miMes: function(){ return pond(delMes(), rPosMes); },
+
+    /* UTILIDAD DEL MES, con el mismo criterio que la hoja MENSUAL:
+       · entran las posiciones VIVAS este mes y las VENDIDAS este mes
+       · punto de partida = precio de cierre del ultimo dia del mes anterior
+       · salvo que la compra sea de este mes: ahi se usa su precio de compra
+       · punto final = precio de venta si se vendio, o precio de hoy si vive
+       Devuelve dolares y el capital del mes, para poder sumarlo al año. */
+    utilidadMes: function(m){
+      var h=API.hoy;
+      var mm=(m===undefined)? h.getMonth() : m;
+      var ini=new Date(h.getFullYear(), mm, 1);
+      var finM=new Date(h.getFullYear(), mm+1, 0); if(finM>h) finM=h;
+      var antes=new Date(h.getFullYear(), mm, 0);
+      var dinero=0, cap=0, n=0, fuera=[];
+      todas().forEach(function(p){
+        if(!(p.monto>0) || !p.tk) return;
+        var dc=fecha(p.compra); if(!dc || dc>finM) return;
+        var dv=p.vendida? fecha(p.venta) : null;
+        if(dv && dv<ini) return;                    // se vendio antes del mes
+        var pIni = (dc>=ini) ? p.pxCompra
+                             : (window.pxEn? window.pxEn(p.tk, iso(antes)) : null);
+        var pFin = (dv && dv<=finM)
+                     ? (window.pxEn? window.pxEn(p.tk, iso(dv)) : null)
+                     : (window.pxEn? window.pxEn(p.tk, iso(finM)) : null);
+        if(!pIni || !pFin){ fuera.push(p.tk); return; }
+        dinero += (pFin/pIni - 1) * p.monto;
+        cap += p.monto; n++;
+      });
+      return { dinero: dinero, monto: cap, n: n, fuera: fuera,
+               pct: cap? (dinero/cap*100) : NaN };
+    },
 
     // nombres de estrategia tal como estan escritos
     estrategias: function(){
@@ -1955,6 +1986,17 @@ window.M = (function(){
         chk('anio_meses', A.meses===mesN,
             A.meses+' meses contados de '+mesN+' transcurridos · '+
             A.cerrados+' fijos de la hoja'+(A.enVivo?' + 1 en vivo':''), true);
+      }
+    }catch(e){}
+
+    // --- 6s. MES EN VIVO: mismo criterio que la hoja ---
+    try{
+      var MV=window.__MES_VIVO;
+      if(MV){
+        chk('mes_vivo', MV.fuera.length===0,
+            MV.pct.toFixed(2)+'% · $'+Math.round(MV.dinero).toLocaleString('es-MX')+
+            ' sobre $'+Math.round(MV.monto).toLocaleString('es-MX')+' · '+MV.n+' pos'+
+            (MV.fuera.length? ' · SIN PRECIO: '+MV.fuera.join(','):''), MV.fuera.length>0);
       }
     }catch(e){}
 
