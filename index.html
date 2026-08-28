@@ -613,7 +613,7 @@
   <div class="foot" id="anFoot">Desliza las manijas o usa los atajos · no es asesoría de inversión</div>
 </div>
 
-<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v267</div>
+<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v268</div>
 
 <div class="wrap view" id="viewBalance">
   <div class="st-hero">
@@ -945,7 +945,7 @@ function updateCount(){
   window.META = META;
 
   var got = { precios:false, hist:false, claude:false };
-  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-267";
+  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-268";
 
   /* ===================== AUDITORIA INTERNA =====================
      No se muestra en pantalla. Escribe en window.AUDIT y en la consola.
@@ -3507,10 +3507,33 @@ window.M = (function(){
       var rows=csv(t); HISTX=[];
       var H=(rows[0]||[]).map(function(x){return (x||"").trim().toLowerCase();});
       var iFecha=H.indexOf("fecha"), iQT=H.indexOf("cuant_trim"), iST=H.indexOf("smart_trim"), iSem=H.indexOf("semilla_trim");
+      // El robot ahora escribe al final un bloque |ESTRATEGIAS| con
+      // (nombre, algoritmo, mio) por cada estrategia. Si las columnas
+      // viejas ya no existen, se lee de ahi.
+      var iEst=H.indexOf("|estrategias|");
+      if(iEst<0){ for(var z=0;z<H.length;z++){ if(String(H[z]).indexOf('estrategias')>=0){ iEst=z; break; } } }
+      console.log('%c HISTORIAL cols -> fecha:'+iFecha+' q:'+iQT+' s:'+iST+' sem:'+iSem+' bloque:'+iEst,
+                  'color:#0A84FF');
+      if(iFecha<0) console.log('   encabezados:', JSON.stringify(H.slice(0,30)));
       for(var i=1;i<rows.length;i++){var r=rows[i];if(!r)continue;
         var fch=(iFecha>=0?(r[iFecha]||"").trim():"");
         var dd=pf(fch); if(dd){ var wd=dd.getDay(); if(wd===0||wd===6) continue; } // salta sáb/dom
         var q=(iQT>=0?n(r[iQT]):NaN), sm=(iST>=0?n(r[iST]):NaN), sem=(iSem>=0?n(r[iSem]):NaN);
+        // respaldo: leer del bloque |ESTRATEGIAS| que escribe el robot
+        if(isNaN(q)&&isNaN(sm)&&isNaN(sem)){
+          for(var b=0;b<r.length;b++){
+            if(String(r[b]).indexOf('ESTRATEGIAS')<0) continue;
+            for(var k2=b+1;k2+2<=r.length;k2+=3){
+              var nom=String(r[k2]||'').toUpperCase();
+              var alg=n(r[k2+1]);
+              if(!nom||isNaN(alg)) continue;
+              if(/QUANT|3M/.test(nom)&&!/SR|SMART/.test(nom)) q=alg;
+              else if(/SR|SMART/.test(nom)) sm=alg;
+              else if(/CHICA|SEMILLA|MENSUAL/.test(nom)) sem=alg;
+            }
+            break;
+          }
+        }
         if(isNaN(q)&&isNaN(sm))continue;var vv;if(!isNaN(q)&&!isNaN(sm))vv=(q+sm)/2;else vv=isNaN(q)?sm:q;
         HISTX.push({fecha:fch,val:vv,q:q,sm:sm,sem:sem});}
       // La CHICA es mensual: se reinicia en CERO cada mes.
