@@ -606,7 +606,7 @@
   <div class="foot" id="anFoot">Desliza las manijas o usa los atajos · no es asesoría de inversión</div>
 </div>
 
-<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v229</div>
+<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v230</div>
 
 <div class="wrap view" id="viewBalance">
   <div class="st-hero">
@@ -930,7 +930,7 @@ function updateCount(){
   window.META = META;
 
   var got = { precios:false, hist:false, claude:false };
-  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-229";
+  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-230";
 
   /* ===================== AUDITORIA INTERNA =====================
      No se muestra en pantalla. Escribe en window.AUDIT y en la consola.
@@ -1408,6 +1408,17 @@ window.M = (function(){
         var a=leerT2(t[0]), b=leerT2(t[1]);
         chk('card_'+t[2], a!==null && b!==null && a>=b,
             t[2]+' max '+a+'% min '+b+'%', true);
+      });
+    }catch(e){}
+
+    // --- 6c2. Ninguna ficha debe tener max == min (sintoma de valor inventado)
+    try{
+      [['qMax','qMin','Quant'],['sMax','sMin','SR'],['semMax','semMin','Chica']].forEach(function(t){
+        var e1=document.getElementById(t[0]), e2=document.getElementById(t[1]);
+        if(!e1||!e2) return;
+        var s1=String(e1.textContent||''), s2=String(e2.textContent||'');
+        if(s1.indexOf('\u2014')>=0 || s2.indexOf('\u2014')>=0) return;
+        chk('ficha_'+t[2]+'_no_plana', s1!==s2, t[2]+' max='+s1+' min='+s2, true);
       });
     }catch(e){}
 
@@ -3126,17 +3137,14 @@ window.M = (function(){
       '<polyline points="'+ptsS+'" fill="none" stroke="#00C7BE" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>'+
       (ptsSem?'<polyline points="'+ptsSem+'" fill="none" stroke="#BF5AF2" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>':'')+
       window.marcasCompra(data,X,pT,pB,H)+'</svg>';
-    var mxA=mxV,mnA=mnV; if(window.ALGO_TRIM_LIVE!=null&&!isNaN(window.ALGO_TRIM_LIVE)){ mxA=Math.max(mxV,window.ALGO_TRIM_LIVE); mnA=Math.min(mnV,window.ALGO_TRIM_LIVE); }
+    var mxA=mxV, mnA=mnV;   // solo la serie del historial
     setTxt('histMax'+sfx,fmt(mxA));setTxt('histMin'+sfx,fmt(mnA));
     if(sfx!=='2'){var ult=data[data.length-1];setTxt('histNowV'+sfx,fmt(ult.val));}
     if(sfx==='2'){
       var qs=data.filter(function(p){return !isNaN(p.q);});
       var ss=data.filter(function(p){return !isNaN(p.sm);});
       function llena(arr,key,idMax,idMin,idNow,live){
-        if(!arr.length){
-          if(live!=null&&!isNaN(live)){ setTxt(idMax,fmt(live));setTxt(idMin,fmt(live)); }
-          return;
-        }
+        if(!arr.length){ setTxt(idMax,'\u2014'); setTxt(idMin,'\u2014'); return; }
         var vv=arr.map(function(p){return p[key];});
         if(live!=null&&!isNaN(live)) vv=vv.concat([live]);
         var Mx=Math.max.apply(null,vv), Mn=Math.min.apply(null,vv);
@@ -3144,8 +3152,10 @@ window.M = (function(){
         setTxt(idMin,fmt(Mn));
       }
       var sems=data.filter(function(p){return !isNaN(p.sem);});
-      llena(qs,'q','qMax','qMin','qNow', window.ALGO_TRIM_Q);
-      llena(ss,'sm','sMax','sMin','sNow', window.ALGO_TRIM_S);
+      // Max/min SOLO de la serie del historial. No se mezcla ningun valor
+      // "live" del espejo: eso fue lo que descuadraba la Chica.
+      llena(qs,'q','qMax','qMin','qNow', null);
+      llena(ss,'sm','sMax','sMin','sNow', null);
       // CHICA: el max y el min son DEL MES EN CURSO, no de todo el trimestre,
       // porque es una estrategia mensual y su serie se reinicia cada mes.
       if(sems.length){
@@ -3156,8 +3166,8 @@ window.M = (function(){
         setTxt('semMax', fmt(Math.max.apply(null,vv2)));
         setTxt('semMin', fmt(Math.min.apply(null,vv2)));
         setTxt('semNow', fmt(sems[sems.length-1].sem));
-      } else if(window.ALGO_TRIM_SEM!=null && !isNaN(window.ALGO_TRIM_SEM)){
-        setTxt('semMax', fmt(window.ALGO_TRIM_SEM)); setTxt('semMin', fmt(window.ALGO_TRIM_SEM));
+      } else {
+        setTxt('semMax','\u2014'); setTxt('semMin','\u2014'); setTxt('semNow','\u2014');
       }
       window.__DIAG='Q:'+qs.length+' S:'+ss.length+' Ch:'+sems.length;
     }
