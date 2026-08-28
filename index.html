@@ -628,7 +628,7 @@
   <div class="foot" id="anFoot">Desliza las manijas o usa los atajos · no es asesoría de inversión</div>
 </div>
 
-<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v282</div>
+<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v283</div>
 
 <div class="wrap view" id="viewBalance">
   <div class="st-hero">
@@ -935,13 +935,10 @@ function updateCount(){
 
   // Lee el enlace publicado, con REINTENTOS: si Google limita peticiones
   // por recargar seguido, vuelve a intentar en vez de rendirse.
-  var _cache = {};
   function fetchCSV(gid, intento){
     window.FUENTE_DATOS = "publicado";
     intento = intento || 1;
     var MAX = 4;
-    // si esa pestaña ya se pidio, se reusa: nunca se lee dos veces
-    if(intento===1 && _cache[gid]) return _cache[gid];
     var pedir = function(){
       return fetch(url(gid)).then(function(r){
         if(!r.ok) throw new Error("HTTP " + r.status);
@@ -955,7 +952,6 @@ function updateCount(){
       window.FETCH_OK.push({ gid: gid, chars: t.length });
       return t;
     }).catch(function(e){
-      if(intento===1) delete _cache[gid];
       if(intento < MAX){
         var espera = intento * 1200;   // 1.2s, 2.4s, 3.6s
         console.log('%c reintento ' + intento + ' gid=' + gid, 'color:#FF9F0A');
@@ -967,7 +963,6 @@ function updateCount(){
       console.log('%c FALLO LECTURA gid=' + gid + ' tras ' + MAX + ' intentos', 'color:#ff6b60;font-weight:bold');
       throw e;
     });
-    if(intento===1) _cache[gid]=p2;
     return p2;
   }
 
@@ -1010,7 +1005,7 @@ function updateCount(){
   window.META = META;
 
   var got = { precios:false, hist:false, claude:false };
-  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-282";
+  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-283";
 
   /* ===================== AUDITORIA INTERNA =====================
      No se muestra en pantalla. Escribe en window.AUDIT y en la consola.
@@ -3521,6 +3516,7 @@ window.M = (function(){
 
   // historial: ultima fila; M(12)=algoQuantTrim N(13)=algoQuantMes W(22)=algoSmartTrim X(23)=algoSmartMes
   fetchCSV(GID.historial).then(function(txt){
+    window.__HIST_TXT=txt;
     var rows=parseCSV(txt);
     // Ubicar columnas por encabezado (a prueba de cambios)
     var H=(rows[0]||[]).map(function(x){return (x||"").trim().toLowerCase();});
@@ -3747,7 +3743,11 @@ window.M = (function(){
   function n(v){if(v==null)return NaN;v=String(v).replace(/[%$,\s]/g,'');var x=parseFloat(v);return isNaN(x)?NaN:x;}
   function pf(f){if(!f)return null;if(f.indexOf('-')>0){var p=f.split('-');return new Date(+p[0],+p[1]-1,+p[2]);}if(f.indexOf('/')>0){var q=f.split('/');return new Date(+q[2],+q[1]-1,+q[0]);}return null;}
   function cargar(){
-    (window.fetchCSV? window.fetchCSV(GID.historial) : fetch(URL_HIST).then(function(r){return r.text();})).then(function(t){
+    // reusa el texto del historial si ya se leyo (evita una peticion de mas)
+    (window.__HIST_TXT ? Promise.resolve(window.__HIST_TXT)
+       : (window.fetchCSV? window.fetchCSV(GID.historial)
+                         : fetch(URL_HIST).then(function(r){return r.text();}))
+    ).then(function(t){
       var rows=csv(t); HISTX=[];
       var H=(rows[0]||[]).map(function(x){return (x||"").trim().toLowerCase();});
       var iFecha=H.indexOf("fecha"), iQT=H.indexOf("cuant_trim"), iST=H.indexOf("smart_trim"), iSem=H.indexOf("semilla_trim");
