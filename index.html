@@ -628,7 +628,7 @@
   <div class="foot" id="anFoot">Desliza las manijas o usa los atajos · no es asesoría de inversión</div>
 </div>
 
-<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v284</div>
+<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v286</div>
 
 <div class="wrap view" id="viewBalance">
   <div class="st-hero">
@@ -1005,7 +1005,7 @@ function updateCount(){
   window.META = META;
 
   var got = { precios:false, hist:false, claude:false };
-  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-284";
+  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-286";
 
   /* ===================== AUDITORIA INTERNA =====================
      No se muestra en pantalla. Escribe en window.AUDIT y en la consola.
@@ -2219,23 +2219,8 @@ window.M = (function(){
     }, 1000);
   })();
 
-  /* RED DE SEGURIDAD
-     Si a los 10 segundos hay posiciones vivas sin rendimiento, se vuelve
-     a leer la bitacora. Casi siempre es que la lectura llego incompleta. */
-  setTimeout(function(){
-    try{
-      if(!window.M) return;
-      var sin=window.M.delTrimestre().filter(function(p){
-        return !p.vendida && (p.mio==null || isNaN(p.mio)); }).length;
-      if(sin>0 && !window.__RELEIDO){
-        window.__RELEIDO=1;
-        console.log('%c '+sin+' posiciones sin rendimiento: releyendo la bitacora', 'color:#FF9F0A;font-weight:bold');
-        if(window.recargarBitacora){ window.recargarBitacora(); }
-        setTimeout(function(){ try{ if(window.pintarHome) window.pintarHome(); }catch(e){}
-                               try{ window.auditar(); }catch(e){} }, 3000);
-      }
-    }catch(e){}
-  }, 10000);
+  // (la relectura automatica se quito: borraba los rendimientos ya cargados)
+
 
   var estado={precios:false,historial:false,claude:false};
   function pinta(){
@@ -3229,8 +3214,9 @@ window.M = (function(){
   function leerBitacora(){
   return fetchCSV(GID.bitacora).then(function(txt){
     var rows=parseCSV(txt);
-    // Mapa etiqueta -> valor (escanea toda la hoja; etiqueta en una celda, valor en la de al lado)
-    window.ESPEJO = {};
+    // OJO: NO reiniciar window.ESPEJO aqui. Las referencias del S&P las
+    // carga la pestaña sp500; si se vacian, el S&P desaparece.
+    window.ESPEJO = window.ESPEJO || {};
     for (var ri=0; ri<rows.length; ri++){
       var rr=rows[ri]; if(!rr) continue;
       for (var ci=0; ci<rr.length; ci++){
