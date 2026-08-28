@@ -603,7 +603,7 @@
   <div class="foot" id="anFoot">Desliza las manijas o usa los atajos · no es asesoría de inversión</div>
 </div>
 
-<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v238</div>
+<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v239</div>
 
 <div class="wrap view" id="viewBalance">
   <div class="st-hero">
@@ -927,7 +927,7 @@ function updateCount(){
   window.META = META;
 
   var got = { precios:false, hist:false, claude:false };
-  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-238";
+  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-239";
 
   /* ===================== AUDITORIA INTERNA =====================
      No se muestra en pantalla. Escribe en window.AUDIT y en la consola.
@@ -1504,6 +1504,10 @@ window.M = (function(){
           return isNaN(n)?null:(neg?-n:n);
         }
         var pMax=leerT('semMax'), pMin=leerT('semMin'), pNow=leerT('semNow');
+        if(pMax===null && pMin===null && pNow===null){
+          chk('chica_card', true, 'vista Algoritmo aun no abierta', false);
+          throw 'skip';
+        }
         chk('chica_card_max', pMax!==null && Math.abs(pMax-ult.max)<0.2,
             'pantalla '+pMax+'% vs mes '+ult.max.toFixed(1)+'%', true);
         chk('chica_card_min', pMin!==null && Math.abs(pMin-ult.min)<0.2,
@@ -1513,7 +1517,7 @@ window.M = (function(){
       } else {
         chk('chica_card', false, 'no se calculo la serie mensual de la Chica', true);
       }
-    }catch(e){ chk('chica_card', false, 'error: '+e, false); }
+    }catch(e){ if(e!=='skip') chk('chica_card', false, 'error: '+e, false); }
 
     // --- 6c. TARJETAS Quant y SR de la vista Algoritmo ---
     try{
@@ -1525,6 +1529,7 @@ window.M = (function(){
       }
       [['qMax','qMin','Quant'],['sMax','sMin','SR']].forEach(function(t){
         var a=leerT2(t[0]), b=leerT2(t[1]);
+        if(a===null && b===null) return;          // vista no abierta: no es error
         chk('card_'+t[2], a!==null && b!==null && a>=b,
             t[2]+' max '+a+'% min '+b+'%', true);
       });
@@ -1536,6 +1541,7 @@ window.M = (function(){
         var e1=document.getElementById(t[0]), e2=document.getElementById(t[1]);
         if(!e1||!e2) return;
         var s1=String(e1.textContent||''), s2=String(e2.textContent||'');
+        if(!s1.trim() || !s2.trim()) return;
         if(s1.indexOf('\u2014')>=0 || s2.indexOf('\u2014')>=0) return;
         chk('ficha_'+t[2]+'_no_plana', s1!==s2, t[2]+' max='+s1+' min='+s2, true);
       });
@@ -1551,6 +1557,7 @@ window.M = (function(){
         var nums=(txt.match(/[\u2212-]?\d+\.\d/g)||[]).map(function(s){
           return parseFloat(s.replace('\u2212','-'));
         });
+        if(!nums.length) return;                  // vista no renderizada aun
         var ok = isNaN(esperado) ? true : nums.some(function(v){ return Math.abs(v-esperado)<0.2; });
         chk('vista_est_'+t[1], ok,
             nom+' motor '+(isNaN(esperado)?'—':esperado.toFixed(1)+'%')+' · pantalla ['+nums.join(', ')+']', true);
@@ -2474,8 +2481,8 @@ window.M = (function(){
     function _mi(l){  var n=window.nomDe&&window.nomDe(l); return (n&&_M)? _M.mio(n).pct : NaN; }
     function _al(l){  var n=window.nomDe&&window.nomDe(l); return (n&&_M)? _M.algoritmo(n).pct : NaN; }
     var itemsQ=[
-      {lbl:'Mi rendimiento', v:_mi('c'), tag:'mia', key:null},
-      {lbl:'Algoritmo',      v:_al('c'), tag:'quant', key:null}
+      {lbl:'Mi rendimiento', v:_mi('q'), tag:'mia', key:null},
+      {lbl:'Algoritmo',      v:_al('q'), tag:'quant', key:null}
     ];
     var itemsS=[
       {lbl:'Mi rendimiento', v:_mi('s'), tag:'mia', key:null},
@@ -2668,6 +2675,7 @@ window.M = (function(){
           if(!p.esMia && !p.vendida) return; // solo lo que compré (vigente o ya vendido)
           var m=META[p.tk]; var d=LIVE[p.tk]||{};
           var nombre=m?m[0]:p.tk, est=p.estrat||(m?m[1]:'c'), tech=m?m[2]:false;
+          if(window.G && !window.G.vigente(p.compra,false)) return;   // solo trimestre vigente
           nuevo.push([p.tk, nombre, est, tech,
             isNaN(d.smart)?0:d.smart, isNaN(d.stren)?0:d.stren,
             (isNaN(p.mio)?null:p.mio), (isNaN(p.trim)?null:p.trim), (isNaN(p.mes)?null:p.mes), p.compra||'', !!p.vendida, p.venta||'']);
