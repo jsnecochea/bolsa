@@ -375,8 +375,18 @@
       <div class="stat"><div class="s-lbl">Acciones</div><div class="s-val" id="hPos">&mdash;</div><div id="hPosSub" style="font-size:9.5px;color:var(--dim2);font-weight:600;margin-top:3px"></div></div>
     </div>
     <div class="strip">
-      <div class="pill-card"><div><div class="pc-lbl">S&amp;P 500 · trim</div><div class="pc-val" id="hSpTrim">&mdash;</div><div style="font-size:9.5px;color:var(--dim2);font-weight:600;margin-top:1px">referencia</div></div></div>
-      <div class="pill-card"><div><div class="pc-lbl">Días para rotar</div><div class="pc-val" id="hDiasRot">&mdash;</div><div id="hDiasSub" style="font-size:9.5px;color:var(--dim2);font-weight:600;margin-top:1px"></div></div></div>
+      <div class="pill-card" style="width:100%">
+        <div style="width:100%">
+          <div class="pc-lbl" style="margin-bottom:7px">Lo que va del año</div>
+          <div id="anioFila" style="display:flex;gap:6px"></div>
+          <span style="display:none" id="hSpTrim"></span>
+          <span style="display:none" id="hSpAnio"></span>
+          <span style="display:none" id="hAnioMio"></span>
+          <span style="display:none" id="hAnioSub"></span>
+          <span style="display:none" id="hDiasRot"></span>
+          <span style="display:none" id="hDiasSub"></span>
+        </div>
+      </div>
     </div>
     <div style="display:none"><span id="mktPulse"></span><span id="mktVal"></span><span id="mktDist"></span><span id="hAlgo"></span></div>
   </div>
@@ -603,7 +613,7 @@
   <div class="foot" id="anFoot">Desliza las manijas o usa los atajos · no es asesoría de inversión</div>
 </div>
 
-<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v257</div>
+<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v260</div>
 
 <div class="wrap view" id="viewBalance">
   <div class="st-hero">
@@ -935,7 +945,7 @@ function updateCount(){
   window.META = META;
 
   var got = { precios:false, hist:false, claude:false };
-  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-257";
+  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-260";
 
   /* ===================== AUDITORIA INTERNA =====================
      No se muestra en pantalla. Escribe en window.AUDIT y en la consola.
@@ -1051,6 +1061,98 @@ function updateCount(){
       else { e2.textContent=(sp>=0?'+':'\u2212')+Math.abs(sp).toFixed(1)+'%';
              e2.style.color = sp>=0 ? '#4ade80' : '#ff8079'; }
     });
+    // ---- S&P del AÑO: cierre del año pasado contra el precio de hoy ----
+    (function(){
+      var e3=document.getElementById('hSpAnio'); if(!e3) return;
+      var px=window.G.n(window.ESPEJO&&window.ESPEJO.sp500);
+      var ini=window.G.n(window.ESPEJO&&window.ESPEJO.sp500_ini_anio);
+      if(px===null||ini===null||ini<=0){ e3.textContent='\u2014'; e3.style.color=''; return; }
+      var v=(px/ini-1)*100;
+      e3.textContent=(v>=0?'+':'\u2212')+Math.abs(v).toFixed(1)+'%';
+      e3.style.color = v>=0 ? '#4ade80' : '#ff8079';
+    })();
+
+    // ---- MI AÑO: compuesto de los meses de MENSUAL (utilidad / invertido) ----
+    (function(){
+      var e4=document.getElementById('hAnioMio'); if(!e4) return;
+      var HM=window.MENSUAL||[];
+      var anioN=String(new Date().getFullYear());
+      // MI AÑO = ganancia total del año sobre el invertido PROMEDIO.
+      // No se componen los meses: con capital revolvente y montos muy
+      // distintos cada mes, componer da un numero irreal (+135%).
+      var n=0, gan=0, sumInv=0;
+      HM.slice().sort(function(a,b){ return a.mes<b.mes?-1:1; }).forEach(function(r){
+        if(String(r.mes).slice(0,4)!==anioN) return;
+        var inv=(!isNaN(r.invFin)&&r.invFin>0)?r.invFin:null;
+        var u=(r.util!=null&&!isNaN(r.util))?r.util:null;
+        if(inv===null||u===null) return;
+        n++; gan+=u; sumInv+=inv;
+      });
+      if(!n||!sumInv){ e4.textContent='\u2014'; return; }
+      var v=gan/(sumInv/n)*100;
+      e4.innerHTML=(v>=0?'+':'\u2212')+Math.abs(v).toFixed(1)+'<span style="font-size:.6em">%</span>';
+      e4.style.color = v>=0 ? '#4ade80' : '#ff8079';
+      var s4=document.getElementById('hAnioSub');
+      if(s4) s4.textContent=(gan>=0?'+':'\u2212')+'$'+Math.abs(Math.round(gan)).toLocaleString('es-MX')+' sobre $'+Math.round(sumInv/n).toLocaleString('es-MX')+' prom';
+    })();
+
+    // ---- FILA DEL AÑO: S&P · mío · cada estrategia ----
+    (function(){
+      var fila=document.getElementById('anioFila'); if(!fila) return;
+      var anioN=String(new Date().getFullYear());
+      var HM=window.MENSUAL||[];
+      var items=[];
+
+      // S&P del año
+      (function(){
+        var px=window.G.n(window.ESPEJO&&window.ESPEJO.sp500);
+        var ini=window.G.n(window.ESPEJO&&window.ESPEJO.sp500_ini_anio);
+        items.push({n:'S&P 500', v:(px!==null&&ini!==null&&ini>0)?((px/ini-1)*100):null, col:'#8e8e93'});
+      })();
+
+      // Mío: ganancia total sobre invertido promedio
+      (function(){
+        var n=0, gan=0, sumInv=0;
+        HM.forEach(function(r){
+          if(String(r.mes).slice(0,4)!==anioN) return;
+          var inv=(!isNaN(r.invFin)&&r.invFin>0)?r.invFin:null;
+          var u=(r.util!=null&&!isNaN(r.util))?r.util:null;
+          if(inv===null||u===null) return;
+          n++; gan+=u; sumInv+=inv;
+        });
+        items.push({n:'Mío', v:(n&&sumInv)?(gan/(sumInv/n)*100):null, col:'#4ade80', fuerte:true});
+      })();
+
+      // Estrategias: compuesto mes a mes de las columnas del tracker
+      function compCol(campo){
+        var g=1,n=0;
+        HM.slice().sort(function(a,b){ return a.mes<b.mes?-1:1; }).forEach(function(r){
+          if(String(r.mes).slice(0,4)!==anioN) return;
+          var v=r[campo];
+          if(v==null||isNaN(v)) return;
+          g*=(1+v/100); n++;
+        });
+        return n? ((g-1)*100) : null;
+      }
+      var nq=(window.nomDe&&window.nomDe('q'));
+      var nz=(window.nomDe&&window.nomDe('z'));
+      var vq=compCol('tQ'), vz=compCol('tC');
+      if(nq && vq!==null) items.push({n:nq, v:vq, col:'#0A84FF'});
+      if(nz && vz!==null) items.push({n:nz, v:vz, col:'#BF5AF2'});
+
+      fila.innerHTML = items.map(function(it){
+        var col = (it.v===null||isNaN(it.v)) ? 'var(--dim2)' : (it.v>=0?'#4ade80':'#ff6b60');
+        var txt = (it.v===null||isNaN(it.v)) ? '\u2014'
+                : ((it.v>=0?'+':'\u2212')+Math.abs(it.v).toFixed(1)+'%');
+        return '<div style="flex:1;min-width:0;text-align:center;background:rgba(255,255,255,.03);'+
+               'border-radius:9px;padding:7px 3px">'+
+                 '<div style="font-size:8.5px;color:var(--dim2);font-weight:700;text-transform:uppercase;'+
+                   'white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:3px">'+it.n+'</div>'+
+                 '<div style="font-size:'+(it.fuerte?'17':'15')+'px;font-weight:800;color:'+col+'">'+txt+'</div>'+
+               '</div>';
+      }).join('');
+    })();
+
     var eSp=document.getElementById('hSpTrim');
     if(eSp){
       if(isNaN(sp)){ eSp.textContent='—'; }
@@ -3720,7 +3822,34 @@ window.M = (function(){
       if(strat==="algo") return rec.algo;          // algoritmo combinado
       return NaN;
     }
-    function movStrat(strat){ var a=campo(strat,recA), b=campo(strat,recB); return (isNaN(a)||isNaN(b))?NaN:(b-a); }
+    // Movimiento de una estrategia entre las dos fechas.
+    // Se calcula con PRECIOS (exacto, no depende de reinicios mensuales);
+    // si no hay precios, se usa el respaldo de la serie del historial.
+    function movStrat(strat){
+      try{
+        if(window.pxEn && window.PXFECHAS && window.PXFECHAS.length){
+          var letra = (strat==='quant')?'c':(strat==='smart')?'s':(strat==='chica')?'z':null;
+          var P=(window.POSICIONES||[]).filter(function(p){
+            if(!p.tk) return false;
+            if(strat==='cartera') return p.monto>0;
+            if(!letra) return false;
+            return window.estratDe && window.estratDe(p.tk)===letra;
+          });
+          var s=0,w=0;
+          var vistos={};
+          P.forEach(function(p){
+            if(vistos[p.tk]) return; vistos[p.tk]=1;
+            var pa=window.pxEn(p.tk, recA.fecha), pb=window.pxEn(p.tk, recB.fecha);
+            if(!pa||!pb) return;
+            var peso=(strat==='cartera')? (p.monto||1) : 1;
+            s+=((pb/pa-1)*100)*peso; w+=peso;
+          });
+          if(w) return s/w;
+        }
+      }catch(e){}
+      var a=campo(strat,recA), b=campo(strat,recB);
+      return (isNaN(a)||isNaN(b))?NaN:(b-a);
+    }
 
     // Los nombres salen de la BITACORA (columna ESTRAT), no se inventan.
     var _es = (window.M && window.M.estrategias) ? window.M.estrategias() : [];
@@ -3787,18 +3916,26 @@ window.M = (function(){
       var tks=tickersDe(rB, stratSel), filas=[];
       // Fechas del tramo, en orden, para poder rescatar acciones que entraron despues
       var fechasTramo=rendFechas.filter(function(f){ return f>=fA && f<=fB; });
+      // Rendimiento del tramo = precio en B contra precio en A, tomados de
+      // la serie de precios. Es exacto y no depende de reinicios mensuales.
       tks.forEach(function(tk){
-        var a=valDe(rA,stratSel,tk), b=valDe(rB,stratSel,tk);
-        if(isNaN(b)) return;
+        var pa = window.pxEn ? window.pxEn(tk, fA) : null;
+        var pb = window.pxEn ? window.pxEn(tk, fB) : null;
         var tarde=false;
-        if(isNaN(a)){
-          // Entro despues del arranque: se toma su PRIMER dato disponible dentro del tramo
+        if(!pa){
+          // entro despues del arranque: se toma su primer precio dentro del tramo
           for(var i=0;i<fechasTramo.length;i++){
-            var v=valDe(rendMap[fechasTramo[i]], stratSel, tk);
-            if(!isNaN(v)){ a=v; tarde=(fechasTramo[i]!==fA); break; }
+            var v=window.pxEn ? window.pxEn(tk, fechasTramo[i]) : null;
+            if(v){ pa=v; tarde=(fechasTramo[i]!==fA); break; }
           }
         }
-        if(isNaN(a)) return;
+        if(pa && pb){
+          filas.push({tk:tk, chg:(pb/pa-1)*100, tarde:tarde});
+          return;
+        }
+        // respaldo: si no hay precios, se usan los rendimientos guardados
+        var a=valDe(rA,stratSel,tk), b=valDe(rB,stratSel,tk);
+        if(isNaN(b)||isNaN(a)) return;
         filas.push({tk:tk, chg:(b-a)*100, tarde:tarde});
       });
       filas.sort(function(a,b){return b.chg-a.chg;});
@@ -3826,10 +3963,8 @@ window.M = (function(){
     var cruzaMes = mesA && mesB && (mesA!==mesB);
     var avEl=document.getElementById('anAviso');
     if(avEl){
-      if(cruzaMes && stratSel==='cartera'){
-        avEl.style.display='block';
-        avEl.innerHTML='&#9888; El tramo cruza un cambio de mes. Tu rendimiento mensual se reinicia el día 1, así que este número no es exacto para Cartera, Quant y Smart. El Algoritmo (desde inicio de trimestre) sí es confiable.';
-      } else { avEl.style.display='none'; }
+      // El calculo va de precio a precio, asi que cruzar un mes ya no afecta.
+      avEl.style.display='none';
     }
     var foot=document.getElementById('anFoot'); if(foot) foot.textContent=N+' días hábiles · REND:'+(window.REND?window.REND.length:0)+' regs · no es asesoría';
   }
