@@ -347,6 +347,21 @@
 </style>
 </head>
 <body>
+<div id="cargaOverlay" style="position:fixed;inset:0;z-index:99999;background:#0b0b0d;
+     display:flex;align-items:center;justify-content:center;transition:opacity .4s">
+  <div style="text-align:center;padding:0 40px;max-width:320px">
+    <div style="font-size:15px;font-weight:800;letter-spacing:.3px;margin-bottom:6px">Mi Cartera</div>
+    <div style="font-size:11.5px;color:#8e8e93;font-weight:600;margin-bottom:18px">
+      Cargando tus datos&hellip;</div>
+    <div style="height:4px;background:rgba(255,255,255,.08);border-radius:3px;overflow:hidden">
+      <div id="cargaBar" style="height:100%;width:0%;background:#4ade80;border-radius:3px;
+           transition:width .35s ease"></div>
+    </div>
+    <div id="cargaMsg" style="font-size:10.5px;color:#8e8e93;font-weight:700;margin-top:10px;
+         font-variant-numeric:tabular-nums">0 de 0</div>
+  </div>
+</div>
+
 <div class="wrap view on" id="viewResumen">
 
   <!-- HERO -->
@@ -613,7 +628,7 @@
   <div class="foot" id="anFoot">Desliza las manijas o usa los atajos · no es asesoría de inversión</div>
 </div>
 
-<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v278</div>
+<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v281</div>
 
 <div class="wrap view" id="viewBalance">
   <div class="st-hero">
@@ -880,15 +895,58 @@ function updateCount(){
   // que la auditoría lo detecte y NO se muestren números fantasma.
   window.FETCH_ERRORES = [];
   window.FETCH_OK = [];
+  /* COLA DE PETICIONES
+     Google rechaza peticiones cuando llegan varias a la vez. Por eso las
+     lecturas se hacen UNA POR UNA, con una pausa entre cada una.
+     Tarda unos segundos mas, pero nunca falla por saturacion. */
+  var _cola = Promise.resolve();
+  var _pendientes = 0, _hechas = 0;
+  function enCola(fn){
+    _pendientes++;
+    actualizarCarga();
+    _cola = _cola.then(function(){
+      return new Promise(function(res){ setTimeout(res, 450); }).then(fn);
+    }).then(function(v){
+      _hechas++; actualizarCarga(); return v;
+    }, function(e){
+      _hechas++; actualizarCarga(); throw e;
+    });
+    return _cola;
+  }
+  function actualizarCarga(){
+    var el=document.getElementById('cargaMsg');
+    if(!el) return;
+    if(_hechas>=_pendientes && _pendientes>0){
+      var ov=document.getElementById('cargaOverlay');
+      if(ov){ ov.style.opacity='0'; setTimeout(function(){ ov.style.display='none'; }, 400); }
+      return;
+    }
+    el.textContent = _hechas+' de '+_pendientes;
+    var b=document.getElementById('cargaBar');
+    if(b) b.style.width = (_pendientes? (_hechas/_pendientes*100):0)+'%';
+  }
+  window.__enCola = enCola;
+  // seguro: pase lo que pase, la pantalla de carga se quita
+  setTimeout(function(){
+    var ov=document.getElementById('cargaOverlay');
+    if(ov && ov.style.display!=='none'){ ov.style.opacity='0';
+      setTimeout(function(){ ov.style.display='none'; }, 400); }
+  }, 20000);
+
   // Lee el enlace publicado, con REINTENTOS: si Google limita peticiones
   // por recargar seguido, vuelve a intentar en vez de rendirse.
   function fetchCSV(gid, intento){
     window.FUENTE_DATOS = "publicado";
     intento = intento || 1;
     var MAX = 4;
-    return fetch(url(gid)).then(function(r){
-      if(!r.ok) throw new Error("HTTP " + r.status);
-      return r.text();
+    var pedir = function(){
+      return fetch(url(gid)).then(function(r){
+        if(!r.ok) throw new Error("HTTP " + r.status);
+        return r.text();
+      });
+    };
+    return (intento===1 ? enCola(pedir) : pedir()).then(function(t){ return t; }).then(function(r){
+      return r;
     }).then(function(t){
       if(/^\s*</.test(t)) throw new Error("devolvió HTML, no CSV");
       window.FETCH_OK.push({ gid: gid, chars: t.length });
@@ -946,7 +1004,7 @@ function updateCount(){
   window.META = META;
 
   var got = { precios:false, hist:false, claude:false };
-  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-278";
+  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-281";
 
   /* ===================== AUDITORIA INTERNA =====================
      No se muestra en pantalla. Escribe en window.AUDIT y en la consola.
@@ -2127,7 +2185,7 @@ window.M = (function(){
         try{ if(window.pintarHome) window.pintarHome(); }catch(e){ console.log('pintar err', e); }
         try{ if(window.dibujarLab) window.dibujarLab(); }catch(e){ console.log('lab err', e); }
       }); }catch(e){ console.log('px err', e); }
-  [2000,4000,6500].forEach(function(ms){
+  [1500,3000,5000,8000,12000].forEach(function(ms){
     setTimeout(function(){
       try{ if(window.pintarHome) window.pintarHome(); }catch(e){}
       try{ if(window.dibujarLab) window.dibujarLab(); }catch(e){}
@@ -2138,6 +2196,24 @@ window.M = (function(){
   window.__auditTimer = setTimeout(function(){
     try{ window.auditar(); }catch(e){ console.log('audit err', e); }
   }, 14000);
+
+  /* RED DE SEGURIDAD
+     Si a los 10 segundos hay posiciones vivas sin rendimiento, se vuelve
+     a leer la bitacora. Casi siempre es que la lectura llego incompleta. */
+  setTimeout(function(){
+    try{
+      if(!window.M) return;
+      var sin=window.M.delTrimestre().filter(function(p){
+        return !p.vendida && (p.mio==null || isNaN(p.mio)); }).length;
+      if(sin>0 && !window.__RELEIDO){
+        window.__RELEIDO=1;
+        console.log('%c '+sin+' posiciones sin rendimiento: releyendo la bitacora', 'color:#FF9F0A;font-weight:bold');
+        if(window.recargarBitacora){ window.recargarBitacora(); }
+        setTimeout(function(){ try{ if(window.pintarHome) window.pintarHome(); }catch(e){}
+                               try{ window.auditar(); }catch(e){} }, 3000);
+      }
+    }catch(e){}
+  }, 10000);
 
   var estado={precios:false,historial:false,claude:false};
   function pinta(){
@@ -3127,7 +3203,9 @@ window.M = (function(){
   }).catch(function(e){ console.log('%c ESPEJO FALLO: '+(e&&e.message), 'color:#ff6b60;font-weight:bold'); });
 
   // BITACORA: posiciones (una fila por compra) + etiquetas del S&P que viven en el espejo
-  fetchCSV(GID.bitacora).then(function(txt){
+  window.recargarBitacora=function(){ return leerBitacora(); };
+  function leerBitacora(){
+  return fetchCSV(GID.bitacora).then(function(txt){
     var rows=parseCSV(txt);
     // Mapa etiqueta -> valor (escanea toda la hoja; etiqueta en una celda, valor en la de al lado)
     window.ESPEJO = {};
@@ -3255,6 +3333,8 @@ window.M = (function(){
         console.log('%c   PROBLEMA con la columna de rendimiento. Encabezados:', 'color:#ff6b60');
         console.log('   ', JSON.stringify(H2));
       }
+      window.__BITCOLS={tk:cTk,est:cEstrat,compra:cCompra,venta:cVenta,
+                        monto:cMonto,mio:cMio,mioV:cMioV,trim:cTrim,mes:cMes,pxC:cPxC};
       if(cTk<0){ cTrim=cMes=cMio=cCompra=cMonto=cEstrat=cVenta=cMioV=cAct=cMotivo=cPxC=-1; } // no era la fila correcta
     }
     window.DIAG_COLS='tk:'+cTk+' compra:'+cCompra+' venta:'+cVenta+' monto:'+cMonto+' mio:'+cMio+' estrat:'+cEstrat+' vender:'+cMioV;
@@ -3425,6 +3505,8 @@ window.M = (function(){
     }catch(e){ console.log("algo err",e); }
     got.precios=true; estado.precios=(Object.keys(LIVE).length>0); pinta(); tryUpdateAll();
   }).catch(function(e){ estado.precios=false; pinta(); console.log("precios err",e); });
+  }
+  leerBitacora();
 
   // historial: ultima fila; M(12)=algoQuantTrim N(13)=algoQuantMes W(22)=algoSmartTrim X(23)=algoSmartMes
   fetchCSV(GID.historial).then(function(txt){
