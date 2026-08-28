@@ -613,7 +613,7 @@
   <div class="foot" id="anFoot">Desliza las manijas o usa los atajos · no es asesoría de inversión</div>
 </div>
 
-<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v264</div>
+<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v265</div>
 
 <div class="wrap view" id="viewBalance">
   <div class="st-hero">
@@ -866,7 +866,7 @@ function updateCount(){
   // La app lee la BITACORA (posiciones) y el ESPEJO (solo referencias del S&P).
   var GID = { bitacora:"192690260", precios:"1127250102", historial:"1844874580",
               claude:"192690260", rendimiento:"161922984",
-              espejo:"288876761", mensual:"981573348" };
+              espejo:"1262281153", mensual:"981573348" };
   var FILE_ID = "1dEMsL08v6y9UwicZV_lScgIWJVF6X4G0ED9MNQlI8zo";
   // gviz lee la HOJA VIVA (no la foto que Google publica y cachea). Respaldo: la publicación.
   function urlLive(gid){ return "https://docs.google.com/spreadsheets/d/"+FILE_ID+"/gviz/tq?tqx=out:csv&headers=1&gid="+gid+"&_="+Date.now(); }
@@ -945,7 +945,7 @@ function updateCount(){
   window.META = META;
 
   var got = { precios:false, hist:false, claude:false };
-  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-264";
+  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-265";
 
   /* ===================== AUDITORIA INTERNA =====================
      No se muestra en pantalla. Escribe en window.AUDIT y en la consola.
