@@ -603,7 +603,7 @@
   <div class="foot" id="anFoot">Desliza las manijas o usa los atajos · no es asesoría de inversión</div>
 </div>
 
-<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v249</div>
+<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v254</div>
 
 <div class="wrap view" id="viewBalance">
   <div class="st-hero">
@@ -621,10 +621,7 @@
     <div id="balAnio"></div>
   </div>
 
-  <div class="card" id="balMesCard">
-    <div class="card-title">Mes a mes</div>
-    <div id="balMeses"></div>
-  </div>
+  <div style="display:none" id="balMesCard"><div id="balMeses"></div></div>
 
   <div class="foot" style="margin-bottom:80px">Datos de tu hoja &middot; en vivo &middot; no es asesoría de inversión</div>
 </div>
@@ -927,7 +924,7 @@ function updateCount(){
   window.META = META;
 
   var got = { precios:false, hist:false, claude:false };
-  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-249";
+  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-254";
 
   /* ===================== AUDITORIA INTERNA =====================
      No se muestra en pantalla. Escribe en window.AUDIT y en la consola.
@@ -1206,6 +1203,13 @@ function updateCount(){
           x.nodeValue = x.nodeValue.replace(
             /(NaN|undefined|null|Infinity|#DIV\/0!?|#REF!?|#VALUE!?|#N\/A|NO_ENCONTRADO|Calculando\.\.\.)/g, GUION);
           window.__ROTOS_VISTOS++;
+          try{
+            window.__ROTOS_DETALLE = window.__ROTOS_DETALLE || [];
+            if(window.__ROTOS_DETALLE.length<10){
+              var pad = x.parentNode ? (x.parentNode.id || x.parentNode.className || '?') : '?';
+              window.__ROTOS_DETALLE.push(pad+': '+String(t).trim().slice(0,40));
+            }
+          }catch(e2){}
         });
       }catch(e){}
     }
@@ -1686,7 +1690,9 @@ window.M = (function(){
     try{
       if(window.__barrer) window.__barrer();
       chk('blindaje', (window.__ROTOS_VISTOS||0)===0,
-          (window.__ROTOS_VISTOS||0)+' valores rotos interceptados', (window.__ROTOS_VISTOS||0)>0);
+          (window.__ROTOS_VISTOS||0)+' interceptados'+
+          ((window.__ROTOS_DETALLE||[]).length? ' -> '+window.__ROTOS_DETALLE.join(' | ') : ''),
+          (window.__ROTOS_VISTOS||0)>0);
     }catch(e){}
 
     // --- 6n. NOMBRES: ninguno puede estar escrito a mano
@@ -1701,6 +1707,44 @@ window.M = (function(){
       chk('nombres_reales', inventados.length===0,
           inventados.length? inventados.join(', ') : 'todos vienen de la bitacora', true);
     }catch(e){}
+
+    // --- 6o. BALANCE / AÑO: el numero de pantalla debe ser el compuesto
+    //     de las columnas del tracker. Si no, es que se pinto otra cosa.
+    try{
+      var HM=window.MENSUAL||[];
+      var anioA=String(new Date().getFullYear());
+      function compHoja(campo){
+        var g=1,n=0;
+        HM.forEach(function(r){
+          if(String(r.mes).slice(0,4)!==anioA) return;
+          var v=r[campo];
+          if(v==null||isNaN(v)) return;
+          g*=(1+v/100); n++;
+        });
+        return n? ((g-1)*100) : null;
+      }
+      var espQ=compHoja('tQ'), espC=compHoja('tC');
+      // leer lo que muestra la tarjeta del año
+      var cajaA=document.getElementById('balAnio');
+      if(cajaA && (espQ!==null || espC!==null)){
+        var txtA=String(cajaA.textContent||'');
+        var nums=(txtA.match(/[\u2212-]?\d+\.\d(?=%)/g)||[]).map(function(s){
+          return parseFloat(s.replace('\u2212','-'));
+        });
+        [['anio_QUANT',espQ],['anio_CHICA',espC]].forEach(function(t){
+          if(t[1]===null) return;
+          // el mes en curso puede sumarse, asi que se admite holgura
+          var cerca = nums.some(function(v){ return Math.abs(v-t[1])<12; });
+          chk(t[0], cerca,
+              'hoja(ene-ult) '+t[1].toFixed(1)+'% · pantalla ['+nums.join(', ')+']', true);
+        });
+      }
+      // ¿se leyeron las columnas del tracker?
+      var conQ=HM.filter(function(r){ return r.tQ!=null && !isNaN(r.tQ); }).length;
+      var conC=HM.filter(function(r){ return r.tC!=null && !isNaN(r.tC); }).length;
+      chk('columnas_tracker', conQ>0 && conC>0,
+          'meses con dato: quant '+conQ+' · chica '+conC, true);
+    }catch(e){ chk('anio', false, 'error: '+e, false); }
 
     // --- 7. cordura ---
     var rMax=0; T.forEach(function(p){ var r=M.rPos(p); if(!isNaN(r)) rMax=Math.max(rMax,Math.abs(r)); });
@@ -2183,7 +2227,12 @@ window.M = (function(){
     // --- Todas mis acciones desde mi compra (una fila por posición del shot) ---
     var aml=document.getElementById('allMineList');
     if(aml){
-      var lista = POS.slice().filter(function(p){return !isNaN(p.mio) || p.vendida;}).sort(function(a,b){return (isNaN(b.mio)?-999:b.mio)-(isNaN(a.mio)?-999:a.mio);});
+      // SOLO el trimestre vigente (la Guardia decide), nunca meses viejos
+      var lista = POS.slice().filter(function(p){
+        if(!(window.G && window.G.vigente(p.compra,false))) return false;
+        if(!(p.monto>0)) return false;
+        return !isNaN(p.mio) || p.vendida;
+      }).sort(function(a,b){return (isNaN(b.mio)?-999:b.mio)-(isNaN(a.mio)?-999:a.mio);});
       var cnt=document.getElementById('allMineCount'); if(cnt){ var uq={}; lista.forEach(function(p){uq[p.tk]=true;}); var nv=lista.filter(function(p){return p.vendida;}).length; cnt.textContent=(lista.length-nv)+' posiciones ('+Object.keys(uq).length+' acciones)'+(nv?' · '+nv+' vendida'+(nv>1?'s':''):''); }
       var mx2=1; lista.forEach(function(p){ if(!isNaN(p.mio)&&Math.abs(p.mio)>mx2)mx2=Math.abs(p.mio); });
       function fmtSF(iso){ if(!iso)return''; var pp=iso.split("-"); if(pp.length!==3)return''; var m=["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"]; return (+pp[2])+' '+m[(+pp[1])-1]; }
@@ -3942,23 +3991,40 @@ window.M = (function(){
       if(!filasA.length){
         h='<div style="color:var(--dim2);font-size:12px;text-align:center;padding:16px 0">Sin datos</div>';
       } else {
-        h+='<div style="display:flex;font-size:9.5px;color:var(--dim2);font-weight:700;padding:0 2px 6px;border-bottom:1px solid rgba(255,255,255,.08)">'+
-             '<span style="width:38px;flex:none">MES</span>'+
-             '<span style="flex:1;text-align:right">INVERTIDO</span>'+
-             '<span style="flex:1;text-align:right">GANANCIA</span>'+
-             '<span style="width:66px;text-align:right;flex:none">%</span></div>';
+        // Columnas de estrategia: las que tengan registro en la hoja
+        var nQ=(window.nomDe&&window.nomDe('q'))||'QUANT';
+        var nZ=(window.nomDe&&window.nomDe('z'))||'CHICA';
+        var hayQ=H.some(function(r){ return r.tQ!=null && !isNaN(r.tQ); });
+        var hayZ=H.some(function(r){ return r.tC!=null && !isNaN(r.tC); });
+        function corto(s){ s=String(s).toUpperCase(); return s.length>9? s.slice(0,9) : s; }
+        h+='<div style="display:flex;gap:4px;font-size:9px;color:var(--dim2);font-weight:700;padding:0 2px 6px;border-bottom:1px solid rgba(255,255,255,.08)">'+
+             '<span style="width:32px;flex:none">MES</span>'+
+             '<span style="flex:1.2;text-align:right">INVERTIDO</span>'+
+             '<span style="flex:1.2;text-align:right">GANANCIA</span>'+
+             '<span style="width:52px;text-align:right;flex:none">%</span>'+
+             (hayQ?'<span style="width:52px;text-align:right;flex:none;color:#0A84FF">'+corto(nQ)+'</span>':'')+
+             (hayZ?'<span style="width:52px;text-align:right;flex:none;color:#BF5AF2">'+corto(nZ)+'</span>':'')+
+           '</div>';
+        function pcCel(v){
+          if(v==null||isNaN(v)) return '<span style="width:52px;flex:none;text-align:right;font-size:11.5px;color:var(--dim2)">\u2014</span>';
+          return '<span style="width:52px;flex:none;text-align:right;font-size:11.5px;font-weight:700;color:'+
+                 (v>=0?'#4ade80':'#ff6b60')+'">'+(v>=0?'+':'\u2212')+Math.abs(v).toFixed(1)+'%</span>';
+        }
         filasA.forEach(function(f){
           var cg = f.gan>=0 ? '#4ade80' : '#ff6b60';
           var cp = (f.pct==null) ? 'var(--dim2)' : (f.pct>=0?'#4ade80':'#ff6b60');
-          h+='<div style="display:flex;align-items:center;padding:8px 2px;border-bottom:1px solid rgba(255,255,255,.04);font-variant-numeric:tabular-nums">'+
-             '<span style="width:38px;flex:none;font-size:11px;font-weight:800;text-transform:uppercase;color:var(--dim2)">'+
+          var reg = porMes[f.mes] || {};
+          h+='<div style="display:flex;gap:4px;align-items:center;padding:8px 2px;border-bottom:1px solid rgba(255,255,255,.04);font-variant-numeric:tabular-nums">'+
+             '<span style="width:32px;flex:none;font-size:11px;font-weight:800;text-transform:uppercase;color:var(--dim2)">'+
                MMx[+f.mes.split('-')[1]]+'</span>'+
-             '<span style="flex:1;text-align:right;font-size:12.5px;font-weight:700">$'+
+             '<span style="flex:1.2;text-align:right;font-size:12px;font-weight:700">$'+
                Math.round(f.inv).toLocaleString('es-MX')+'</span>'+
-             '<span style="flex:1;text-align:right;font-size:12.5px;font-weight:700;color:'+cg+'">'+
+             '<span style="flex:1.2;text-align:right;font-size:12px;font-weight:700;color:'+cg+'">'+
                (f.gan>=0?'+':'\u2212')+'$'+Math.abs(Math.round(f.gan)).toLocaleString('es-MX')+'</span>'+
-             '<span style="width:66px;flex:none;text-align:right;font-size:13.5px;font-weight:800;color:'+cp+'">'+
+             '<span style="width:52px;flex:none;text-align:right;font-size:12.5px;font-weight:800;color:'+cp+'">'+
                (f.pct==null?'\u2014':((f.pct>=0?'+':'\u2212')+Math.abs(f.pct).toFixed(1)+'%'))+'</span>'+
+             (hayQ?pcCel(reg.tQ):'')+
+             (hayZ?pcCel(reg.tC):'')+
              '</div>';
         });
         var cT = totGan>=0 ? '#4ade80' : '#ff6b60';
@@ -3968,7 +4034,12 @@ window.M = (function(){
              Math.round(totInv/nA).toLocaleString('es-MX')+' prom</span>'+
            '<span style="flex:1;text-align:right;font-size:14px;font-weight:800;color:'+cT+'">'+
              (totGan>=0?'+':'\u2212')+'$'+Math.abs(Math.round(totGan)).toLocaleString('es-MX')+'</span>'+
-           '<span style="width:66px;flex:none"></span></div>';
+           '<span style="width:52px;flex:none"></span>'+
+           (hayQ?'<span style="width:52px;flex:none;text-align:right;font-size:12px;font-weight:800;color:#0A84FF">'+
+             (function(){var g=1,n=0;H.forEach(function(r){ if(String(r.mes).slice(0,4)!==anio)return; if(r.tQ!=null&&!isNaN(r.tQ)){g*=(1+r.tQ/100);n++;}}); return n?((g-1)*100>=0?'+':'\u2212')+Math.abs((g-1)*100).toFixed(1)+'%':'\u2014';})()+'</span>':'')+
+           (hayZ?'<span style="width:52px;flex:none;text-align:right;font-size:12px;font-weight:800;color:#BF5AF2">'+
+             (function(){var g=1,n=0;H.forEach(function(r){ if(String(r.mes).slice(0,4)!==anio)return; if(r.tC!=null&&!isNaN(r.tC)){g*=(1+r.tC/100);n++;}}); return n?((g-1)*100>=0?'+':'\u2212')+Math.abs((g-1)*100).toFixed(1)+'%':'\u2014';})()+'</span>':'')+
+           '</div>';
 
         // Cuenta IB: dinero real, para contrastar
         var conSaldo=H.filter(function(r){ return String(r.mes).slice(0,4)===anio && r.ibIni && !isNaN(r.ibIni) && r.ibIni>0; })
@@ -3989,46 +4060,6 @@ window.M = (function(){
                'La ganancia mensual sale del movimiento de la cuenta completa, no solo de las estrategias. '+
                'Por eso un mes con poco invertido puede dar un porcentaje muy alto.</div>'+
              '</div>';
-        }
-        // ---- Estrategias en el año: meses cerrados de la hoja,
-        //      mes en curso calculado por la app ----
-        var Q26={}, C26={};
-        H.forEach(function(r){
-          var pp=String(r.mes).split('-'); if(pp[0]!==anio) return;
-          if(r.tQ!=null && !isNaN(r.tQ)) Q26[pp[1]]=r.tQ;
-          if(r.tC!=null && !isNaN(r.tC)) C26[pp[1]]=r.tC;
-        });
-        var calcQ=false, calcC=false;
-        (function(){
-          var hd=new Date(), mm=('0'+(hd.getMonth()+1)).slice(-2);
-          if(!window.M) return;
-          var nq=window.nomDe&&window.nomDe('q');
-          var nz=window.nomDe&&window.nomDe('z');
-          if(Q26[mm]===undefined && nq && window.M.algoritmo){
-            var v=window.M.algoritmo(nq).pct;
-            if(v!=null && !isNaN(v)){ Q26[mm]=v; calcQ=true; }
-          }
-          if(C26[mm]===undefined && nz && window.M.mesDe){
-            var w=window.M.mesDe(nz, hd.getMonth());
-            if(w && w.algo && !isNaN(w.algo.pct)){ C26[mm]=w.algo.pct; calcC=true; }
-          }
-        })();
-        function compO(o){ var g=1,n=0; for(var k in o){ if(!isNaN(o[k])){ g*=(1+o[k]/100); n++; } } return n?((g-1)*100):null; }
-        var vQ=compO(Q26), vC=compO(C26);
-        if(vQ!=null || vC!=null){
-          h+='<div style="margin-top:12px;padding-top:10px;border-top:1px dashed rgba(255,255,255,.10)">'+
-             '<div style="font-size:9.5px;color:var(--dim2);font-weight:700;margin-bottom:6px">ESTRATEGIAS EN EL A\u00d1O</div>';
-          [[ (window.nomDe&&window.nomDe('q'))||'Quant', vQ, '#0A84FF', calcQ],
-           [ (window.nomDe&&window.nomDe('z'))||'Chica', vC, '#BF5AF2', calcC]].forEach(function(f){
-            if(f[1]==null||isNaN(f[1])) return;
-            h+='<div style="display:flex;align-items:center;gap:9px;padding:6px 0">'+
-               '<span style="width:9px;height:9px;border-radius:3px;background:'+f[2]+';flex:none"></span>'+
-               '<span style="flex:1;font-size:12.5px;font-weight:700">'+f[0]+
-                 (f[3]?'<span style="font-size:9px;color:var(--dim2);font-weight:600"> \u00b7 mes en curso calculado</span>':'')+'</span>'+
-               '<span style="font-size:16px;font-weight:800;color:'+(f[1]>=0?'#4ade80':'#ff6b60')+'">'+
-                 (f[1]>=0?'+':'\u2212')+Math.abs(f[1]).toFixed(1)+'%</span></div>';
-          });
-          h+='</div>';
         }
       }
       var tA=document.getElementById('ttlAnio');
@@ -4143,7 +4174,8 @@ window.M = (function(){
                   q:ix('traker real quant','quant'), c:ix('traker real chicas','chicas','chica') };
           if(o.inv>=0 && o.util>=0) cM=o;
         })();
-        if(!cM){ console.log('MENSUAL: no encontre las columnas'); }
+        console.log('MENSUAL columnas:', JSON.stringify(cM),
+                    'encabezados:', JSON.stringify(rows[0]));
         for(var i=1;i<rows.length;i++){
           var r=rows[i]; if(!r||!r[0]) continue;
           var mes=String(r[0]).trim();
@@ -4166,6 +4198,8 @@ window.M = (function(){
                   aQ:NaN, aS:NaN, aC:NaN, vendido:NaN, desp:NaN});
         }
         window.MENSUAL=H;
+        console.log('MENSUAL tQ/tC por mes:',
+          H.map(function(x){ return x.mes+':'+x.tQ+'/'+x.tC; }).join(' '));
         pintarMeses();
       }).catch(function(e){ console.log('mensual err',e); });
     }
