@@ -613,7 +613,7 @@
   <div class="foot" id="anFoot">Desliza las manijas o usa los atajos · no es asesoría de inversión</div>
 </div>
 
-<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v269</div>
+<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v270</div>
 
 <div class="wrap view" id="viewBalance">
   <div class="st-hero">
@@ -946,7 +946,7 @@ function updateCount(){
   window.META = META;
 
   var got = { precios:false, hist:false, claude:false };
-  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-269";
+  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-270";
 
   /* ===================== AUDITORIA INTERNA =====================
      No se muestra en pantalla. Escribe en window.AUDIT y en la consola.
@@ -1912,6 +1912,16 @@ window.M = (function(){
       chk('fuentes_cargadas', vacias.length===0,
           fuentes.map(function(f){ return f[0]+':'+f[1]; }).join(' · '),
           vacias.length>0);
+    }catch(e){}
+
+    // --- 6q. Las columnas de rendimiento no pueden ser la misma ---
+    try{
+      var vivasSinDato = M.delTrimestre().filter(function(p){
+        return !p.vendida && (p.mio==null || isNaN(p.mio));
+      });
+      chk('columna_rend_hoy', vivasSinDato.length===0,
+          vivasSinDato.length? ('vivas sin rendimiento: '+vivasSinDato.length+
+            ' -> revisar la columna REND YO HOY') : 'todas con dato', true);
     }catch(e){}
 
     // --- 7. cordura ---
@@ -3113,8 +3123,19 @@ window.M = (function(){
       cCompra = buscar(H2, ["compra","fecha compra"], ["fecha compra"]);
       cVenta  = buscar(H2, ["venta","fecha venta"], ["fecha venta"]);
       cMonto  = buscar(H2, ["monto"], ["monto invertido","monto"]);
+      // OJO: "rend yo" tambien aparece en "REND YO AL VENDER".
+      // Se busca primero la de VENDER y luego se excluye para la de HOY.
       cMioV   = buscar(H2, [], ["rend yo al vender","al vender"]);
-      cMio    = buscar(H2, ["mío","mio"], ["rend yo hoy","rend yo"]);
+      cMio    = (function(){
+        var i=buscar(H2, ["mío","mio"], ["rend yo hoy"]);
+        if(i>=0 && i!==cMioV) return i;
+        // respaldo: cualquier "rend yo" que NO sea la de vender
+        for(var k=0;k<H2.length;k++){
+          if(k===cMioV) continue;
+          if(H2[k] && H2[k].indexOf('rend yo')>=0) return k;
+        }
+        return -1;
+      })();
       cTrim   = buscar(H2, ["trim"], ["desde inicio trim"]);
       cMes    = buscar(H2, ["mes"], ["desde inicio mes"]);
       cPxC    = buscar(H2, [], ["precio de compra"]);
