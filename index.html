@@ -378,10 +378,7 @@
       <div class="pill-card"><div><div class="pc-lbl">S&amp;P 500 · trim</div><div class="pc-val" id="hSpTrim">&mdash;</div><div style="font-size:9.5px;color:var(--dim2);font-weight:600;margin-top:1px">referencia</div></div></div>
       <div class="pill-card"><div><div class="pc-lbl">Días para rotar</div><div class="pc-val" id="hDiasRot">&mdash;</div><div id="hDiasSub" style="font-size:9.5px;color:var(--dim2);font-weight:600;margin-top:1px"></div></div></div>
     </div>
-    <div class="strip" style="margin-top:8px">
-      <div class="pill-card"><div class="pulse" id="mktPulse"></div><div><div class="pc-lbl">Mercado</div><div class="pc-val" id="mktVal">&mdash;</div><div id="mktDist" style="font-size:9.5px;color:var(--dim2);font-weight:600;margin-top:1px"></div></div></div>
-      <div class="pill-card" id="algoOpen" style="cursor:pointer" onclick="if(window.abrirHist)window.abrirHist();"><div><div class="pc-lbl">Histórico</div><div class="pc-val" style="font-size:15px">ver gráfica</div><div id="hAlgo" style="font-size:9.5px;color:var(--dim2);font-weight:600;margin-top:1px"></div></div></div>
-    </div>
+    <div style="display:none"><span id="mktPulse"></span><span id="mktVal"></span><span id="mktDist"></span><span id="hAlgo"></span></div>
   </div>
 
   <!-- RENDIMIENTO POR COMPRA -->
@@ -606,7 +603,7 @@
   <div class="foot" id="anFoot">Desliza las manijas o usa los atajos · no es asesoría de inversión</div>
 </div>
 
-<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v230</div>
+<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v231</div>
 
 <div class="wrap view" id="viewBalance">
   <div class="st-hero">
@@ -930,7 +927,7 @@ function updateCount(){
   window.META = META;
 
   var got = { precios:false, hist:false, claude:false };
-  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-230";
+  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-231";
 
   /* ===================== AUDITORIA INTERNA =====================
      No se muestra en pantalla. Escribe en window.AUDIT y en la consola.
@@ -1059,6 +1056,7 @@ function updateCount(){
               (dif>=0?'\u25b2 ':'\u25bc ')+Math.abs(dif).toFixed(1)+' pts</span>')+
           '</div>'+
           '<div style="display:flex;gap:10px">'+
+            '<span style="width:44px;flex:none"></span>'+
             '<div style="flex:1;text-align:center;background:rgba(255,255,255,.03);border-radius:9px;padding:8px">'+
               '<div style="font-size:9.5px;color:var(--dim2);font-weight:700;margin-bottom:3px">T\u00da (trim)</div>'+
               '<div style="font-size:20px">'+pc2(mi.pct)+'</div></div>'+
@@ -1066,7 +1064,7 @@ function updateCount(){
               '<div style="font-size:9.5px;color:var(--dim2);font-weight:700;margin-bottom:3px">ALGORITMO</div>'+
               '<div style="font-size:20px">'+pc2(al.pct)+'</div></div>'+
           '</div>'+
-          '<div style="font-size:9px;color:var(--dim2);font-weight:600;margin-top:7px">'+
+          '<div style="font-size:9px;color:var(--dim2);font-weight:600;margin-top:7px;padding-left:54px">'+
             mi.n+' pos &middot; $'+mi.monto.toLocaleString('es-MX')+'</div>'+
         '</div>';
         return;
@@ -1090,6 +1088,7 @@ function updateCount(){
             (difM>=0?'\u25b2 ':'\u25bc ')+Math.abs(difM).toFixed(1)+' pts</span>')+
         '</div>'+
         '<div style="display:flex;gap:10px;margin-bottom:12px">'+
+          '<span style="width:44px;flex:none"></span>'+
           '<div style="flex:1;text-align:center;background:rgba(255,255,255,.03);border-radius:9px;padding:8px">'+
             '<div style="font-size:9.5px;color:var(--dim2);font-weight:700;margin-bottom:3px">M\u00cdO (trim)</div>'+
             '<div>'+pc(g('mio'),20)+'</div></div>'+
@@ -1097,13 +1096,13 @@ function updateCount(){
             '<div style="font-size:9.5px;color:var(--dim2);font-weight:700;margin-bottom:3px">ALGORITMO (trim)</div>'+
             '<div>'+pc(g('algo'),20)+'</div></div>'+
         '</div>'+
-        '<div style="display:flex;font-size:9.5px;color:var(--dim2);font-weight:700;padding:0 4px 5px;border-bottom:1px solid rgba(255,255,255,.06)">'+
-          '<span style="width:52px">MES</span>'+
-          '<span style="flex:1;text-align:center">M\u00cdO</span>'+
-          '<span style="flex:1;text-align:center">ALGORITMO</span></div>';
+        '<div style="display:flex;gap:10px;font-size:9.5px;color:var(--dim2);font-weight:700;padding:0 0 5px;border-bottom:1px solid rgba(255,255,255,.06)">'+
+          '<span style="width:44px;flex:none"></span>'+
+          '<span style="flex:1;text-align:center">POR MES</span>'+
+          '<span style="flex:1;text-align:center">POR MES</span></div>';
       meses.forEach(function(z){
-        html+='<div style="display:flex;align-items:center;padding:8px 4px;border-bottom:1px solid rgba(255,255,255,.04)">'+
-          '<span style="width:52px;font-size:11.5px;font-weight:800;text-transform:uppercase;color:var(--dim2)">'+MM[z.m]+'</span>'+
+        html+='<div style="display:flex;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04)">'+
+          '<span style="width:44px;flex:none;font-size:11px;font-weight:800;text-transform:uppercase;color:var(--dim2)">'+MM[z.m]+'</span>'+
           '<span style="flex:1;text-align:center">'+pc(z.r.mio.pct,16)+'</span>'+
           '<span style="flex:1;text-align:center">'+pc(z.r.algo.pct,16)+'</span></div>';
       });
