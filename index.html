@@ -628,7 +628,7 @@
   <div class="foot" id="anFoot">Desliza las manijas o usa los atajos · no es asesoría de inversión</div>
 </div>
 
-<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v283</div>
+<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v284</div>
 
 <div class="wrap view" id="viewBalance">
   <div class="st-hero">
@@ -905,7 +905,7 @@ function updateCount(){
     _pendientes++;
     actualizarCarga();
     _cola = _cola.then(function(){
-      return new Promise(function(res){ setTimeout(res, 450); }).then(fn);
+      return new Promise(function(res){ setTimeout(res, 350); }).then(fn);
     }).then(function(v){
       _hechas++; actualizarCarga(); return v;
     }, function(e){
@@ -1005,7 +1005,7 @@ function updateCount(){
   window.META = META;
 
   var got = { precios:false, hist:false, claude:false };
-  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-283";
+  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-284";
 
   /* ===================== AUDITORIA INTERNA =====================
      No se muestra en pantalla. Escribe en window.AUDIT y en la consola.
@@ -2201,7 +2201,23 @@ window.M = (function(){
   if(window.__auditTimer) clearTimeout(window.__auditTimer);
   window.__auditTimer = setTimeout(function(){
     try{ window.auditar(); }catch(e){ console.log('audit err', e); }
-  }, 14000);
+  }, 25000);
+
+  /* La auditoria tambien corre en cuanto TODAS las fuentes esten listas,
+     sin esperar el reloj. Revisa cada segundo hasta 40s. */
+  (function(){
+    var t0=Date.now();
+    var iv=setInterval(function(){
+      var listo = (window.POSICIONES||[]).length && (window.PXFECHAS||[]).length &&
+                  (window.REND||[]).length && (window.MENSUAL||[]).length &&
+                  Object.keys(window.ESPEJO||{}).length && (window.HISTSTRAT||[]).length;
+      if(listo || Date.now()-t0>40000){
+        clearInterval(iv);
+        if(window.__auditTimer) clearTimeout(window.__auditTimer);
+        setTimeout(function(){ try{ window.auditar(); }catch(e){} }, 800);
+      }
+    }, 1000);
+  })();
 
   /* RED DE SEGURIDAD
      Si a los 10 segundos hay posiciones vivas sin rendimiento, se vuelve
