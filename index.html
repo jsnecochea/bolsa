@@ -628,7 +628,7 @@
   <div class="foot" id="anFoot">Desliza las manijas o usa los atajos · no es asesoría de inversión</div>
 </div>
 
-<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v286</div>
+<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v288</div>
 
 <div class="wrap view" id="viewBalance">
   <div class="st-hero">
@@ -1005,7 +1005,7 @@ function updateCount(){
   window.META = META;
 
   var got = { precios:false, hist:false, claude:false };
-  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-286";
+  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-288";
 
   /* ===================== AUDITORIA INTERNA =====================
      No se muestra en pantalla. Escribe en window.AUDIT y en la consola.
@@ -1701,6 +1701,103 @@ window.M = (function(){
   return API;
 })();
 
+
+  /* ================================================================
+     VERIFICACION DE DATOS
+     No basta con revisar los calculos: hay que comprobar que la app
+     este LEYENDO lo mismo que dice la hoja. Esta funcion vuelve a
+     descargar la bitacora, la parsea de forma independiente, y
+     compara celda por celda contra lo que quedo en memoria.
+     Cualquier diferencia se reporta con nombre y apellido.
+     ================================================================ */
+  window.verificarDatos = function(){
+    return fetch(url(GID.bitacora)).then(function(r){ return r.text(); }).then(function(txt){
+      var rows = parseCSV(txt);
+      if(!rows.length) return { ok:false, msg:'no se pudo releer la bitacora' };
+
+      // localizar columnas de forma independiente, por nombre exacto
+      var H = (rows[0]||[]).map(function(x){ return String(x||'').trim().toLowerCase(); });
+      function col(frag){ for(var i=0;i<H.length;i++){ if(H[i].indexOf(frag)>=0) return i; } return -1; }
+      var cA={ tk:col('acci'), compra:col('fecha compra'), venta:col('fecha venta'),
+               monto:col('monto invertido'), mio:-1, mioV:col('rend yo al vender'),
+               trim:col('desde inicio trim'), mes:col('desde inicio mes'),
+               pxHoy:col('precio hoy'), pxC:col('precio de compra') };
+      // "rend yo hoy" sin confundirla con "al vender"
+      for(var i=0;i<H.length;i++){
+        if(i!==cA.mioV && H[i].indexOf('rend yo')>=0){ cA.mio=i; break; }
+      }
+      window.__VERIF_COLS = cA;
+
+      function n2(v){
+        if(v===null||v===undefined) return null;
+        var s=String(v).trim();
+        if(!s || /loading|#N\/A|#REF|#ERROR|#DIV/i.test(s)) return null;
+        s=s.replace(/[$%,\s]/g,'').replace(/\u2212/g,'-');
+        var x=parseFloat(s); return isFinite(x)? x : null;
+      }
+      function fIso(v){
+        var s=String(v||'').trim();
+        var m=s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+        if(m) return m[3]+'-'+('0'+m[2]).slice(-2)+'-'+('0'+m[1]).slice(-2);
+        m=s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+        return m? s.slice(0,10) : '';
+      }
+
+      // construir la verdad desde la hoja
+      var hoja=[];
+      for(var k=1;k<rows.length;k++){
+        var r=rows[k]; if(!r) continue;
+        var tk=String(r[cA.tk]||'').trim().split(/\s+/)[0].toUpperCase();
+        if(!tk || tk==='-' || !/^[A-Z]{1,6}$/.test(tk)) continue;
+        var mo=n2(r[cA.monto]);
+        if(mo===null || mo<=0) continue;
+        hoja.push({ tk:tk, compra:fIso(r[cA.compra]), venta:String(r[cA.venta]||'').trim(),
+                    monto:mo, mio:n2(r[cA.mio]), mioV:n2(r[cA.mioV]),
+                    trim:n2(r[cA.trim]), mes:n2(r[cA.mes]) });
+      }
+
+      // comparar contra lo que la app tiene en memoria
+      var P = (window.POSICIONES||[]).filter(function(p){ return p.monto>0; });
+      var difs=[];
+      function clave(x){ return x.tk+'|'+x.compra; }
+      var mapaApp={};
+      P.forEach(function(p){ mapaApp[clave({tk:p.tk,compra:p.compra})]=p; });
+
+      hoja.forEach(function(h){
+        var p=mapaApp[clave(h)];
+        if(!p){ difs.push(h.tk+' '+h.compra+': la app NO la tiene'); return; }
+        function cmp(campo, vh, va){
+          if(vh===null && (va===null||va===undefined||isNaN(va))) return;
+          if(vh===null || va===null || va===undefined || isNaN(va)){
+            difs.push(h.tk+' '+h.compra+' '+campo+': hoja='+vh+' app='+va); return;
+          }
+          if(Math.abs(vh-va)>0.15) difs.push(h.tk+' '+h.compra+' '+campo+': hoja='+vh+' app='+va);
+        }
+        cmp('monto', h.monto, p.monto);
+        cmp('rend',  h.mio,   p.mio);
+        cmp('trim',  h.trim,  p.trim);
+        cmp('mes',   h.mes,   p.mes);
+      });
+      // posiciones que la app tiene y la hoja no
+      var enHoja={}; hoja.forEach(function(h){ enHoja[clave(h)]=1; });
+      P.forEach(function(p){
+        if(!enHoja[clave({tk:p.tk,compra:p.compra})]) difs.push(p.tk+' '+p.compra+': la app la tiene DE MAS');
+      });
+
+      var res={ ok: difs.length===0, filasHoja: hoja.length, filasApp: P.length,
+                difs: difs, cols: cA };
+      window.__VERIF = res;
+      console.log('%c VERIFICACION DE DATOS: '+(res.ok? 'todo coincide' : difs.length+' DIFERENCIAS')+
+        ' · hoja '+hoja.length+' filas · app '+P.length,
+        'font-weight:bold;color:'+(res.ok?'#4ade80':'#ff6b60'));
+      if(!res.ok) difs.slice(0,20).forEach(function(d){ console.log('   '+d); });
+      return res;
+    }).catch(function(e){
+      console.log('%c VERIFICACION fallo: '+(e&&e.message), 'color:#ff6b60');
+      return { ok:false, msg:String(e&&e.message) };
+    });
+  };
+
   window.AUDIT = { checks: [], errores: 0, avisos: 0 };
   function chk(nombre, ok, detalle, grave){
     window.AUDIT.checks.push({ n:nombre, ok:!!ok, d:detalle, grave:!!grave });
@@ -2085,6 +2182,22 @@ window.M = (function(){
           chk('mes_dos_metodos', Math.abs(a1-b1)<1.0,
               'ponderado '+a1.toFixed(2)+'% vs dolares '+b1.toFixed(2)+'%'+
               ' · dif '+(a1-b1).toFixed(2)+' pts', true);
+        }
+      }
+    }catch(e){}
+
+    // --- 6u. VERIFICACION DE DATOS: la app vs la hoja, celda por celda ---
+    try{
+      var V=window.__VERIF;
+      if(V){
+        chk('datos_vs_hoja', V.ok,
+            V.ok ? ('hoja '+V.filasHoja+' = app '+V.filasApp+' filas · todos los valores coinciden')
+                 : (V.difs.length+' diferencias -> '+V.difs.slice(0,4).join(' | ')), true);
+      } else {
+        chk('datos_vs_hoja', true, 'verificacion en curso', false);
+        if(!window.__verifLanzada){
+          window.__verifLanzada=1;
+          window.verificarDatos().then(function(){ try{ window.auditar(); }catch(e){} });
         }
       }
     }catch(e){}
@@ -3388,6 +3501,12 @@ window.M = (function(){
         }
       }
       var pTrim=num(r[cTrim]), pMes=num(r[cMes]), pMio=num(r[cMio]);
+      if(!window.__DIAG_FIX && String(r[cTk]||'').indexOf('FIX')===0){
+        window.__DIAG_FIX=1;
+        console.log('%c FILA FIX cruda ('+r.length+' columnas):', 'color:#FF9F0A;font-weight:bold');
+        console.log('   ', JSON.stringify(r));
+        console.log('   cMio='+cMio+' valor='+JSON.stringify(r[cMio])+' -> num='+pMio);
+      }
       var pMonto=(cMonto>=0?num(r[cMonto]):NaN); // monto real del espejo (NaN si vacío)
       var ventaCel=(cVenta>=0?(r[cVenta]||"").trim():"");
       var esFechaVenta=/\d{1,4}[\/\-]\d{1,2}[\/\-]\d{1,4}/.test(ventaCel)||/^Date\(/.test(ventaCel); // fecha real de venta (incluye formato gviz)
