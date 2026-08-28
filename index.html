@@ -357,7 +357,7 @@
         <span id="homeBellBadge" style="display:none;position:absolute;top:-2px;right:-3px;min-width:16px;height:16px;padding:0 4px;background:#ff3b30;color:#fff;font-size:10px;font-weight:800;border-radius:100px;align-items:center;justify-content:center;box-shadow:0 0 0 2px #0e0e12">0</span>
       </button>
       <div class="date" id="liveChip" style="margin-left:auto">actualizando…</div></div>
-    <div id="heroShotSel" style="display:flex;gap:5px;margin:2px 0 12px"></div>
+    <div id="heroShotSel" style="display:none"></div>
     <div class="duel-hero">
       <div class="dh-col">
         <div class="label" id="hMioLabel">Mi trimestre</div>
@@ -614,7 +614,7 @@
   <div class="foot" id="anFoot">Desliza las manijas o usa los atajos · no es asesoría de inversión</div>
 </div>
 
-<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v217</div>
+<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v221</div>
 
 <div class="wrap view" id="viewBalance">
   <div class="st-hero">
@@ -756,11 +756,13 @@ function renderAcc(key){
     html += '<div class="ac-item'+(vend?' vend':'')+'">'+dot+
       '<div class="ac-info"><div class="ac-tk"'+(vend?' style="color:#FFD426"':'')+'>'+tk+chip+fbadge+lk+'</div><div class="ac-sub">'+nm+(vend?' · vendida':'')+'</div></div>'+
       '<div class="ac-rets">'+
+        // VENTA: solo en las vendidas, el % al que se ejecuto
+        (vend
+          ? '<div class="ac-r"><div class="l">Venta</div><div class="n" style="color:#FFD426">'+pct(ret)+'</div></div>'
+          : '<div class="ac-r"><div class="l">&nbsp;</div><div class="n">&nbsp;</div></div>')+
         '<div class="ac-r"><div class="l">M\u00edo</div><div class="n '+(vend?'':cl(ret))+'"'+(vend?' style="color:#FFD426"':'')+'>'+pct(ret)+'</div></div>'+
         '<div class="ac-r"><div class="l">Mes</div><div class="n '+cl(mes)+'">'+pct(mes)+'</div></div>'+
         '<div class="ac-r"><div class="l">Trim</div><div class="n '+cl(trim)+'">'+pct(trim)+'</div></div>'+
-        '<div class="ac-r sc"><div class="l">SR</div><div class="n">'+sm.toFixed(2)+'</div></div>'+
-        '<div class="ac-r sc"><div class="l">Stren</div><div class="n">'+sr.toFixed(1)+'</div></div>'+
       '</div>'+
     '</div>';
   }
@@ -889,7 +891,7 @@ function updateCount(){
   window.META = META;
 
   var got = { precios:false, hist:false, claude:false };
-  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-217";
+  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-221";
 
   /* ===================== AUDITORIA INTERNA =====================
      No se muestra en pantalla. Escribe en window.AUDIT y en la consola.
@@ -2137,7 +2139,7 @@ window.M = (function(){
     }
   };
 
-  window.heroShotSel='all';
+  window.heroShotSel='all';   // el selector de compras quedó oculto: siempre todas
   window.renderHeroShotSel=function(){
     var cont=document.getElementById('heroShotSel'); if(!cont) return;
     var ds=window.HERO_SHOTS||[];
@@ -2664,7 +2666,7 @@ window.M = (function(){
       }
       var algoMix=mezcla50(q,sm);
       if(isNaN(algoMix)) continue;
-      serie.push({fecha:fchS, val:algoMix});
+      serie.push({fecha:fchS, val:algoMix, q:q, sm:sm, sem:sem});
       var yq=(iYQ>=0?num(r[iYQ]):NaN), ys=(iYS>=0?num(r[iYS]):NaN);
       estrat.push({fecha:fchS, hora:(ix('hora')>=0?(r[ix('hora')]||'').trim():''), algoQ:q, algoS:sm, algo:algoMix, algoSem:sem, miQ:yq, miS:ys,
                    mi:((!isNaN(yq)&&!isNaN(ys))?(yq+ys)/2:(isNaN(yq)?ys:yq))});
@@ -2700,6 +2702,12 @@ window.M = (function(){
       });
     })();
     window.HISTSTRAT=estrat;
+    // la Chica en la grafica va reiniciada por mes (igual que en la vista)
+    (function(){
+      var porFecha={};
+      estrat.forEach(function(x){ if(x.chicaMes!=null && !isNaN(x.chicaMes)) porFecha[x.fecha]=x.chicaMes; });
+      (window.HIST||[]).forEach(function(p){ if(porFecha[p.fecha]!==undefined) p.sem=porFecha[p.fecha]; });
+    })();
     if(window.construirLabHist){ try{ window.construirLabHist(rows, H); }catch(e){ console.log("labhist err",e); } }
     if(ultInv!=null){ window.INVERTIDO=ultInv; }
     got.hist=true; estado.historial=true; pinta(); tryUpdateAll();
@@ -2760,7 +2768,9 @@ window.M = (function(){
       data=data.filter(function(p){ var d=parseFecha(p.fecha); return !d || d>=lim; });
     }
     if(data.length<1){ data=(window.HIST||[]).slice(); }
-    var vals=data.map(function(p){return p.val;});
+    // El algoritmo combinado ya no se grafica. El min/max se toma de las series reales.
+    var vals=[]; data.forEach(function(p){ [p.q,p.sm,p.sem].forEach(function(v){ if(!isNaN(v)) vals.push(v); }); });
+    if(!vals.length) vals=data.map(function(p){return p.val;});
     var mn=Math.min.apply(null,vals), mx=Math.max.apply(null,vals);
     var range=(mx-mn)||1;
     var W=600,H=220,padL=8,padR=8,padT=16,padB=16;
@@ -2773,20 +2783,22 @@ window.M = (function(){
     var pts=data.map(function(p,i){return X(i)+','+Y(p.val);}).join(' ');
     var ptsQ=data.filter(function(p){return !isNaN(p.q);}).map(function(p,i,arr){return X(data.indexOf(p))+','+Y(p.q);}).join(' ');
     var ptsS=data.filter(function(p){return !isNaN(p.sm);}).map(function(p,i){return X(data.indexOf(p))+','+Y(p.sm);}).join(' ');
+    var ptsZ=data.filter(function(p){return !isNaN(p.sem);}).map(function(p,i){return X(data.indexOf(p))+','+Y(p.sem);}).join(' ');
     // índices de min y max
     var iMin=vals.indexOf(mn), iMax=vals.indexOf(mx);
     // línea del cero si cabe
     var zeroLine='';
     if(mn<0 && mx>0){ var zy=Y(0); zeroLine='<line x1="'+padL+'" y1="'+zy+'" x2="'+(W-padR)+'" y2="'+zy+'" stroke="rgba(255,255,255,.12)" stroke-dasharray="3 3"/>'; }
-    var area='M '+X(0)+' '+Y(data[0].val)+' L '+data.map(function(p,i){return X(i)+' '+Y(p.val);}).join(' L ')+' L '+X(data.length-1)+' '+(H-padB)+' L '+X(0)+' '+(H-padB)+' Z';
+
     var svg='<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto;display:block">'+
-      '<defs><linearGradient id="hgrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="rgba(255,69,58,.28)"/><stop offset="1" stop-color="rgba(255,69,58,0)"/></linearGradient></defs>'+
+      
       zeroLine+
-      '<path d="'+area+'" fill="url(#hgrad)"/>'+
-      '<polyline points="'+ptsQ+'" fill="none" stroke="#0A84FF" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" opacity="0.9"/><polyline points="'+ptsS+'" fill="none" stroke="#00C7BE" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" opacity="0.9"/><polyline points="'+pts+'" fill="none" stroke="#ff6b60" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>'+(window.marcasCompra?window.marcasCompra(data,X,padT,padB,H):'')+
+      '<polyline points="'+ptsQ+'" fill="none" stroke="#0A84FF" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>'+
+      '<polyline points="'+ptsS+'" fill="none" stroke="#00C7BE" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>'+
+      '<polyline points="'+ptsZ+'" fill="none" stroke="#BF5AF2" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>'+(window.marcasCompra?window.marcasCompra(data,X,padT,padB,H):'')+
       '<circle cx="'+X(iMax)+'" cy="'+Y(mx)+'" r="4.5" fill="#30D158"/>'+
       '<circle cx="'+X(iMin)+'" cy="'+Y(mn)+'" r="4.5" fill="#ff453a"/>'+
-      '<circle cx="'+X(data.length-1)+'" cy="'+Y(data[data.length-1].val)+'" r="4" fill="#fff"/>'+
+
       '</svg>';
     cont.innerHTML=svg;
     function fmt(v){return (v>=0?'+':'−')+Math.abs(v).toFixed(1)+'%';}
@@ -2795,8 +2807,12 @@ window.M = (function(){
     document.getElementById('histMin').textContent=fmt(mn);
     document.getElementById('histMaxD').textContent=fd(data[iMax].fecha);
     document.getElementById('histMinD').textContent=fd(data[iMin].fecha);
-    var hoy=data[data.length-1].val;
-    document.getElementById('histNow').innerHTML='Hoy el algoritmo está en <b>'+fmt(hoy)+'</b> &middot; '+data.length+' registros';
+    var u=data[data.length-1];
+    var partes=[];
+    if(!isNaN(u.q))   partes.push('<span style="color:#0A84FF">'+fmt(u.q)+'</span>');
+    if(!isNaN(u.sm))  partes.push('<span style="color:#00C7BE">'+fmt(u.sm)+'</span>');
+    if(!isNaN(u.sem)) partes.push('<span style="color:#BF5AF2">'+fmt(u.sem)+'</span>');
+    document.getElementById('histNow').innerHTML=partes.join(' &middot; ')+' &middot; '+data.length+' registros';
   }
   window.histDias=0;
   window.abrirHist=function(){
