@@ -606,7 +606,7 @@
   <div class="foot" id="anFoot">Desliza las manijas o usa los atajos · no es asesoría de inversión</div>
 </div>
 
-<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v225</div>
+<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v226</div>
 
 <div class="wrap view" id="viewBalance">
   <div class="st-hero">
@@ -930,7 +930,7 @@ function updateCount(){
   window.META = META;
 
   var got = { precios:false, hist:false, claude:false };
-  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-225";
+  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-226";
 
   /* ===================== AUDITORIA INTERNA =====================
      No se muestra en pantalla. Escribe en window.AUDIT y en la consola.
@@ -2993,20 +2993,32 @@ window.M = (function(){
     var iMin=vals.indexOf(mnV),iMax=vals.indexOf(mxV);
     var zero='';if(mn<0&&mx>0){var zy=Y(0);zero='<line x1="'+pL+'" y1="'+zy+'" x2="'+(W-pR)+'" y2="'+zy+'" stroke="rgba(255,255,255,.12)" stroke-dasharray="3 3"/>';}
     var area='M '+X(0)+' '+Y(data[0].val)+' L '+data.map(function(p,i){return X(i)+' '+Y(p.val);}).join(' L ')+' L '+X(data.length-1)+' '+(H-pB)+' L '+X(0)+' '+(H-pB)+' Z';
-    // Linea del CERO y separadores verticales al cambiar de mes
+    // Guias horizontales cada 10% dentro del rango visible (gris tenue)
+    var guias = '';
+    var g0 = Math.ceil(mn/10)*10, g1 = Math.floor(mx/10)*10;
+    for(var gv=g0; gv<=g1; gv+=10){
+      if(gv===0) continue;
+      var gy=Y(gv);
+      guias += '<line x1="'+pL+'" y1="'+gy+'" x2="'+(W-pR)+'" y2="'+gy+
+               '" stroke="rgba(255,255,255,.10)" stroke-width="1"/>'+
+               '<text x="'+(pL+3)+'" y="'+(gy-3)+'" fill="rgba(255,255,255,.28)" font-size="9">'+
+               (gv>0?'+':'')+gv+'%</text>';
+    }
+    // Linea del CERO: blanca y mas marcada
     var lineaCero = '<line x1="'+pL+'" y1="'+Y(0)+'" x2="'+(W-pR)+'" y2="'+Y(0)+
-      '" stroke="rgba(255,255,255,.30)" stroke-width="1"/>';
+      '" stroke="rgba(255,255,255,.75)" stroke-width="1.2"/>';
+    // Separadores verticales al cambiar de mes: blancos
     var sepMes = '';
     for(var im=1; im<data.length; im++){
       var fa=String(data[im-1].fecha).slice(0,7), fb=String(data[im].fecha).slice(0,7);
       if(fa && fb && fa!==fb){
         var xm=X(im);
         sepMes += '<line x1="'+xm+'" y1="'+pT+'" x2="'+xm+'" y2="'+(H-pB)+
-                  '" stroke="rgba(255,255,255,.22)" stroke-width="1" stroke-dasharray="2 4"/>';
+                  '" stroke="rgba(255,255,255,.65)" stroke-width="1" stroke-dasharray="3 3"/>';
       }
     }
     // El algoritmo combinado ya no se grafica: solo las estrategias reales.
-    cont.innerHTML='<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto;display:block">'+lineaCero+sepMes+
+    cont.innerHTML='<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto;display:block">'+guias+lineaCero+sepMes+
       '<polyline points="'+ptsQ+'" fill="none" stroke="#0A84FF" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>'+
       '<polyline points="'+ptsS+'" fill="none" stroke="#00C7BE" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>'+
       (ptsSem?'<polyline points="'+ptsSem+'" fill="none" stroke="#BF5AF2" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>':'')+
@@ -3031,8 +3043,20 @@ window.M = (function(){
       var sems=data.filter(function(p){return !isNaN(p.sem);});
       llena(qs,'q','qMax','qMin','qNow', window.ALGO_TRIM_Q);
       llena(ss,'sm','sMax','sMin','sNow', window.ALGO_TRIM_S);
-      llena(sems,'sem','semMax','semMin','semNow', window.ALGO_TRIM_SEM);
-      if(sems.length){ setTxt('semNow', fmt(sems[sems.length-1].sem)); }
+      // CHICA: el max y el min son DEL MES EN CURSO, no de todo el trimestre,
+      // porque es una estrategia mensual y su serie se reinicia cada mes.
+      if(sems.length){
+        var mesUlt = String(sems[sems.length-1].fecha).slice(0,7);
+        var delMes = sems.filter(function(p){ return String(p.fecha).slice(0,7)===mesUlt; });
+        var base = delMes.length ? delMes : sems;
+        var vv2 = base.map(function(p){ return p.sem; });
+        if(window.ALGO_TRIM_SEM!=null && !isNaN(window.ALGO_TRIM_SEM)) vv2=vv2.concat([window.ALGO_TRIM_SEM]);
+        setTxt('semMax', fmt(Math.max.apply(null,vv2)));
+        setTxt('semMin', fmt(Math.min.apply(null,vv2)));
+        setTxt('semNow', fmt(sems[sems.length-1].sem));
+      } else if(window.ALGO_TRIM_SEM!=null && !isNaN(window.ALGO_TRIM_SEM)){
+        setTxt('semMax', fmt(window.ALGO_TRIM_SEM)); setTxt('semMin', fmt(window.ALGO_TRIM_SEM));
+      }
       window.__DIAG='Q:'+qs.length+' S:'+ss.length+' Ch:'+sems.length;
     }
     setHTML('histNow'+sfx,data.length+' registros'+(sfx==='2'&&window.__DIAG?' · '+window.__DIAG:''));
