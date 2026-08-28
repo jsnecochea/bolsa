@@ -1005,7 +1005,7 @@ function updateCount(){
   window.META = META;
 
   var got = { precios:false, hist:false, claude:false };
-  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-290";
+  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-291";
 
   /* ===================== AUDITORIA INTERNA =====================
      No se muestra en pantalla. Escribe en window.AUDIT y en la consola.
@@ -1766,23 +1766,33 @@ window.M = (function(){
       hoja.forEach(function(h){
         var p=mapaApp[clave(h)];
         if(!p){ difs.push(h.tk+' '+h.compra+': la app NO la tiene'); return; }
-        function cmp(campo, vh, va){
+        // tol = tolerancia en puntos. El monto NO es dato vivo: exacto.
+        // Los campos trim/mes/rend salen de PRECIO HOY (GOOGLEFINANCE en vivo);
+        // como esta verificacion vuelve a DESCARGAR la bitacora una segunda vez,
+        // el precio tickea entre las dos lecturas y aparecen diferencias de
+        // decimas de punto (small caps hasta ~1 pt) que NO son error de la app.
+        // Los cuadres agregados (cuadre_montos, cuadre_trimestre) siguen exactos,
+        // asi que un error real de lectura se cacha ahi, no aqui.
+        var TOL_VIVO = 1.6;
+        function cmp(campo, vh, va, tol){
           if(vh===null && (va===null||va===undefined||isNaN(va))) return;
           // la hoja venia en "Loading" y la app lo calculo: es correcto
           if(vh===null && va!==null && va!==undefined && !isNaN(va)) return;
           if(vh===null || va===null || va===undefined || isNaN(va)){
             difs.push(h.tk+' '+h.compra+' '+campo+': hoja='+vh+' app='+va); return;
           }
-          if(Math.abs(vh-va)>0.15) difs.push(h.tk+' '+h.compra+' '+campo+': hoja='+vh+' app='+va);
+          if(Math.abs(vh-va)>(tol||0.15)) difs.push(h.tk+' '+h.compra+' '+campo+': hoja='+vh+' app='+va);
         }
-        cmp('monto', h.monto, p.monto);
+        cmp('monto', h.monto, p.monto);   // no vive: exacto
         // En las VENDIDAS la app usa "REND YO AL VENDER" (congelado), no
         // "REND YO HOY" (que sigue vivo en la hoja). Se compara contra el
         // campo correcto en cada caso.
         var esVend = h.venta && !/^T[1-4]$/i.test(h.venta) && h.venta!=='-';
-        cmp('rend', esVend ? h.mioV : h.mio, p.mio);
-        cmp('trim',  h.trim,  p.trim);
-        cmp('mes',   h.mes,   p.mes);
+        // rend vendida = "al vender", congelado -> exacto. rend viva = en vivo.
+        // trim y mes SIEMPRE son en vivo (usan PRECIO HOY aunque este vendida).
+        cmp('rend', esVend ? h.mioV : h.mio, p.mio, esVend ? 0.15 : TOL_VIVO);
+        cmp('trim',  h.trim,  p.trim, TOL_VIVO);
+        cmp('mes',   h.mes,   p.mes, TOL_VIVO);
       });
       // posiciones que la app tiene y la hoja no
       var enHoja={}; hoja.forEach(function(h){ enHoja[clave(h)]=1; });
