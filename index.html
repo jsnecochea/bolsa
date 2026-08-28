@@ -613,7 +613,7 @@
   <div class="foot" id="anFoot">Desliza las manijas o usa los atajos · no es asesoría de inversión</div>
 </div>
 
-<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v261</div>
+<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v263</div>
 
 <div class="wrap view" id="viewBalance">
   <div class="st-hero">
@@ -945,7 +945,7 @@ function updateCount(){
   window.META = META;
 
   var got = { precios:false, hist:false, claude:false };
-  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-261";
+  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-263";
 
   /* ===================== AUDITORIA INTERNA =====================
      No se muestra en pantalla. Escribe en window.AUDIT y en la consola.
@@ -1630,8 +1630,12 @@ window.M = (function(){
     chk('pant_trimestre', pTrim!==null && Math.abs(pTrim-t.pct)<0.15,
         'pantalla '+pTrim+'% vs motor '+(isNaN(t.pct)?'—':t.pct.toFixed(1))+'%', true);
     var sp=M.sp500();
-    chk('pant_sp500', !isNaN(sp) && pSp!==null && Math.abs(pSp-sp)<0.2,
-        'pantalla '+pSp+'% vs motor '+(isNaN(sp)?'—':sp.toFixed(1))+'%', true);
+    if(window.ESPEJO && window.ESPEJO.sp500){
+      chk('pant_sp500', !isNaN(sp) && pSp!==null && Math.abs(pSp-sp)<0.2,
+          'pantalla '+pSp+'% vs motor '+(isNaN(sp)?'—':sp.toFixed(1))+'%', true);
+    } else {
+      chk('pant_sp500', true, 'espejo aun no cargado', false);
+    }
 
     // --- 6b. TARJETA DE LA CHICA en la vista Algoritmo ---
     try{
@@ -2957,9 +2961,12 @@ window.M = (function(){
         }
       }
     }
-    console.log('espejo cargado:', JSON.stringify(window.ESPEJO));
+    console.log('%c espejo cargado: '+JSON.stringify(window.ESPEJO), 'color:#0A84FF;font-weight:bold');
+    console.log('  filas del espejo:', rows.length, JSON.stringify(rows.slice(0,6)));
     // repintar en cuanto llegan las referencias del S&P
-    try{ if(window.pintarHome) window.pintarHome(); }catch(e){}
+    [0,500,2000].forEach(function(ms){
+      setTimeout(function(){ try{ if(window.pintarHome) window.pintarHome(); }catch(e){} }, ms);
+    });
   }).catch(function(e){ console.log('espejo err',e); });
 
   // BITACORA: posiciones (una fila por compra) + etiquetas del S&P que viven en el espejo
