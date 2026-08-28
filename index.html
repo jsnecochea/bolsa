@@ -480,6 +480,7 @@
   </div>
   <div style="display:flex;gap:14px;margin-bottom:10px;flex-wrap:wrap;font-size:11.5px;color:var(--dim);font-weight:600">
     <span style="display:flex;align-items:center;gap:5px"><span style="width:14px;height:3px;border-radius:2px;background:#0A84FF"></span>Quant</span>
+    <span style="display:flex;align-items:center;gap:5px"><span style="width:14px;height:3px;border-radius:2px;background:#00C7BE"></span>SR</span>
     <span style="display:flex;align-items:center;gap:5px"><span style="width:14px;height:3px;border-radius:2px;background:#BF5AF2"></span>Chica</span>
   </div>
   <div id="histChart2"></div>
@@ -605,7 +606,7 @@
   <div class="foot" id="anFoot">Desliza las manijas o usa los atajos · no es asesoría de inversión</div>
 </div>
 
-<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v224</div>
+<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v225</div>
 
 <div class="wrap view" id="viewBalance">
   <div class="st-hero">
@@ -929,7 +930,7 @@ function updateCount(){
   window.META = META;
 
   var got = { precios:false, hist:false, claude:false };
-  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-224";
+  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-225";
 
   /* ===================== AUDITORIA INTERNA =====================
      No se muestra en pantalla. Escribe en window.AUDIT y en la consola.
@@ -2925,6 +2926,25 @@ window.M = (function(){
         var q=(iQT>=0?n(r[iQT]):NaN), sm=(iST>=0?n(r[iST]):NaN), sem=(iSem>=0?n(r[iSem]):NaN);
         if(isNaN(q)&&isNaN(sm))continue;var vv;if(!isNaN(q)&&!isNaN(sm))vv=(q+sm)/2;else vv=isNaN(q)?sm:q;
         HISTX.push({fecha:fch,val:vv,q:q,sm:sm,sem:sem});}
+      // La CHICA es mensual: se reinicia en CERO cada mes.
+      // A cada dia se le quita el cierre del mes anterior.
+      (function(){
+        var ultMes={};
+        HISTX.forEach(function(p){ if(!isNaN(p.sem)) ultMes[String(p.fecha).slice(0,7)]=p.sem; });
+        var base={};
+        HISTX.forEach(function(p){
+          if(isNaN(p.sem)) return;
+          var k=String(p.fecha).slice(0,7);
+          if(base[k]===undefined){
+            var y=+k.slice(0,4), m=+k.slice(5,7)-1;
+            var pm=new Date(y,m-1,1);
+            var kp=pm.getFullYear()+'-'+('0'+(pm.getMonth()+1)).slice(-2);
+            base[k]=(ultMes[kp]!==undefined)?ultMes[kp]:0;
+          }
+          p.sem=((1+p.sem/100)/(1+base[k]/100)-1)*100;
+        });
+      })();
+      if(window.pintarActualAlgo) try{ window.pintarActualAlgo(); }catch(e){}
     }).catch(function(e){console.log("histX err",e);});
   }
   cargar();
