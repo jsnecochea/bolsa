@@ -603,7 +603,7 @@
   <div class="foot" id="anFoot">Desliza las manijas o usa los atajos · no es asesoría de inversión</div>
 </div>
 
-<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v256</div>
+<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v257</div>
 
 <div class="wrap view" id="viewBalance">
   <div class="st-hero">
@@ -935,7 +935,7 @@ function updateCount(){
   window.META = META;
 
   var got = { precios:false, hist:false, claude:false };
-  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-256";
+  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-257";
 
   /* ===================== AUDITORIA INTERNA =====================
      No se muestra en pantalla. Escribe en window.AUDIT y en la consola.
@@ -1043,7 +1043,15 @@ function updateCount(){
     var eS=document.getElementById('hPosSub');
     if(eS) eS.textContent=acc.compras+' compras';
 
-    var sp=M.sp500(), eSp=document.getElementById('hSpTrim');
+    var sp=M.sp500();
+    // el S&P puede aparecer en varias vistas; se pinta en todas
+    ['hSpTrim','spTrim2','anSp'].forEach(function(id){
+      var e2=document.getElementById(id); if(!e2) return;
+      if(isNaN(sp)){ e2.textContent='\u2014'; e2.style.color=''; }
+      else { e2.textContent=(sp>=0?'+':'\u2212')+Math.abs(sp).toFixed(1)+'%';
+             e2.style.color = sp>=0 ? '#4ade80' : '#ff8079'; }
+    });
+    var eSp=document.getElementById('hSpTrim');
     if(eSp){
       if(isNaN(sp)){ eSp.textContent='—'; }
       else {
@@ -1700,6 +1708,9 @@ window.M = (function(){
     // --- 6m. BLINDAJE: ¿tuvo que corregir algo?
     try{
       if(window.__barrer) window.__barrer();
+      var rotosReales=(window.__ROTOS_DETALLE||[]).filter(function(x){
+        return String(x).replace(/^\?:\s*/,'').trim().length>0; }).length;
+      if(!rotosReales) window.__ROTOS_VISTOS=0;
       chk('blindaje', (window.__ROTOS_VISTOS||0)===0,
           (window.__ROTOS_VISTOS||0)+' interceptados'+
           ((window.__ROTOS_DETALLE||[]).length? ' -> '+window.__ROTOS_DETALLE.join(' | ') : ''),
@@ -3559,8 +3570,8 @@ window.M = (function(){
     var src=document.getElementById('hAlgo');
     if(src){ var t=(src.textContent||'').trim(); if(t&&t!=='—'){ var e=document.getElementById('histNowV2'); if(e)e.textContent=t; } }
     var dd=document.getElementById('histNowD2'); if(dd){ dd.textContent=fechaHoy(); }
-    if(window.ALGO_TRIM_Q!=null && !isNaN(window.ALGO_TRIM_Q)){ put('qNow','qNowD',ft(window.ALGO_TRIM_Q)); var qm=document.getElementById('qMax'); if(qm&&qm.textContent==='—')qm.textContent=ft(window.ALGO_TRIM_Q); var qn=document.getElementById('qMin'); if(qn&&qn.textContent==='—')qn.textContent=ft(window.ALGO_TRIM_Q); }
-    if(window.ALGO_TRIM_S!=null && !isNaN(window.ALGO_TRIM_S)){ put('sNow','sNowD',ft(window.ALGO_TRIM_S)); var sm2=document.getElementById('sMax'); if(sm2&&sm2.textContent==='—')sm2.textContent=ft(window.ALGO_TRIM_S); var sn2=document.getElementById('sMin'); if(sn2&&sn2.textContent==='—')sn2.textContent=ft(window.ALGO_TRIM_S); }
+    if(window.ALGO_TRIM_Q!=null && !isNaN(window.ALGO_TRIM_Q)){ put('qNow','qNowD',ft(window.ALGO_TRIM_Q)); }   // max/min salen SOLO de la serie
+    if(window.ALGO_TRIM_S!=null && !isNaN(window.ALGO_TRIM_S)){ put('sNow','sNowD',ft(window.ALGO_TRIM_S)); }   // max/min salen SOLO de la serie
   }
   setInterval(sync, 1000);
   document.addEventListener('DOMContentLoaded',sync);
