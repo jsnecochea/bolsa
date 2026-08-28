@@ -613,7 +613,7 @@
   <div class="foot" id="anFoot">Desliza las manijas o usa los atajos · no es asesoría de inversión</div>
 </div>
 
-<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v274</div>
+<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v276</div>
 
 <div class="wrap view" id="viewBalance">
   <div class="st-hero">
@@ -946,7 +946,7 @@ function updateCount(){
   window.META = META;
 
   var got = { precios:false, hist:false, claude:false };
-  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-274";
+  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-276";
 
   /* ===================== AUDITORIA INTERNA =====================
      No se muestra en pantalla. Escribe en window.AUDIT y en la consola.
@@ -1041,7 +1041,9 @@ function updateCount(){
     }
     var t = M.miTrimestre();
     fp(t.pct, 'hMio', 'hMioChip', t.dinero);
-    var m = M.miMes();
+    // MI MES: mismo criterio que la hoja MENSUAL (utilidadMes),
+    // no el promedio ponderado antiguo.
+    var m = M.utilidadMes ? M.utilidadMes() : M.miMes();
     fp(m.pct, 'hMioMes', 'hMioMesChip', m.dinero);
 
     var inv=M.invertido(), vend=M.yaVendido(), acc=M.acciones();
@@ -1460,8 +1462,14 @@ window.M = (function(){
   // rendimiento DEL MES de una posicion, usando la serie de precios
   function rPosMes(p){
     if(!p.tk) return NaN;
-    var pFin = window.pxEn ? window.pxEn(p.tk, iso(hoy)) : null;
+    // FIN: si se vendio, el precio DEL DIA DE LA VENTA, no el de hoy.
+    // (usar el de hoy exagera la perdida de lo que ya no tienes)
+    var dv = p.vendida ? fecha(p.venta) : null;
+    var pFin = window.pxEn
+      ? window.pxEn(p.tk, iso(dv && dv<=hoy ? dv : hoy))
+      : null;
     if(!pFin) return NaN;
+    // INICIO: cierre del mes anterior, salvo que la compra sea de este mes
     var dc = fecha(p.compra);
     var pIni = (dc && dc>=iniMes) ? p.pxCompra : (window.pxEn ? window.pxEn(p.tk, iso(finMesAnt)) : null);
     if(!pIni) return NaN;
@@ -1670,7 +1678,7 @@ window.M = (function(){
     chk('cuadre_trimestre', Math.abs(t.dinero-dinEsperado) < Math.max(1, Math.abs(dinEsperado)*0.01),
         '$'+Math.round(t.dinero).toLocaleString('es-MX')+' vs '+
         Math.round(dinEsperado).toLocaleString('es-MX'), true);
-    var m=M.miMes();
+    var m=M.utilidadMes? M.utilidadMes() : M.miMes();
     chk('mi_mes', !isNaN(m.pct),
         (isNaN(m.pct)?'—':m.pct.toFixed(2)+'%')+' · '+m.n+' pos'+
         (m.fuera.length?' · SIN DATO: '+m.fuera.join(','):''), m.fuera.length>0);
@@ -1997,6 +2005,20 @@ window.M = (function(){
             MV.pct.toFixed(2)+'% · $'+Math.round(MV.dinero).toLocaleString('es-MX')+
             ' sobre $'+Math.round(MV.monto).toLocaleString('es-MX')+' · '+MV.n+' pos'+
             (MV.fuera.length? ' · SIN PRECIO: '+MV.fuera.join(','):''), MV.fuera.length>0);
+      }
+    }catch(e){}
+
+    // --- 6t. DOBLE MEDICION DEL MES: los dos metodos deben coincidir ---
+    //     ponderado por monto vs suma de dolares sobre capital.
+    //     Si difieren mas de 1 punto, algo esta mal en alguno.
+    try{
+      if(M.miMes && M.utilidadMes){
+        var a1=M.miMes().pct, b1=M.utilidadMes().pct;
+        if(!isNaN(a1) && !isNaN(b1)){
+          chk('mes_dos_metodos', Math.abs(a1-b1)<1.0,
+              'ponderado '+a1.toFixed(2)+'% vs dolares '+b1.toFixed(2)+'%'+
+              ' · dif '+(a1-b1).toFixed(2)+' pts', true);
+        }
       }
     }catch(e){}
 
