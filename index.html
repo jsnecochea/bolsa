@@ -614,7 +614,7 @@
   <div class="foot" id="anFoot">Desliza las manijas o usa los atajos · no es asesoría de inversión</div>
 </div>
 
-<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v202</div>
+<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v211</div>
 
 <div class="wrap view" id="viewBalance">
   <div class="st-hero">
@@ -889,7 +889,7 @@ function updateCount(){
   window.META = META;
 
   var got = { precios:false, hist:false, claude:false };
-  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-202";
+  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-211";
 
   /* ===================== AUDITORIA INTERNA =====================
      No se muestra en pantalla. Escribe en window.AUDIT y en la consola.
@@ -935,6 +935,274 @@ function updateCount(){
     return null;
   };
 
+
+/* ================================================================
+   MOTOR DE CALCULO — reescrito desde cero (v210)
+   Un solo lugar donde viven TODAS las definiciones. Nada se calcula
+   en otra parte. Cada resultado trae su detalle para poder auditarlo.
+
+   DEFINICIONES ACORDADAS:
+   · INVERTIDO   = posiciones del trimestre SIN fecha de venta
+   · VENDIDO     = posiciones del trimestre CON fecha de venta
+   · ACCIONES    = tickers distintos vivos (abajo: total de compras)
+   · MI TRIMESTRE= todas las compras del trimestre (vivas + vendidas
+                   en el trimestre), ponderado por monto
+   · MI MES      = igual pero del mes en curso; punto de partida =
+                   cierre del ultimo dia del mes anterior, salvo que
+                   la compra sea de este mes (entonces su precio)
+   · ALGORITMO   = solo las de la LISTA ORIGINAL del trimestre, o sea
+                   las que traen PRECIO INICIO TRIM. Promedio simple.
+                   En estrategias MENSUALES se mide por mes.
+   ================================================================ */
+
+  /* ---- PINTAR EL HOME desde el motor (unica fuente) ---- */
+  window.pintarHome = function(){
+    var M = window.M; if(!M) return;
+    function fp(v, el, chip, dinero){
+      var e=document.getElementById(el); if(!e) return;
+      if(v==null||isNaN(v)){ e.textContent='—'; e.classList.remove('neg'); }
+      else { e.innerHTML=(v>=0?'+':'\u2212')+Math.abs(v).toFixed(1)+'<span style="font-size:.5em">%</span>';
+             e.classList.toggle('neg', v<0); }
+      if(chip){
+        var ch=document.getElementById(chip);
+        if(ch){
+          if(dinero==null||isNaN(dinero)) ch.textContent='—';
+          else { ch.innerHTML=(dinero>=0?'\u2191':'\u2193')+' $'+Math.round(Math.abs(dinero)).toLocaleString('es-MX');
+                 ch.style.color = dinero>=0 ? '' : '#ff8079'; }
+        }
+      }
+    }
+    var t = M.miTrimestre();
+    fp(t.pct, 'hMio', 'hMioChip', t.dinero);
+    var m = M.miMes();
+    fp(m.pct, 'hMioMes', 'hMioMesChip', m.dinero);
+
+    var inv=M.invertido(), vend=M.yaVendido(), acc=M.acciones();
+    var eI=document.getElementById('hInv');
+    if(eI) eI.textContent='$'+inv.toLocaleString('es-MX');
+    var eV=document.getElementById('hVend');
+    if(eV) eV.innerHTML = vend>0 ? ('&#128274; $'+vend.toLocaleString('es-MX')+' ya vendido') : '';
+    var eP=document.getElementById('hPos');
+    if(eP) eP.textContent=acc.tickers;
+    var eS=document.getElementById('hPosSub');
+    if(eS) eS.textContent=acc.compras+' compras';
+
+    var sp=M.sp500(), eSp=document.getElementById('hSpTrim');
+    if(eSp) eSp.innerHTML = isNaN(sp)?'—':((sp>=0?'+':'\u2212')+Math.abs(sp).toFixed(1)+'%');
+
+    // ---- estrategias ----
+    var cont=document.getElementById('yvaList'); if(!cont) return;
+    var PAL=['#0A84FF','#BF5AF2','#00C7BE','#FF9F0A','#FF375F','#5E5CE6','#30D158','#FFD426'];
+    var MM=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+    var html='';
+    M.estrategias().forEach(function(nom,i){
+      var col=PAL[i%PAL.length];
+      var mi=M.mio(nom), al=M.algoritmo(nom);
+      if(!M.esMensual(nom)){
+        html += bloque(nom, col, mi.pct, al.pct, true);
+        return;
+      }
+      var m0=Math.floor(M.hoy.getMonth()/3)*3, meses=[];
+      for(var k=m0;k<=M.hoy.getMonth();k++){ meses.push({m:k, r:M.mesDe(nom,k)}); }
+      function g(x){ var p=1,n=0; meses.forEach(function(z){ var v=z.r[x].pct; if(!isNaN(v)){p*=(1+v/100);n++;} });
+                     return n?((p-1)*100):NaN; }
+      function pc(v){ if(v==null||isNaN(v)) return '<span style="color:var(--dim2)">—</span>';
+        return '<span style="color:'+(v>=0?'#4ade80':'#ff6b60')+';font-weight:800">'+
+               (v>=0?'+':'\u2212')+Math.abs(v).toFixed(1)+'%</span>'; }
+      html+='<div style="border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:11px 12px;margin-bottom:10px">'+
+        '<div style="display:flex;align-items:center;gap:8px;margin-bottom:9px">'+
+          '<span style="width:9px;height:9px;border-radius:3px;background:'+col+';flex:none"></span>'+
+          '<span style="flex:1;font-size:13.5px;font-weight:800">'+nom+'</span>'+
+          '<span style="font-size:9.5px;color:var(--dim2);font-weight:700">trimestre a la fecha</span></div>'+
+        '<div style="display:flex;gap:10px;margin-bottom:10px">'+
+          '<div style="flex:1;text-align:center;background:rgba(255,255,255,.03);border-radius:9px;padding:7px">'+
+            '<div style="font-size:9.5px;color:var(--dim2);font-weight:700;margin-bottom:2px">M\u00cdO</div>'+
+            '<div style="font-size:19px">'+pc(g('mio'))+'</div></div>'+
+          '<div style="flex:1;text-align:center;background:rgba(255,255,255,.03);border-radius:9px;padding:7px">'+
+            '<div style="font-size:9.5px;color:var(--dim2);font-weight:700;margin-bottom:2px">ALGORITMO</div>'+
+            '<div style="font-size:19px">'+pc(g('algo'))+'</div></div></div>'+
+        '<div style="display:flex;gap:6px">';
+      meses.forEach(function(z){
+        html+='<div style="flex:1;text-align:center;padding:6px 2px;border-top:1px solid rgba(255,255,255,.06)">'+
+          '<div style="font-size:9.5px;color:var(--dim2);font-weight:700;text-transform:uppercase;margin-bottom:3px">'+MM[z.m]+'</div>'+
+          '<div style="font-size:12.5px;margin-bottom:1px">'+pc(z.r.mio.pct)+'</div>'+
+          '<div style="font-size:10px;opacity:.65">'+pc(z.r.algo.pct)+'</div></div>';
+      });
+      html+='</div><div style="font-size:9px;color:var(--dim2);font-weight:600;text-align:center;margin-top:5px">arriba m\u00edo &middot; abajo algoritmo</div></div>';
+    });
+    cont.innerHTML = html || '<div style="text-align:center;color:var(--dim2);padding:16px 0;font-size:13px">Sin posiciones en el trimestre</div>';
+  };
+
+window.M = (function(){
+  function num(v){
+    if(v===null||v===undefined) return NaN;
+    var s=String(v).replace(/[$%,\s]/g,'').replace(/\u2212/g,'-');
+    if(s==='') return NaN;
+    var n=parseFloat(s); return isNaN(n)?NaN:n;
+  }
+  function fecha(v){
+    if(!v) return null;
+    var s=String(v).trim();
+    var m=s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if(m) return new Date(+m[1], +m[2]-1, +m[3]);
+    m=s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+    if(m) return new Date(+m[3], +m[2]-1, +m[1]);
+    return null;
+  }
+  function iso(d){
+    return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2);
+  }
+  var hoy = new Date();
+  var iniTrim = new Date(hoy.getFullYear(), Math.floor(hoy.getMonth()/3)*3, 1);
+  var iniMes  = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
+  var finMesAnt = new Date(hoy.getFullYear(), hoy.getMonth(), 0);
+
+  // ---------- universo ----------
+  function todas(){ return (window.POSICIONES||[]); }
+  function delTrimestre(){
+    return todas().filter(function(p){
+      if(!(p.monto>0)) return false;
+      var d=fecha(p.compra); if(!d) return false;
+      return d>=iniTrim;
+    });
+  }
+  function vivas(){ return delTrimestre().filter(function(p){ return !p.vendida; }); }
+  function vendidas(){ return delTrimestre().filter(function(p){ return p.vendida; }); }
+  function delMes(){
+    return delTrimestre().filter(function(p){
+      var dc=fecha(p.compra); if(dc>hoy) return false;
+      if(p.vendida){ var dv=fecha(p.venta); if(dv && dv<iniMes) return false; }
+      return true;
+    });
+  }
+
+  // ---------- rendimiento de UNA posicion ----------
+  // vivas: contra precio de hoy · vendidas: valor congelado
+  function rPos(p){
+    if(p.vendida && p.mioV!=null && !isNaN(p.mioV)) return p.mioV;
+    if(p.mio!=null && !isNaN(p.mio)) return p.mio;
+    return NaN;
+  }
+  // rendimiento DEL MES de una posicion, usando la serie de precios
+  function rPosMes(p){
+    if(!p.tk) return NaN;
+    var pFin = window.pxEn ? window.pxEn(p.tk, iso(hoy)) : null;
+    if(!pFin) return NaN;
+    var dc = fecha(p.compra);
+    var pIni = (dc && dc>=iniMes) ? p.pxCompra : (window.pxEn ? window.pxEn(p.tk, iso(finMesAnt)) : null);
+    if(!pIni) return NaN;
+    return (pFin/pIni - 1)*100;
+  }
+
+  // ---------- ponderar por monto ----------
+  function pond(lista, f){
+    var s=0,w=0,n=0,fuera=[];
+    lista.forEach(function(p){
+      var v=f(p);
+      if(v==null||isNaN(v)){ fuera.push(p.tk); return; }
+      s+=v*p.monto; w+=p.monto; n++;
+    });
+    return { pct: w? s/w : NaN, monto: w, n: n, fuera: fuera, dinero: w? s/100 : 0 };
+  }
+  function promedio(lista, f){
+    var s=0,n=0,fuera=[];
+    lista.forEach(function(p){
+      var v=f(p);
+      if(v==null||isNaN(v)){ fuera.push(p.tk); return; }
+      s+=v; n++;
+    });
+    return { pct: n? s/n : NaN, n: n, fuera: fuera };
+  }
+
+  // ---------- API ----------
+  var API = {
+    hoy: hoy, iniTrim: iniTrim, iniMes: iniMes, iso: iso, fecha: fecha, num: num,
+    delTrimestre: delTrimestre, vivas: vivas, vendidas: vendidas, delMes: delMes,
+    rPos: rPos, rPosMes: rPosMes,
+
+    invertido: function(){
+      return vivas().reduce(function(a,p){ return a+p.monto; }, 0);
+    },
+    yaVendido: function(){
+      return vendidas().reduce(function(a,p){ return a+p.monto; }, 0);
+    },
+    acciones: function(){
+      var t={}; vivas().forEach(function(p){ if(p.tk) t[p.tk]=1; });
+      return { tickers: Object.keys(t).length, compras: vivas().length };
+    },
+    miTrimestre: function(){ return pond(delTrimestre(), rPos); },
+    miMes: function(){ return pond(delMes(), rPosMes); },
+
+    // nombres de estrategia tal como estan escritos
+    estrategias: function(){
+      var o=[], vis={};
+      delTrimestre().forEach(function(p){
+        var n=String(p.estratNom||'').trim().toUpperCase();
+        if(n && !vis[n]){ vis[n]=1; o.push(n); }
+      });
+      return o;
+    },
+    esMensual: function(nom){ return /MENSUAL/.test(String(nom).toUpperCase()); },
+
+    deEstrategia: function(nom){
+      return delTrimestre().filter(function(p){
+        return String(p.estratNom||'').trim().toUpperCase()===String(nom).toUpperCase();
+      });
+    },
+    // MIO de una estrategia
+    mio: function(nom){
+      var L=API.deEstrategia(nom);
+      return API.esMensual(nom) ? pond(L.filter(function(p){
+          var dc=fecha(p.compra); if(p.vendida){ var dv=fecha(p.venta); if(dv&&dv<iniMes) return false; }
+          return true;
+        }), rPosMes) : pond(L, rPos);
+    },
+    // ALGORITMO de una estrategia = lista original (con PRECIO INICIO TRIM)
+    algoritmo: function(nom){
+      var L = todas().filter(function(p){
+        if(String(p.estratNom||'').trim().toUpperCase()!==String(nom).toUpperCase()) return false;
+        var d=fecha(p.compra); if(!d || d<iniTrim) return false;
+        return true;
+      });
+      if(API.esMensual(nom)){
+        var Lm = L.filter(function(p){
+          if(p.vendida){ var dv=fecha(p.venta); if(dv&&dv<iniMes) return false; }
+          return true;
+        });
+        return promedio(Lm, rPosMes);
+      }
+      // trimestral: solo las que traen dato de trimestre (la lista original)
+      return promedio(L.filter(function(p){ return p.trim!=null && !isNaN(p.trim); }),
+                      function(p){ return p.trim; });
+    },
+    // rendimiento de una estrategia MENSUAL en un mes concreto (0-11)
+    mesDe: function(nom, m){
+      var ini=new Date(hoy.getFullYear(), m, 1);
+      var fin=new Date(hoy.getFullYear(), m+1, 0); if(fin>hoy) fin=hoy;
+      var antes=new Date(hoy.getFullYear(), m, 0);
+      var L=API.deEstrategia(nom).filter(function(p){
+        var dc=fecha(p.compra); if(!dc || dc>fin) return false;
+        if(p.vendida){ var dv=fecha(p.venta); if(dv && dv<ini) return false; }
+        return true;
+      });
+      function r(p){
+        var pf=window.pxEn?window.pxEn(p.tk, iso(fin)):null; if(!pf) return NaN;
+        var dc=fecha(p.compra);
+        var pi=(dc>=ini)? p.pxCompra : (window.pxEn?window.pxEn(p.tk, iso(antes)):null);
+        if(!pi) return NaN;
+        return (pf/pi-1)*100;
+      }
+      return { algo: promedio(L, r), mio: pond(L.filter(function(p){return p.monto>0;}), r) };
+    },
+    sp500: function(){
+      var a=num(window.ESPEJO&&window.ESPEJO.sp500);
+      var b=num(window.ESPEJO&&window.ESPEJO.sp500_ini_trim);
+      return (!isNaN(a)&&!isNaN(b)&&b>0) ? (a/b-1)*100 : NaN;
+    }
+  };
+  return API;
+})();
+
   window.AUDIT = { checks: [], errores: 0, avisos: 0 };
   function chk(nombre, ok, detalle, grave){
     window.AUDIT.checks.push({ n:nombre, ok:!!ok, d:detalle, grave:!!grave });
@@ -942,191 +1210,139 @@ function updateCount(){
   }
   window.auditar = function(){
     window.AUDIT = { checks: [], errores: 0, avisos: 0 };
-    var P = window.POSICIONES || [];
-    var hoy = new Date();
-    var iniTrim = new Date(hoy.getFullYear(), Math.floor(hoy.getMonth()/3)*3, 1);
+    var M = window.M;
+    if(!M){ chk('motor', false, 'no cargo', true); return window.AUDIT; }
 
-    // 0) ¿alguna lectura falló? Si sí, NADA de lo que sigue es confiable.
-    var fe = window.FETCH_ERRORES || [], fo = window.FETCH_OK || [];
-    chk('lecturas', fe.length === 0,
-        fo.length + ' ok · ' + fe.length + ' fallidas' +
-        (fe.length ? ' -> ' + fe.map(function(x){return x.gid+':'+x.err;}).join(' | ') : ''), true);
+    // --- 1. lecturas ---
+    var fe=window.FETCH_ERRORES||[], fo=window.FETCH_OK||[];
+    chk('lecturas', fe.length===0, fo.length+' ok · '+fe.length+' fallidas'+
+        (fe.length?' -> '+fe.map(function(x){return x.gid+':'+x.err;}).join(' | '):''), true);
 
-    // 1) ¿se leyeron posiciones?
-    chk('posiciones_leidas', P.length > 0, P.length + ' filas', true);
+    // --- 2. universo ---
+    var T=M.delTrimestre(), V=M.vivas(), X=M.vendidas();
+    chk('posiciones', T.length>0, T.length+' del trimestre · '+V.length+' vivas · '+X.length+' vendidas', true);
+    chk('cuadre_montos', Math.abs(M.invertido()+M.yaVendido() -
+        T.reduce(function(a,p){return a+p.monto;},0)) < 1,
+        'vivo $'+M.invertido().toLocaleString('es-MX')+' + vendido $'+M.yaVendido().toLocaleString('es-MX')+
+        ' = $'+(M.invertido()+M.yaVendido()).toLocaleString('es-MX'), true);
 
-    // 2) ¿cuántas con monto y cuánto suman?
-    var conMonto = P.filter(function(p){ return p.monto > 0; });
-    var suma = conMonto.reduce(function(a,p){ return a + p.monto; }, 0);
-    chk('montos', suma > 0, conMonto.length + ' posiciones · $' + suma.toLocaleString('es-MX'), true);
+    // --- 3. serie de precios ---
+    var F=window.PXFECHAS||[], dd=999;
+    if(F.length){ dd=Math.round((M.hoy-new Date(F[F.length-1]+'T12:00:00'))/86400000); }
+    chk('serie_precios', F.length>0 && dd<=4,
+        F.length+' dias · '+(F[0]||'-')+' a '+(F[F.length-1]||'-')+' (hace '+dd+')', true);
 
-    // 3) posiciones del trimestre en curso
-    function enT(p){
-      if(!p.compra) return false;
-      var pr = String(p.compra).split('-'); if(pr.length !== 3) return false;
-      var d = new Date(+pr[0], (+pr[1])-1, +pr[2]);
-      return !isNaN(d.getTime()) && d >= iniTrim;
-    }
-    var trim = conMonto.filter(enT);
-    chk('trimestre_actual', trim.length > 0,
-        trim.length + ' de ' + conMonto.length + ' · $' +
-        trim.reduce(function(a,p){return a+p.monto;},0).toLocaleString('es-MX'), true);
+    // --- 4. mi trimestre y mi mes ---
+    var t=M.miTrimestre();
+    chk('mi_trimestre', !isNaN(t.pct) && t.fuera.length===0,
+        t.pct.toFixed(2)+'% · '+t.n+' pos · $'+t.monto.toLocaleString('es-MX')+
+        (t.fuera.length?' · SIN DATO: '+t.fuera.join(','):''), true);
+    // verificacion cruzada: el dinero debe cuadrar con el porcentaje
+    var dinEsperado = t.monto * t.pct/100;
+    chk('cuadre_trimestre', Math.abs(t.dinero-dinEsperado) < Math.max(1, Math.abs(dinEsperado)*0.01),
+        '$'+Math.round(t.dinero).toLocaleString('es-MX')+' vs '+
+        Math.round(dinEsperado).toLocaleString('es-MX'), true);
+    var m=M.miMes();
+    chk('mi_mes', !isNaN(m.pct),
+        (isNaN(m.pct)?'—':m.pct.toFixed(2)+'%')+' · '+m.n+' pos'+
+        (m.fuera.length?' · SIN DATO: '+m.fuera.join(','):''), m.fuera.length>0);
 
-    // 4) posiciones SIN rendimiento (huecos que falsean el ponderado)
-    var sinRend = trim.filter(function(p){ return p.mio == null || isNaN(p.mio); });
-    chk('sin_rendimiento', sinRend.length === 0,
-        sinRend.length ? sinRend.map(function(p){return p.tk;}).join(',') : 'ninguna', true);
-
-    // 5) estrategias detectadas
-    var est = {};
-    trim.forEach(function(p){
-      var n = String(p.estratNom || p.estrat || '').trim().toUpperCase();
-      if(n){ est[n] = (est[n]||0) + 1; }
+    // --- 5. estrategias ---
+    var es=M.estrategias();
+    chk('estrategias', es.length>0, es.join(' · '), true);
+    var sumaEst=0;
+    es.forEach(function(nom){
+      var mi=M.mio(nom), al=M.algoritmo(nom), L=M.deEstrategia(nom);
+      sumaEst += L.length;
+      chk('est_'+nom.replace(/\s+/g,'_'), !isNaN(mi.pct) && !isNaN(al.pct),
+          L.length+' pos · mio '+(isNaN(mi.pct)?'—':mi.pct.toFixed(1)+'%')+
+          ' · algo '+(isNaN(al.pct)?'—':al.pct.toFixed(1)+'%')+
+          (mi.fuera.length?' · sin dato: '+mi.fuera.join(','):''), true);
     });
-    var ks = Object.keys(est);
-    chk('estrategias', ks.length > 0,
-        ks.map(function(k){ return k + ':' + est[k]; }).join(' · '), true);
+    chk('suma_estrategias', sumaEst===T.length,
+        sumaEst+' repartidas de '+T.length+' del trimestre', true);
 
-    // 6) posiciones sin nombre de estrategia
-    var sinEst = trim.filter(function(p){ return !String(p.estratNom||p.estrat||'').trim(); });
-    chk('sin_estrategia', sinEst.length === 0,
-        sinEst.length ? sinEst.map(function(p){return p.tk;}).join(',') : 'ninguna', true);
-
-    // 7) frescura del historial (¿la última fecha es de hoy o ayer?)
-    var H = window.REND || [];
-    if(H.length){
-      var f = H[H.length-1].fecha;
-      var d = new Date(String(f));
-      var dias = isNaN(d.getTime()) ? 999 : Math.round((hoy - d)/86400000);
-      chk('historial_fresco', dias <= 4, 'ultimo ' + f + ' (hace ' + dias + ' dias) · ' + H.length + ' registros', dias > 7);
-    } else {
-      chk('historial_fresco', false, 'sin registros', true);
+    // --- 6. PANTALLA vs MOTOR (doble verificacion) ---
+    function verPant(id){
+      var e=document.getElementById(id); if(!e) return null;
+      var s=String(e.textContent||'');
+      var neg=/\u2212|-/.test(s);
+      var n=parseFloat(s.replace(/[^\d.]/g,''));
+      return isNaN(n)?null:(neg?-n:n);
     }
+    var pInv=verPant('hInv'), pPos=verPant('hPos'), pTrim=verPant('hMio'), pSp=verPant('hSpTrim');
+    chk('pant_invertido', pInv!==null && Math.abs(pInv-M.invertido())<1,
+        'pantalla '+pInv+' vs motor '+M.invertido(), true);
+    chk('pant_acciones', pPos!==null && pPos===M.acciones().tickers,
+        'pantalla '+pPos+' vs motor '+M.acciones().tickers, true);
+    chk('pant_trimestre', pTrim!==null && Math.abs(pTrim-t.pct)<0.15,
+        'pantalla '+pTrim+'% vs motor '+(isNaN(t.pct)?'—':t.pct.toFixed(1))+'%', true);
+    var sp=M.sp500();
+    chk('pant_sp500', !isNaN(sp) && pSp!==null && Math.abs(pSp-sp)<0.2,
+        'pantalla '+pSp+'% vs motor '+(isNaN(sp)?'—':sp.toFixed(1))+'%', true);
 
-    // 8) MESES CERRADOS del trimestre: ¿tienen datos completos?
-    //    Un mes cerrado sin posiciones o sin rendimiento no se puede calcular.
-    var MM = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
-    var m0 = Math.floor(hoy.getMonth()/3)*3;
-    for(var m = m0; m < hoy.getMonth(); m++){
-      var delMes = conMonto.filter(function(p){
-        if(!p.compra) return false;
-        var pr = String(p.compra).split('-'); if(pr.length !== 3) return false;
-        var d2 = new Date(+pr[0], (+pr[1])-1, +pr[2]);
-        return !isNaN(d2.getTime()) && d2.getFullYear() === hoy.getFullYear() && d2.getMonth() === m;
-      });
-      var conDato = delMes.filter(function(p){ return p.mes != null && !isNaN(p.mes); });
-      chk('mes_cerrado_' + MM[m],
-          delMes.length > 0 && conDato.length === delMes.length,
-          delMes.length + ' posiciones · ' + conDato.length + ' con dato de mes',
-          true);
-    }
+    // --- 7. cordura ---
+    var rMax=0; T.forEach(function(p){ var r=M.rPos(p); if(!isNaN(r)) rMax=Math.max(rMax,Math.abs(r)); });
+    chk('rendimientos_sensatos', rMax<200, 'mayor |r| = '+rMax.toFixed(1)+'%', rMax>=200);
+    var dup={},nd=0;
+    T.forEach(function(p){ var k=p.tk+'|'+p.compra; dup[k]=(dup[k]||0)+1; if(dup[k]>1) nd++; });
+    chk('sin_duplicados', nd===0, nd+' repetidas', true);
 
-    // 8b) CORDURA: los conteos no pueden exceder lo que hay en la bitacora
-    chk('cordura_conteo', conMonto.length <= P.length,
-        conMonto.length + ' con monto de ' + P.length + ' filas leidas', true);
-    var dupes = {}, hayDup = 0;
-    trim.forEach(function(p){
-      var k2 = p.tk + '|' + p.compra;
-      dupes[k2] = (dupes[k2]||0) + 1;
-      if(dupes[k2] > 1) hayDup++;
-    });
-    chk('sin_duplicados', hayDup === 0, hayDup + ' filas repetidas (mismo ticker y misma fecha)', true);
-    var rMax = 0;
-    trim.forEach(function(p){ if(p.mio!=null && !isNaN(p.mio)) rMax = Math.max(rMax, Math.abs(p.mio)); });
-    chk('rendimientos_sensatos', rMax < 200, 'mayor |rendimiento| = ' + rMax.toFixed(1) + '%', rMax >= 200);
-
-    // 8c) PRECIOS: ¿se cargó la serie y llega a hoy?
-    var F = window.PXFECHAS || [];
-    var difDias = 999;
-    if(F.length){
-      var ult = new Date(F[F.length-1] + 'T12:00:00');
-      difDias = Math.round((hoy - ult) / 86400000);
-    }
-    chk('serie_precios', F.length > 0 && difDias <= 4,
-        F.length + ' dias · de ' + (F[0]||'-') + ' a ' + (F[F.length-1]||'-') +
-        ' (hace ' + difDias + ' dias)', true);
-
-    // 8d) DOBLE VERIFICACION: lo que muestra la PANTALLA vs el calculo interno.
-    //     Aqui se atrapan los errores que los datos crudos no revelan.
-    try{
-      var txtPos = (document.getElementById('hPos')||{}).textContent || '';
-      var nPos = parseInt(String(txtPos).replace(/\D/g,''), 10);
-      var tickersTrim = {};
-      trim.forEach(function(p){ if(p.tk) tickersTrim[p.tk] = 1; });
-      var esperado = Object.keys(tickersTrim).length;
-      chk('pantalla_acciones', !isNaN(nPos) && Math.abs(nPos - esperado) <= 1,
-          'pantalla=' + nPos + ' vs calculo=' + esperado, true);
-
-      var txtInv = (document.getElementById('hInv')||{}).textContent || '';
-      var nInv = parseInt(String(txtInv).replace(/\D/g,''), 10);
-      var invEsp = trim.reduce(function(a,p){ return a + p.monto; }, 0);
-      chk('pantalla_invertido', !isNaN(nInv) && Math.abs(nInv - invEsp) <= invEsp*0.02,
-          'pantalla=$' + nInv + ' vs calculo=$' + invEsp, true);
-
-      // conteos que aparecen en las tarjetas de estrategia ("52 pos · $910,000")
-      var subs = document.querySelectorAll('.sc-sub, .rk-sub, [data-estrat-sub]');
-      var malos = [];
-      for(var q=0; q<subs.length; q++){
-        var m = String(subs[q].textContent||'').match(/(\d+)\s*pos/);
-        if(m && parseInt(m[1],10) > trim.length) malos.push(m[1]);
-      }
-      chk('pantalla_conteos', malos.length === 0,
-          malos.length ? 'tarjetas muestran ' + malos.join(',') + ' pos pero solo hay ' + trim.length : 'ok', true);
-    } catch(err){ chk('pantalla', false, 'error al verificar: ' + err, false); }
-
-    // 8e) S&P: el signo debe coincidir con precio actual vs inicio de trimestre
-    try{
-      var spNow = parseFloat(window.ESPEJO && window.ESPEJO.sp500);
-      var spIni = parseFloat(window.ESPEJO && window.ESPEJO.sp500_ini_trim);
-      if(!isNaN(spNow) && !isNaN(spIni) && spIni > 0){
-        var spReal = (spNow/spIni - 1) * 100;
-        var elSp = document.getElementById('hSpTrim');
-        var spPant = elSp ? parseFloat(String(elSp.textContent).replace(/[^\d.\-]/g,'')) : NaN;
-        if(elSp && String(elSp.textContent).indexOf('\u2212') >= 0) spPant = -Math.abs(spPant);
-        chk('sp500_signo', !isNaN(spPant) && Math.abs(spPant - spReal) < 1.5,
-            'pantalla=' + spPant + '% vs real=' + spReal.toFixed(1) + '%', true);
-      }
-    } catch(err2){}
-
-    // 9) etiquetas del S&P
-    var sp = window.ESPEJO || {};
-    chk('sp500', sp.sp500 !== undefined && !isNaN(parseFloat(sp.sp500)), 'sp500=' + sp.sp500, false);
-    chk('sp500_ini_trim', sp.sp500_ini_trim !== undefined && !isNaN(parseFloat(sp.sp500_ini_trim)),
-        'ini=' + sp.sp500_ini_trim, false);
-
-    // 10) mensual
-    var M = window.MENSUAL || [];
-    chk('mensual', M.length > 0, M.length + ' meses · ultimo ' + (M.length?M[M.length-1].mes:'-'), false);
-
-    // resumen a consola
-    var res = window.AUDIT;
-    console.log('%c AUDITORIA v' + (window.__APPVER||'') + ' — ' +
-      (res.errores ? res.errores + ' ERROR(ES)' : 'sin errores') +
-      (res.avisos ? ' · ' + res.avisos + ' aviso(s)' : ''),
-      'font-weight:bold;color:' + (res.errores ? '#ff6b60' : '#4ade80'));
+    var res=window.AUDIT;
+    console.log('%c AUDITORIA '+(window.__APPVER||'')+' — '+
+      (res.errores? res.errores+' ERROR(ES)':'sin errores')+
+      (res.avisos? ' · '+res.avisos+' aviso(s)':''),
+      'font-weight:bold;color:'+(res.errores?'#ff6b60':'#4ade80'));
     res.checks.forEach(function(x){
-      console.log((x.ok ? '  OK  ' : (x.grave ? ' FALLA ' : ' aviso ')) + x.n + ' — ' + x.d);
+      console.log((x.ok?'  OK  ':(x.grave?' FALLA ':' aviso '))+x.n+' — '+x.d);
     });
-    // ---- enviar al Sheet para que Claude lo pueda leer ----
-    try{
-      fetch(WEBHOOK, {
-        method:'POST', mode:'no-cors',
-        headers:{'Content-Type':'text/plain;charset=utf-8'},
-        body: JSON.stringify({
-          version: window.__APPVER || '',
-          errores: res.errores, avisos: res.avisos,
-          checks: res.checks.map(function(x){ return { n:x.n, ok:x.ok, d:x.d, g:x.grave }; })
-        })
-      }).catch(function(){});
-    } catch(e){}
+    // ---- CANDADO DE ENVIO ----
+    // 1) no se manda si los datos aun no llegaron completos
+    // 2) no se manda mas de una vez cada 5 minutos, aunque refresques seguido
+    // 3) no se manda dos veces el mismo reporte
+    (function(){
+      var listo = (window.FETCH_OK||[]).length >= 5 &&
+                  (window.PXFECHAS||[]).length > 0 &&
+                  (window.POSICIONES||[]).length > 0;
+      if(!listo){ console.log('%c auditoria NO enviada: datos incompletos', 'color:#FF9F0A'); return; }
+
+      var ahora = Date.now(), MIN = 5*60*1000;
+      var ultimo = 0, firmaAnt = '';
+      try{
+        ultimo = parseInt(sessionStorage.getItem('audit_ts')||'0', 10) || 0;
+        firmaAnt = sessionStorage.getItem('audit_firma') || '';
+      }catch(e){}
+      var firma = res.errores + '|' + res.avisos + '|' +
+                  res.checks.map(function(x){ return x.n + (x.ok?'1':'0'); }).join('');
+      if(ahora - ultimo < MIN && firma === firmaAnt){
+        console.log('%c auditoria NO enviada: identica y hace menos de 5 min', 'color:#8e8e93');
+        return;
+      }
+      try{
+        sessionStorage.setItem('audit_ts', String(ahora));
+        sessionStorage.setItem('audit_firma', firma);
+      }catch(e){}
+      try{
+        fetch(WEBHOOK, { method:'POST', mode:'no-cors',
+          headers:{'Content-Type':'text/plain;charset=utf-8'},
+          body: JSON.stringify({ version: window.__APPVER||'', errores:res.errores,
+            avisos:res.avisos, checks:res.checks.map(function(x){return {n:x.n,ok:x.ok,d:x.d,g:x.grave};}) })
+        }).catch(function(){});
+        console.log('%c auditoria enviada al Sheet', 'color:#4ade80');
+      }catch(e){}
+    })();
     return res;
   };
   var WEBHOOK = "https://script.google.com/macros/s/AKfycbzIjsgMjB3RpWcpxH8Xu_a7nTTlrtL-HI1uOZcqEWsKtdvFea-_KLwkUiyJDraJy_br/exec";
   try{ if(window.cargarPrecios) window.cargarPrecios().then(function(){
-        if(window.actualizarEstrategias) try{ window.actualizarEstrategias(); }catch(e){}
+        try{ if(window.pintarHome) window.pintarHome(); }catch(e){ console.log('pintar err', e); }
       }); }catch(e){ console.log('px err', e); }
+  setTimeout(function(){ try{ if(window.pintarHome) window.pintarHome(); }catch(e){} }, 4000);
   // se ejecuta sola 6 segundos después de cargar, cuando ya llegaron los datos
-  setTimeout(function(){ try{ window.auditar(); }catch(e){ console.log('audit err', e); } }, 6000);
+  if(window.__auditTimer) clearTimeout(window.__auditTimer);
+  window.__auditTimer = setTimeout(function(){
+    try{ window.auditar(); }catch(e){ console.log('audit err', e); }
+  }, 9000);
 
   var estado={precios:false,historial:false,claude:false};
   function pinta(){
@@ -1489,7 +1705,7 @@ function updateCount(){
           h2+='</div><div style="font-size:9px;color:var(--dim2);font-weight:600;text-align:center;margin-top:5px">arriba m\u00edo &middot; abajo algoritmo</div></div>';
           html+=h2;
         });
-        yva.innerHTML = html || '<div style="text-align:center;color:var(--dim2);padding:16px 0;font-size:13px">Sin posiciones en el trimestre</div>';
+        // el render de estrategias ahora lo hace window.pintarHome (motor v210)
       })();
     }
     // --- Todas mis acciones desde mi compra (una fila por posición del shot) ---
@@ -2160,22 +2376,35 @@ function updateCount(){
     // y los del espejo viejo ("ticker", "compra", "monto", "trim"...).
     for(var hr=0; hr<rows.length && cTk<0; hr++){
       var hh=rows[hr]||[];
-      for(var hc=0; hc<hh.length; hc++){
-        var v=(hh[hc]||"").trim().toLowerCase();
-        if(!v) continue;
-        if(cTk<0 && (v==="ticker" || v==="accion" || v==="acción")) { cTk=hc; continue; }
-        if(cEstrat<0 && (v==="estrategia" || v==="estrat" || v.indexOf("estrat")===0)) { cEstrat=hc; continue; }
-        if(cCompra<0 && (v==="compra" || v.indexOf("fecha compra")>=0)) { cCompra=hc; continue; }
-        if(cVenta<0 && (v==="venta" || v.indexOf("fecha venta")>=0)) { cVenta=hc; continue; }
-        if(cMonto<0 && (v==="monto" || v.indexOf("monto invertido")>=0 || v.indexOf("monto")>=0)) { cMonto=hc; continue; }
-        if(cMioV<0 && /vend/.test(v) && /(rend|m[ií]o)/.test(v)) { cMioV=hc; continue; }
-        if(cMio<0 && (v==="mío" || v==="mio" || v.indexOf("rend yo hoy")>=0)) { cMio=hc; continue; }
-        if(cTrim<0 && (v==="trim" || v.indexOf("desde inicio trim")>=0)) { cTrim=hc; continue; }
-        if(cMes<0 && (v==="mes" || v.indexOf("desde inicio mes")>=0)) { cMes=hc; continue; }
-        if(cMotivo<0 && (v==="motivo"||v==="motivo venta")) { cMotivo=hc; continue; }
-        if(cAct<0 && (v==="actualizado"||v==="hora")) { cAct=hc; continue; }
-        if(cPxC<0 && v.indexOf("precio de compra")>=0) { cPxC=hc; continue; }
+      // Se busca en DOS pasadas: primero coincidencias EXACTAS o muy
+      // especificas, y solo despues las parciales. Asi "Monto Invertido ($)"
+      // no se roba la columna de otra cosa que tambien diga "monto".
+      var H2=[];
+      for(var hc=0; hc<hh.length; hc++){ H2.push((hh[hc]||"").trim().toLowerCase()); }
+      function buscar(lista, exactas, parciales){
+        var i, j;
+        for(j=0;j<exactas.length;j++){
+          for(i=0;i<lista.length;i++){ if(lista[i]===exactas[j]) return i; }
+        }
+        for(j=0;j<parciales.length;j++){
+          for(i=0;i<lista.length;i++){ if(lista[i] && lista[i].indexOf(parciales[j])>=0) return i; }
+        }
+        return -1;
       }
+      cTk     = buscar(H2, ["ticker","accion","acción"], ["accion","acción"]);
+      cEstrat = buscar(H2, ["estrat","estrategia"], ["estrat"]);
+      cCompra = buscar(H2, ["compra","fecha compra"], ["fecha compra"]);
+      cVenta  = buscar(H2, ["venta","fecha venta"], ["fecha venta"]);
+      cMonto  = buscar(H2, ["monto"], ["monto invertido","monto"]);
+      cMioV   = buscar(H2, [], ["rend yo al vender","al vender"]);
+      cMio    = buscar(H2, ["mío","mio"], ["rend yo hoy","rend yo"]);
+      cTrim   = buscar(H2, ["trim"], ["desde inicio trim"]);
+      cMes    = buscar(H2, ["mes"], ["desde inicio mes"]);
+      cPxC    = buscar(H2, [], ["precio de compra"]);
+      cMotivo = buscar(H2, ["motivo","motivo venta"], []);
+      cAct    = buscar(H2, ["actualizado","hora"], []);
+      // la de "al vender" no puede ser la misma que "rend yo hoy"
+      if(cMioV===cMio) cMioV=-1;
       if(cTk<0){ cTrim=cMes=cMio=cCompra=cMonto=cEstrat=cVenta=cMioV=cAct=cMotivo=cPxC=-1; } // no era la fila correcta
     }
     window.DIAG_COLS='tk:'+cTk+' compra:'+cCompra+' venta:'+cVenta+' monto:'+cMonto+' mio:'+cMio+' estrat:'+cEstrat+' vender:'+cMioV;
@@ -2233,6 +2462,8 @@ function updateCount(){
         var mv=num(r[cMioV]);
         if(!isNaN(mv)) pMio=mv;
       }
+      var pMioVenta = (cMioV>=0) ? num(r[cMioV]) : null;
+      if(isNaN(pMioVenta)) pMioVenta=null;
       var pPrecioCompra = (cPxC>=0) ? num(r[cPxC]) : null;
       if(isNaN(pPrecioCompra)) pPrecioCompra=null;
       // estrategia del renglón (desde la bitácora); si no hay columna, respaldo a META
@@ -2281,7 +2512,7 @@ function updateCount(){
       }
       if(cAct>=0 && !window.ESPEJO_ACT){ var av=(r[cAct]||"").trim(); if(av) window.ESPEJO_ACT=av; }
       // cada renglón = una posición (shot) independiente
-      window.POSICIONES.push({tk:tk, compra:fcIso, trim:pTrim, mes:pMes, mio:pMio, viva:mioVivo, monto:pMonto, estrat:pEstrat, estratNom:pEstratNom, pxCompra:pPrecioCompra, esMia:esMia, vendida:vendida, venta:ventaCel});
+      window.POSICIONES.push({tk:tk, compra:fcIso, trim:pTrim, mes:pMes, mio:pMio, viva:mioVivo, monto:pMonto, estrat:pEstrat, estratNom:pEstratNom, pxCompra:pPrecioCompra, mioV:pMioVenta, esMia:esMia, vendida:vendida, venta:ventaCel});
       // LIVE[tk] guarda la última leída (para score/alertas por acción)
       LIVE[tk].trim=pTrim; LIVE[tk].mes=pMes; LIVE[tk].mio=pMio;
     }
