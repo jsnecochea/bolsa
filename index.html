@@ -605,7 +605,7 @@
   <div class="foot" id="anFoot">Desliza las manijas o usa los atajos · no es asesoría de inversión</div>
 </div>
 
-<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v223</div>
+<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v224</div>
 
 <div class="wrap view" id="viewBalance">
   <div class="st-hero">
@@ -779,17 +779,52 @@ window.renderShotSel=function(){
   var cont=document.getElementById('acShotSel'); if(!cont) return;
   var dates=window.SHOT_DATES||[];
   if(dates.length<2){ cont.innerHTML=''; return; } // solo un shot: no hace falta selector
-  var btns='<button class="ac-sbtn'+(window.shotSel==='all'?' on':'')+'" data-s="all">Todas</button>';
-  dates.forEach(function(d,ix){ btns+='<button class="ac-sbtn'+(window.shotSel===d?' on':'')+'" data-s="'+d+'">'+(ix+1)+'\u00aa compra</button>'; });
-  cont.innerHTML=btns;
-  cont.querySelectorAll('.ac-sbtn').forEach(function(b){
-    b.addEventListener('click',function(){
-      window.shotSel=b.getAttribute('data-s');
-      window.renderShotSel();
-      var on=document.querySelector('#acSort .ac-sbtn.on');
-      renderAcc(on?on.getAttribute('data-k'):'ret');
-    });
+  // Barra compacta: "Todas" + un desplegable con las compras (mas reciente arriba)
+  var ord = dates.slice().reverse();
+  var sel = window.shotSel||'all';
+  var txtSel = 'Seleccionar por compra';
+  if(sel!=='all'){
+    var pos = dates.indexOf(sel);
+    if(pos>=0) txtSel = (pos+1)+'\u00aa compra \u00b7 '+fmtShotFecha(sel);
+  }
+  var op='';
+  ord.forEach(function(d){
+    var n = dates.indexOf(d)+1;
+    op += '<div class="shot-op'+(sel===d?' on':'')+'" data-s="'+d+'" style="padding:9px 12px;font-size:12.5px;'+
+          'border-bottom:1px solid rgba(255,255,255,.05);cursor:pointer;display:flex;justify-content:space-between">'+
+          '<span style="font-weight:700">'+n+'\u00aa compra</span>'+
+          '<span style="color:var(--dim2)">'+fmtShotFecha(d)+'</span></div>';
   });
+  cont.innerHTML =
+    '<div style="display:flex;gap:8px;align-items:center;width:100%">'+
+      '<button class="ac-sbtn'+(sel==='all'?' on':'')+'" data-s="all" style="flex:none;padding:6px 14px">Todas</button>'+
+      '<div id="shotDrop" style="flex:1;position:relative">'+
+        '<button id="shotDropBtn" class="ac-sbtn'+(sel!=='all'?' on':'')+'" style="width:100%;text-align:left;padding:6px 12px;display:flex;justify-content:space-between;align-items:center">'+
+          '<span>'+txtSel+'</span><span style="opacity:.6;font-size:10px">\u25bc</span></button>'+
+        '<div id="shotList" style="display:none;position:absolute;top:100%;left:0;right:0;margin-top:4px;'+
+          'background:#16161a;border:1px solid rgba(255,255,255,.12);border-radius:10px;overflow:hidden;z-index:50;'+
+          'box-shadow:0 8px 24px rgba(0,0,0,.5)">'+op+'</div>'+
+      '</div>'+
+    '</div>';
+  function aplicar(v){
+    window.shotSel=v;
+    window.renderShotSel();
+    var on=document.querySelector('#acSort .ac-sbtn.on');
+    renderAcc(on?on.getAttribute('data-k'):'ret');
+  }
+  var bt=cont.querySelector('[data-s="all"]');
+  if(bt) bt.addEventListener('click',function(){ aplicar('all'); });
+  var db=cont.querySelector('#shotDropBtn'), dl=cont.querySelector('#shotList');
+  if(db&&dl){
+    db.addEventListener('click',function(e){
+      e.stopPropagation();
+      dl.style.display = dl.style.display==='none' ? 'block' : 'none';
+    });
+    cont.querySelectorAll('.shot-op').forEach(function(o){
+      o.addEventListener('click',function(){ aplicar(o.getAttribute('data-s')); });
+    });
+    document.addEventListener('click',function(){ if(dl) dl.style.display='none'; });
+  }
 };
 document.querySelectorAll('#acSort .ac-sbtn').forEach(function(b){
   b.addEventListener('click',function(){
@@ -894,7 +929,7 @@ function updateCount(){
   window.META = META;
 
   var got = { precios:false, hist:false, claude:false };
-  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-223";
+  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-224";
 
   /* ===================== AUDITORIA INTERNA =====================
      No se muestra en pantalla. Escribe en window.AUDIT y en la consola.
@@ -2793,7 +2828,10 @@ window.M = (function(){
     function Y(v){ return padT + (1-(v-mn)/range)*(H-padT-padB); }
     // rango considerando las 3 series
     var allv=[];
-    data.forEach(function(p){ allv.push(p.val); if(!isNaN(p.q))allv.push(p.q); if(!isNaN(p.sm))allv.push(p.sm); if(!isNaN(p.sem))allv.push(p.sem); });
+    data.forEach(function(p){ if(!isNaN(p.q))allv.push(p.q); if(!isNaN(p.sm))allv.push(p.sm); if(!isNaN(p.sem))allv.push(p.sem); });
+    if(!allv.length) data.forEach(function(p){ allv.push(p.val); });
+    if(Math.min.apply(null,allv)>0) allv.push(0);
+    if(Math.max.apply(null,allv)<0) allv.push(0);
     mn=Math.min.apply(null,allv); mx=Math.max.apply(null,allv); rg=(mx-mn)||1;
     var pts=data.map(function(p,i){return X(i)+','+Y(p.val);}).join(' ');
     var ptsQ=data.filter(function(p){return !isNaN(p.q);}).map(function(p,i,arr){return X(data.indexOf(p))+','+Y(p.q);}).join(' ');
@@ -2935,8 +2973,20 @@ window.M = (function(){
     var iMin=vals.indexOf(mnV),iMax=vals.indexOf(mxV);
     var zero='';if(mn<0&&mx>0){var zy=Y(0);zero='<line x1="'+pL+'" y1="'+zy+'" x2="'+(W-pR)+'" y2="'+zy+'" stroke="rgba(255,255,255,.12)" stroke-dasharray="3 3"/>';}
     var area='M '+X(0)+' '+Y(data[0].val)+' L '+data.map(function(p,i){return X(i)+' '+Y(p.val);}).join(' L ')+' L '+X(data.length-1)+' '+(H-pB)+' L '+X(0)+' '+(H-pB)+' Z';
+    // Linea del CERO y separadores verticales al cambiar de mes
+    var lineaCero = '<line x1="'+pL+'" y1="'+Y(0)+'" x2="'+(W-pR)+'" y2="'+Y(0)+
+      '" stroke="rgba(255,255,255,.30)" stroke-width="1"/>';
+    var sepMes = '';
+    for(var im=1; im<data.length; im++){
+      var fa=String(data[im-1].fecha).slice(0,7), fb=String(data[im].fecha).slice(0,7);
+      if(fa && fb && fa!==fb){
+        var xm=X(im);
+        sepMes += '<line x1="'+xm+'" y1="'+pT+'" x2="'+xm+'" y2="'+(H-pB)+
+                  '" stroke="rgba(255,255,255,.22)" stroke-width="1" stroke-dasharray="2 4"/>';
+      }
+    }
     // El algoritmo combinado ya no se grafica: solo las estrategias reales.
-    cont.innerHTML='<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto;display:block">'+zero+
+    cont.innerHTML='<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto;display:block">'+lineaCero+sepMes+
       '<polyline points="'+ptsQ+'" fill="none" stroke="#0A84FF" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>'+
       '<polyline points="'+ptsS+'" fill="none" stroke="#00C7BE" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>'+
       (ptsSem?'<polyline points="'+ptsSem+'" fill="none" stroke="#BF5AF2" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>':'')+
