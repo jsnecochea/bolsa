@@ -606,7 +606,7 @@
   <div class="foot" id="anFoot">Desliza las manijas o usa los atajos · no es asesoría de inversión</div>
 </div>
 
-<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v226</div>
+<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v229</div>
 
 <div class="wrap view" id="viewBalance">
   <div class="st-hero">
@@ -930,7 +930,7 @@ function updateCount(){
   window.META = META;
 
   var got = { precios:false, hist:false, claude:false };
-  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-226";
+  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-229";
 
   /* ===================== AUDITORIA INTERNA =====================
      No se muestra en pantalla. Escribe en window.AUDIT y en la consola.
@@ -1371,6 +1371,92 @@ window.M = (function(){
     var sp=M.sp500();
     chk('pant_sp500', !isNaN(sp) && pSp!==null && Math.abs(pSp-sp)<0.2,
         'pantalla '+pSp+'% vs motor '+(isNaN(sp)?'—':sp.toFixed(1))+'%', true);
+
+    // --- 6b. TARJETA DE LA CHICA en la vista Algoritmo ---
+    try{
+      var CM=window.CHICA_MES||{};
+      var ks=Object.keys(CM).sort();
+      if(ks.length){
+        var ult=CM[ks[ks.length-1]];
+        function leerT(id){
+          var e=document.getElementById(id); if(!e) return null;
+          var s=String(e.textContent||''); if(s.indexOf('—')>=0) return null;
+          var neg=/\u2212|-/.test(s); var n=parseFloat(s.replace(/[^\d.]/g,''));
+          return isNaN(n)?null:(neg?-n:n);
+        }
+        var pMax=leerT('semMax'), pMin=leerT('semMin'), pNow=leerT('semNow');
+        chk('chica_card_max', pMax!==null && Math.abs(pMax-ult.max)<0.2,
+            'pantalla '+pMax+'% vs mes '+ult.max.toFixed(1)+'%', true);
+        chk('chica_card_min', pMin!==null && Math.abs(pMin-ult.min)<0.2,
+            'pantalla '+pMin+'% vs mes '+ult.min.toFixed(1)+'%', true);
+        chk('chica_card_hoy', pNow!==null && Math.abs(pNow-ult.ult)<0.2,
+            'pantalla '+pNow+'% vs mes '+ult.ult.toFixed(1)+'%', true);
+      } else {
+        chk('chica_card', false, 'no se calculo la serie mensual de la Chica', true);
+      }
+    }catch(e){ chk('chica_card', false, 'error: '+e, false); }
+
+    // --- 6c. TARJETAS Quant y SR de la vista Algoritmo ---
+    try{
+      function leerT2(id){
+        var e=document.getElementById(id); if(!e) return null;
+        var s=String(e.textContent||''); if(!s || s.indexOf('\u2014')>=0) return null;
+        var neg=/\u2212|-/.test(s); var n=parseFloat(s.replace(/[^\d.]/g,''));
+        return isNaN(n)?null:(neg?-n:n);
+      }
+      [['qMax','qMin','Quant'],['sMax','sMin','SR']].forEach(function(t){
+        var a=leerT2(t[0]), b=leerT2(t[1]);
+        chk('card_'+t[2], a!==null && b!==null && a>=b,
+            t[2]+' max '+a+'% min '+b+'%', true);
+      });
+    }catch(e){}
+
+    // --- 6d. VISTA ACCIONES: la lista debe cuadrar con el motor ---
+    try{
+      var filas=document.querySelectorAll('#acList .ac-item').length;
+      if(filas){
+        chk('vista_acciones', filas<=T.length,
+            filas+' filas en pantalla vs '+T.length+' del trimestre', true);
+      }
+      var aml2=document.querySelectorAll('#allMineList .am-row').length;
+      if(aml2){
+        chk('vista_mis_acciones', aml2<=T.length+2,
+            aml2+' filas vs '+T.length+' del trimestre', true);
+      }
+    }catch(e){}
+
+    // --- 6e. VISTA BALANCE: los meses no pueden traer rendimientos absurdos ---
+    try{
+      var M2=window.MENSUAL||[];
+      var raros=M2.filter(function(x){
+        var v=parseFloat(x.mi_rend!==undefined?x.mi_rend:x.rend);
+        return !isNaN(v) && Math.abs(v)>100;
+      });
+      chk('balance_mensual', raros.length===0,
+          M2.length+' meses'+(raros.length?' · absurdos: '+raros.length:''), true);
+    }catch(e){}
+
+    // --- 6f. NOMBRES: los de pantalla deben venir de la bitacora ---
+    try{
+      var nq=window.nomDe&&window.nomDe('q'), ns=window.nomDe&&window.nomDe('s'), nz=window.nomDe&&window.nomDe('z');
+      chk('nombres_estrategias', !!(nq||ns||nz),
+          'q='+(nq||'—')+' s='+(ns||'—')+' z='+(nz||'—'), true);
+    }catch(e){}
+
+    // --- 6g. SERIE DEL HISTORIAL: continuidad y frescura ---
+    try{
+      var HX=window.CHICA_MES||{};
+      var kk=Object.keys(HX).sort();
+      chk('historial_meses', kk.length>0,
+          kk.map(function(k){return k+'('+HX[k].n+')';}).join(' '), true);
+    }catch(e){}
+
+    // --- 6h. SIN VALORES 'undefined' o NaN visibles en pantalla ---
+    try{
+      var cuerpo=document.body?document.body.innerText:'';
+      var malos=(cuerpo.match(/undefined|NaN|#DIV\/0|#REF|#VALUE/g)||[]).length;
+      chk('pantalla_limpia', malos===0, malos+' textos rotos visibles', true);
+    }catch(e){}
 
     // --- 7. cordura ---
     var rMax=0; T.forEach(function(p){ var r=M.rPos(p); if(!isNaN(r)) rMax=Math.max(rMax,Math.abs(r)); });
@@ -2944,6 +3030,23 @@ window.M = (function(){
           p.sem=((1+p.sem/100)/(1+base[k]/100)-1)*100;
         });
       })();
+      // diagnostico: valores de la CHICA ya reiniciados, por mes
+      (function(){
+        var porMes={};
+        HISTX.forEach(function(p){ if(isNaN(p.sem)) return;
+          var k=String(p.fecha).slice(0,7);
+          if(!porMes[k]) porMes[k]={min:1e9,max:-1e9,ult:null,n:0};
+          porMes[k].min=Math.min(porMes[k].min,p.sem);
+          porMes[k].max=Math.max(porMes[k].max,p.sem);
+          porMes[k].ult=p.sem; porMes[k].n++;
+        });
+        window.CHICA_MES=porMes;
+        var txt=Object.keys(porMes).sort().map(function(k){
+          var o=porMes[k];
+          return k+': max '+o.max.toFixed(1)+'% min '+o.min.toFixed(1)+'% ult '+o.ult.toFixed(1)+'% ('+o.n+' regs)';
+        }).join(' | ');
+        console.log('%c CHICA reiniciada por mes -> '+txt, 'color:#BF5AF2;font-weight:bold');
+      })();
       if(window.pintarActualAlgo) try{ window.pintarActualAlgo(); }catch(e){}
     }).catch(function(e){console.log("histX err",e);});
   }
@@ -3050,7 +3153,6 @@ window.M = (function(){
         var delMes = sems.filter(function(p){ return String(p.fecha).slice(0,7)===mesUlt; });
         var base = delMes.length ? delMes : sems;
         var vv2 = base.map(function(p){ return p.sem; });
-        if(window.ALGO_TRIM_SEM!=null && !isNaN(window.ALGO_TRIM_SEM)) vv2=vv2.concat([window.ALGO_TRIM_SEM]);
         setTxt('semMax', fmt(Math.max.apply(null,vv2)));
         setTxt('semMin', fmt(Math.min.apply(null,vv2)));
         setTxt('semNow', fmt(sems[sems.length-1].sem));
