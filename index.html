@@ -613,7 +613,7 @@
   <div class="foot" id="anFoot">Desliza las manijas o usa los atajos · no es asesoría de inversión</div>
 </div>
 
-<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v268</div>
+<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v269</div>
 
 <div class="wrap view" id="viewBalance">
   <div class="st-hero">
@@ -868,6 +868,7 @@ function updateCount(){
               claude:"192690260", rendimiento:"161922984",
               espejo:"1262281153", mensual:"981573348" };
   var FILE_ID = "1dEMsL08v6y9UwicZV_lScgIWJVF6X4G0ED9MNQlI8zo";
+  window.GID = GID;   // catalogo unico de pestañas
   // gviz lee la HOJA VIVA (no la foto que Google publica y cachea). Respaldo: la publicación.
   function urlLive(gid){ return "https://docs.google.com/spreadsheets/d/"+FILE_ID+"/gviz/tq?tqx=out:csv&headers=1&gid="+gid+"&_="+Date.now(); }
   function url(gid){ return BASE + "?gid=" + gid + "&single=true&output=csv&_=" + Date.now(); }
@@ -945,7 +946,7 @@ function updateCount(){
   window.META = META;
 
   var got = { precios:false, hist:false, claude:false };
-  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-268";
+  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-269";
 
   /* ===================== AUDITORIA INTERNA =====================
      No se muestra en pantalla. Escribe en window.AUDIT y en la consola.
@@ -1895,6 +1896,23 @@ window.M = (function(){
       chk('columnas_tracker', conQ>0 && conC>0,
           'meses con dato: quant '+conQ+' · chica '+conC, true);
     }catch(e){ chk('anio', false, 'error: '+e, false); }
+
+    // --- 6p. CADA FUENTE DEBE HABER CARGADO SUS DATOS ---
+    //     No basta con que la lectura no falle: hay que ver que trajo filas.
+    try{
+      var fuentes=[
+        ['bitacora',  (window.POSICIONES||[]).length,  'posiciones'],
+        ['precios',   (window.PXFECHAS||[]).length,    'dias'],
+        ['rendimiento',(window.REND||[]).length,       'registros'],
+        ['mensual',   (window.MENSUAL||[]).length,     'meses'],
+        ['espejo',    Object.keys(window.ESPEJO||{}).length, 'etiquetas'],
+        ['historial', (window.HISTSTRAT||[]).length,   'registros']
+      ];
+      var vacias=fuentes.filter(function(f){ return !f[1]; });
+      chk('fuentes_cargadas', vacias.length===0,
+          fuentes.map(function(f){ return f[0]+':'+f[1]; }).join(' · '),
+          vacias.length>0);
+    }catch(e){}
 
     // --- 7. cordura ---
     var rMax=0; T.forEach(function(p){ var r=M.rPos(p); if(!isNaN(r)) rMax=Math.max(rMax,Math.abs(r)); });
@@ -3503,7 +3521,7 @@ window.M = (function(){
   function n(v){if(v==null)return NaN;v=String(v).replace(/[%$,\s]/g,'');var x=parseFloat(v);return isNaN(x)?NaN:x;}
   function pf(f){if(!f)return null;if(f.indexOf('-')>0){var p=f.split('-');return new Date(+p[0],+p[1]-1,+p[2]);}if(f.indexOf('/')>0){var q=f.split('/');return new Date(+q[2],+q[1]-1,+q[0]);}return null;}
   function cargar(){
-    fetch(URL_HIST).then(function(r){return r.text();}).then(function(t){
+    (window.fetchCSV? window.fetchCSV(GID.historial) : fetch(URL_HIST).then(function(r){return r.text();})).then(function(t){
       var rows=csv(t); HISTX=[];
       var H=(rows[0]||[]).map(function(x){return (x||"").trim().toLowerCase();});
       var iFecha=H.indexOf("fecha"), iQT=H.indexOf("cuant_trim"), iST=H.indexOf("smart_trim"), iSem=H.indexOf("semilla_trim");
@@ -4363,7 +4381,7 @@ window.M = (function(){
 
   // Cargar la pesta\u00f1a MENSUAL
   (function(){
-    var GID_MENSUAL="981573348";
+    var GID_MENSUAL=(window.GID&&window.GID.mensual)||"981573348";
     function csvSimple(txt){
       var out=[],fila=[],cur='',q=false;
       for(var i=0;i<txt.length;i++){
