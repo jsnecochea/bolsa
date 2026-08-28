@@ -628,7 +628,7 @@
   <div class="foot" id="anFoot">Desliza las manijas o usa los atajos · no es asesoría de inversión</div>
 </div>
 
-<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v289</div>
+<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v290</div>
 
 <div class="wrap view" id="viewBalance">
   <div class="st-hero">
@@ -1005,7 +1005,7 @@ function updateCount(){
   window.META = META;
 
   var got = { precios:false, hist:false, claude:false };
-  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-289";
+  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-290";
 
   /* ===================== AUDITORIA INTERNA =====================
      No se muestra en pantalla. Escribe en window.AUDIT y en la consola.
@@ -1776,7 +1776,11 @@ window.M = (function(){
           if(Math.abs(vh-va)>0.15) difs.push(h.tk+' '+h.compra+' '+campo+': hoja='+vh+' app='+va);
         }
         cmp('monto', h.monto, p.monto);
-        cmp('rend',  h.mio,   p.mio);
+        // En las VENDIDAS la app usa "REND YO AL VENDER" (congelado), no
+        // "REND YO HOY" (que sigue vivo en la hoja). Se compara contra el
+        // campo correcto en cada caso.
+        var esVend = h.venta && !/^T[1-4]$/i.test(h.venta) && h.venta!=='-';
+        cmp('rend', esVend ? h.mioV : h.mio, p.mio);
         cmp('trim',  h.trim,  p.trim);
         cmp('mes',   h.mes,   p.mes);
       });
@@ -2157,9 +2161,12 @@ window.M = (function(){
       if(A){
         var hoyD2=new Date();
         var mesN=hoyD2.getMonth()+1;
-        chk('anio_meses', A.meses===mesN,
+        // la MENSUAL puede tardar en llegar; solo es error si ya cargo
+        var hayHoja=(window.MENSUAL||[]).length>0;
+        chk('anio_meses', !hayHoja || A.meses===mesN,
             A.meses+' meses contados de '+mesN+' transcurridos · '+
-            A.cerrados+' fijos de la hoja'+(A.enVivo?' + 1 en vivo':''), true);
+            A.cerrados+' fijos de la hoja'+(A.enVivo?' + 1 en vivo':'')+
+            (hayHoja?'':' (mensual aun no carga)'), hayHoja);
       }
     }catch(e){}
 
@@ -4817,6 +4824,7 @@ window.M = (function(){
                   aQ:NaN, aS:NaN, aC:NaN, vendido:NaN, desp:NaN});
         }
         window.MENSUAL=H;
+        try{ if(window.pintarHome) window.pintarHome(); }catch(e){}
         console.log('MENSUAL tQ/tC por mes:',
           H.map(function(x){ return x.mes+':'+x.tQ+'/'+x.tC; }).join(' '));
         pintarMeses();
