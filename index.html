@@ -613,7 +613,7 @@
   <div class="foot" id="anFoot">Desliza las manijas o usa los atajos · no es asesoría de inversión</div>
 </div>
 
-<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v260</div>
+<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v261</div>
 
 <div class="wrap view" id="viewBalance">
   <div class="st-hero">
@@ -945,7 +945,7 @@ function updateCount(){
   window.META = META;
 
   var got = { precios:false, hist:false, claude:false };
-  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-260";
+  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-261";
 
   /* ===================== AUDITORIA INTERNA =====================
      No se muestra en pantalla. Escribe en window.AUDIT y en la consola.
@@ -4158,16 +4158,16 @@ window.M = (function(){
         var hayZ=H.some(function(r){ return r.tC!=null && !isNaN(r.tC); });
         function corto(s){ s=String(s).toUpperCase(); return s.length>9? s.slice(0,9) : s; }
         h+='<div style="display:flex;gap:4px;font-size:9px;color:var(--dim2);font-weight:700;padding:0 2px 6px;border-bottom:1px solid rgba(255,255,255,.08)">'+
-             '<span style="width:32px;flex:none">MES</span>'+
-             '<span style="flex:1.2;text-align:right">INVERTIDO</span>'+
-             '<span style="flex:1.2;text-align:right">GANANCIA</span>'+
-             '<span style="width:52px;text-align:right;flex:none">%</span>'+
-             (hayQ?'<span style="width:52px;text-align:right;flex:none;color:#0A84FF">'+corto(nQ)+'</span>':'')+
-             (hayZ?'<span style="width:52px;text-align:right;flex:none;color:#BF5AF2">'+corto(nZ)+'</span>':'')+
+             '<span style="width:30px;flex:none">MES</span>'+
+             '<span style="flex:1.35;text-align:right">INVERTIDO</span>'+
+             '<span style="flex:1.35;text-align:right">GANANCIA</span>'+
+             '<span style="width:48px;text-align:right;flex:none">%</span>'+
+             (hayQ?'<span style="width:48px;text-align:right;flex:none;color:#0A84FF">'+corto(nQ)+'</span>':'')+
+             (hayZ?'<span style="width:48px;text-align:right;flex:none;color:#BF5AF2">'+corto(nZ)+'</span>':'')+
            '</div>';
         function pcCel(v){
-          if(v==null||isNaN(v)) return '<span style="width:52px;flex:none;text-align:right;font-size:11.5px;color:var(--dim2)">\u2014</span>';
-          return '<span style="width:52px;flex:none;text-align:right;font-size:11.5px;font-weight:700;color:'+
+          if(v==null||isNaN(v)) return '<span style="width:48px;flex:none;text-align:right;font-size:11.5px;color:var(--dim2)">\u2014</span>';
+          return '<span style="width:48px;flex:none;text-align:right;font-size:11.5px;font-weight:700;color:'+
                  (v>=0?'#4ade80':'#ff6b60')+'">'+(v>=0?'+':'\u2212')+Math.abs(v).toFixed(1)+'%</span>';
         }
         filasA.forEach(function(f){
@@ -4179,9 +4179,9 @@ window.M = (function(){
                MMx[+f.mes.split('-')[1]]+'</span>'+
              '<span style="flex:1.2;text-align:right;font-size:12px;font-weight:700">$'+
                Math.round(f.inv).toLocaleString('es-MX')+'</span>'+
-             '<span style="flex:1.2;text-align:right;font-size:12px;font-weight:700;color:'+cg+'">'+
+             '<span style="flex:1.35;text-align:right;font-size:12px;font-weight:700;color:'+cg+'">'+
                (f.gan>=0?'+':'\u2212')+'$'+Math.abs(Math.round(f.gan)).toLocaleString('es-MX')+'</span>'+
-             '<span style="width:52px;flex:none;text-align:right;font-size:12.5px;font-weight:800;color:'+cp+'">'+
+             '<span style="width:48px;flex:none;text-align:right;font-size:12.5px;font-weight:800;color:'+cp+'">'+
                (f.pct==null?'\u2014':((f.pct>=0?'+':'\u2212')+Math.abs(f.pct).toFixed(1)+'%'))+'</span>'+
              (hayQ?pcCel(reg.tQ):'')+
              (hayZ?pcCel(reg.tC):'')+
@@ -4189,15 +4189,20 @@ window.M = (function(){
         });
         var cT = totGan>=0 ? '#4ade80' : '#ff6b60';
         h+='<div style="display:flex;align-items:center;padding:10px 2px 4px;border-top:1px solid rgba(255,255,255,.12);margin-top:4px;font-variant-numeric:tabular-nums">'+
-           '<span style="width:38px;flex:none;font-size:11px;font-weight:800;color:var(--dim2)">TOT</span>'+
+           '<span style="width:30px;flex:none;font-size:11px;font-weight:800;color:var(--dim2)">TOT</span>'+
            '<span style="flex:1;text-align:right;font-size:12.5px;font-weight:700;color:var(--dim2)">$'+
              Math.round(totInv/nA).toLocaleString('es-MX')+' prom</span>'+
-           '<span style="flex:1;text-align:right;font-size:14px;font-weight:800;color:'+cT+'">'+
+           '<span style="flex:1.35;text-align:right;font-size:13.5px;font-weight:800;color:'+cT+'">'+
              (totGan>=0?'+':'\u2212')+'$'+Math.abs(Math.round(totGan)).toLocaleString('es-MX')+'</span>'+
-           '<span style="width:52px;flex:none"></span>'+
-           (hayQ?'<span style="width:52px;flex:none;text-align:right;font-size:12px;font-weight:800;color:#0A84FF">'+
+           (function(){
+             var v=(totInv&&nA)? (totGan/(totInv/nA)*100) : null;
+             if(v===null||isNaN(v)) return '<span style="width:48px;flex:none"></span>';
+             return '<span style="width:48px;flex:none;text-align:right;font-size:13px;font-weight:800;color:'+
+                    (v>=0?'#4ade80':'#ff6b60')+'">'+(v>=0?'+':'\u2212')+Math.abs(v).toFixed(1)+'%</span>';
+           })()+
+           (hayQ?'<span style="width:48px;flex:none;text-align:right;font-size:12px;font-weight:800;color:#0A84FF">'+
              (function(){var g=1,n=0;H.forEach(function(r){ if(String(r.mes).slice(0,4)!==anio)return; if(r.tQ!=null&&!isNaN(r.tQ)){g*=(1+r.tQ/100);n++;}}); return n?((g-1)*100>=0?'+':'\u2212')+Math.abs((g-1)*100).toFixed(1)+'%':'\u2014';})()+'</span>':'')+
-           (hayZ?'<span style="width:52px;flex:none;text-align:right;font-size:12px;font-weight:800;color:#BF5AF2">'+
+           (hayZ?'<span style="width:48px;flex:none;text-align:right;font-size:12px;font-weight:800;color:#BF5AF2">'+
              (function(){var g=1,n=0;H.forEach(function(r){ if(String(r.mes).slice(0,4)!==anio)return; if(r.tC!=null&&!isNaN(r.tC)){g*=(1+r.tC/100);n++;}}); return n?((g-1)*100>=0?'+':'\u2212')+Math.abs((g-1)*100).toFixed(1)+'%':'\u2014';})()+'</span>':'')+
            '</div>';
 
