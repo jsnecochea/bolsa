@@ -614,7 +614,7 @@
   <div class="foot" id="anFoot">Desliza las manijas o usa los atajos · no es asesoría de inversión</div>
 </div>
 
-<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v212</div>
+<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v213</div>
 
 <div class="wrap view" id="viewBalance">
   <div class="st-hero">
@@ -889,7 +889,7 @@ function updateCount(){
   window.META = META;
 
   var got = { precios:false, hist:false, claude:false };
-  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-212";
+  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-213";
 
   /* ===================== AUDITORIA INTERNA =====================
      No se muestra en pantalla. Escribe en window.AUDIT y en la consola.
@@ -2321,6 +2321,9 @@ window.M = (function(){
         }
       }
     }
+    console.log('espejo cargado:', JSON.stringify(window.ESPEJO));
+    // repintar en cuanto llegan las referencias del S&P
+    try{ if(window.pintarHome) window.pintarHome(); }catch(e){}
   }).catch(function(e){ console.log('espejo err',e); });
 
   // BITACORA: posiciones (una fila por compra) + etiquetas del S&P que viven en el espejo
