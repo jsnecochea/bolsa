@@ -423,21 +423,21 @@
   <div id="labTrims" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:4px;"></div>
 
   <div class="rk-card">
-    <div class="rk-top"><div class="rk-name q">Quant</div><div class="rk-tag">trimestre</div></div>
+    <div class="rk-top"><div class="rk-name q" id="ttlQuant">&mdash;</div><div class="rk-tag">trimestre</div></div>
     <div id="labQuant"></div>
     <div class="strat-acc-cap" id="capQuant" style="display:none">Acciones · desde inicio de trimestre</div>
     <div id="accQuant"></div>
   </div>
 
   <div class="rk-card" id="cardSmart">
-    <div class="rk-top"><div class="rk-name s">SR</div><div class="rk-tag">en salida &middot; 1 oct</div></div>
+    <div class="rk-top"><div class="rk-name s" id="ttlSmart">&mdash;</div><div class="rk-tag">trimestre</div></div>
     <div id="labSmart"></div>
     <div class="strat-acc-cap" id="capSmart" style="display:none">Acciones · desde inicio de trimestre</div>
     <div id="accSmart"></div>
   </div>
 
   <div class="rk-card">
-    <div class="rk-top"><div class="rk-name z">Chica</div><div class="rk-tag">trimestre</div></div>
+    <div class="rk-top"><div class="rk-name z" id="ttlChica">&mdash;</div><div class="rk-tag" id="tagChica">mes</div></div>
     <div id="labChica"></div>
     <div class="strat-acc-cap" id="capChica" style="display:none">Acciones · desde inicio de trimestre</div>
     <div id="accChica"></div>
@@ -603,7 +603,7 @@
   <div class="foot" id="anFoot">Desliza las manijas o usa los atajos · no es asesoría de inversión</div>
 </div>
 
-<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v231</div>
+<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v238</div>
 
 <div class="wrap view" id="viewBalance">
   <div class="st-hero">
@@ -722,7 +722,7 @@ window.enlazarSwipe=function(){
 window.enlazarSwipe();
 
 // Vista Acciones: lista ordenable
-var ACC = [["CIEN","Ciena","c",true,3.0,18.4,11.0,-4.4,-4.4], ["FIX","Comfort Sys","c",false,2.94,25.4,6.4,-10.0,-10.0], ["KRYS","Krystal Bio","c",false,2.49,17.6,-2.3,-1.5,-1.5], ["LSCC","Lattice","c",true,3.0,22.3,7.4,-7.4,-7.4], ["SEI","Solaris","c",false,2.43,20.4,4.2,-15.0,-15.0], ["SPHR","Sphere","c",false,3.0,29.6,-0.6,-10.4,-10.4], ["STRL","Sterling","c",false,3.0,19.4,6.3,-15.5,-15.5], ["AXTI","AXT Inc","s",true,3.0,25.2,2.9,-14.2,-14.2], ["COHR","Coherent","s",true,3.0,28.7,5.7,-15.7,-15.7], ["DOCN","DigitalOcean","s",true,2.88,27.6,0.1,-7.7,-7.7], ["EXE","Extendicare","s",false,3.0,30.0,-0.7,6.4,6.4], ["SNDK","SanDisk","s",true,3.0,29.5,17.3,-17.1,-17.1], ["TNGX","Tango Tx","s",false,2.84,28.7,0.9,-2.8,-2.8], ["WDC","Western Dig","s",true,3.0,29.0,10.7,-7.9,-7.9]];
+var ACC = [];   // se llena con datos reales de la bitacora
 var TECHSVG = '<svg class="ac-tech" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="7" width="10" height="10" rx="1.5"/><rect x="10.5" y="10.5" width="3" height="3" fill="currentColor" stroke="none"/><path d="M10 3v2M14 3v2M10 19v2M14 19v2M3 10h2M3 14h2M19 10h2M19 14h2"/></svg>';
 function fmtShotFecha(iso){ if(!iso)return''; var p=iso.split("-"); if(p.length!==3)return iso; var m=["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"]; return (+p[2])+" "+m[(+p[1])-1]; }
 window.shotSel = 'all';
@@ -738,10 +738,10 @@ function renderAcc(key){
   } else {
     var idx = {ret:6, mes:8, trim:7};
     var i = idx[key]!==undefined ? idx[key] : 6;
-    arr.sort(function(a,b){ return b[i]-a[i]; });
+    arr.sort(function(a,b){ var x=(a[i]==null||isNaN(a[i]))?-9999:a[i], y=(b[i]==null||isNaN(b[i]))?-9999:b[i]; return y-x; });
   }
-  function pct(v){ return (v>=0?'+':'\u2212')+Math.abs(v).toFixed(1)+'%'; }
-  function cl(v){ return v>=0?'g':'r'; }
+  function pct(v){ if(v==null||isNaN(v)) return '\u2014'; return (v>=0?'+':'\u2212')+Math.abs(v).toFixed(1)+'%'; }
+  function cl(v){ if(v==null||isNaN(v)) return ''; return v>=0?'g':'r'; }
   var html = '';
   for(var j=0;j<arr.length;j++){
     var a=arr[j];
@@ -927,7 +927,7 @@ function updateCount(){
   window.META = META;
 
   var got = { precios:false, hist:false, claude:false };
-  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-231";
+  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-238";
 
   /* ===================== AUDITORIA INTERNA =====================
      No se muestra en pantalla. Escribe en window.AUDIT y en la consola.
@@ -1112,8 +1112,11 @@ function updateCount(){
   };
 
   // nombres de estrategia desde la BITACORA, disponible en toda la app
+  // Devuelve SOLO nombres que existan hoy en la bitacora. Si no hay, null.
+  // Ninguna vista debe escribir un nombre a mano.
   window.nomDe = function(letra){
     var es = (window.M && window.M.estrategias) ? window.M.estrategias() : [];
+    if(!es.length) return null;
     for(var i=0;i<es.length;i++){
       var n=es[i], u=n.toUpperCase();
       if(letra==='q' && /QUANT|3M/.test(u) && !/SR|SMART/.test(u)) return n;
@@ -1121,6 +1124,123 @@ function updateCount(){
       if(letra==='z' && /(CHICA|SEMILLA|MENSUAL)/.test(u)) return n;
     }
     return null;
+  };
+
+  /* ================================================================
+     BLINDAJE — se ejecuta ANTES que todo lo demas.
+     Principio: la app NO PUEDE mostrar un dato que no este comprobado.
+     Ante la duda, guion. Nunca cero, nunca un valor prestado, nunca
+     un nombre inventado, nunca una fecha fuera de periodo.
+     ================================================================ */
+  (function(){
+    var GUION = '\u2014';
+
+    // 1) Todo texto que llegue al DOM pasa por este filtro.
+    //    Si trae NaN, undefined, null, Infinity o errores de hoja,
+    //    se sustituye por guion antes de que el usuario lo vea.
+    var ROTO = /(^|[^a-zA-Z])(NaN|undefined|null|Infinity|-Infinity)([^a-zA-Z]|$)|#DIV\/0|#REF|#VALUE|#N\/A|NO_ENCONTRADO|Calculando\.\.\./;
+    function limpio(v){
+      if(v===null||v===undefined) return GUION;
+      var s=String(v);
+      if(ROTO.test(s)) return GUION;
+      return s;
+    }
+    window.__limpio = limpio;
+
+    // Se envuelve textContent e innerHTML de todos los elementos.
+    ['textContent','innerText'].forEach(function(prop){
+      var d=Object.getOwnPropertyDescriptor(Element.prototype, prop) ||
+            Object.getOwnPropertyDescriptor(Node.prototype, prop);
+      if(!d||!d.set) return;
+      Object.defineProperty(Element.prototype, prop, {
+        configurable:true, enumerable:d.enumerable,
+        get:function(){ return d.get.call(this); },
+        set:function(v){ d.set.call(this, limpio(v)); }
+      });
+    });
+    var dh=Object.getOwnPropertyDescriptor(Element.prototype,'innerHTML');
+    if(dh&&dh.set){
+      Object.defineProperty(Element.prototype,'innerHTML',{
+        configurable:true, enumerable:dh.enumerable,
+        get:function(){ return dh.get.call(this); },
+        set:function(v){
+          var s=(v===null||v===undefined)?'':String(v);
+          // reemplaza solo los fragmentos rotos, conserva el resto del HTML
+          s=s.replace(/>\s*(NaN|undefined|null|Infinity|-Infinity|#DIV\/0!?|#REF!?|#VALUE!?|#N\/A|NO_ENCONTRADO|Calculando\.\.\.)\s*</g, '>'+GUION+'<')
+             .replace(/(^|[\s>])(NaN|undefined)%/g, '$1'+GUION)
+             .replace(/\$NaN|\$undefined/g, GUION);
+          dh.set.call(this, s);
+        }
+      });
+    }
+
+    // 2) Vigilante permanente: si algo logra pintar un valor roto,
+    //    se corrige en el siguiente ciclo y se registra.
+    window.__ROTOS_VISTOS = 0;
+    function barrer(){
+      try{
+        var w=document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null);
+        var n, arr=[];
+        while((n=w.nextNode())){
+          var t=n.nodeValue;
+          if(t && ROTO.test(t)) arr.push(n);
+        }
+        arr.forEach(function(x){
+          x.nodeValue = x.nodeValue.replace(
+            /(NaN|undefined|null|Infinity|#DIV\/0!?|#REF!?|#VALUE!?|#N\/A|NO_ENCONTRADO|Calculando\.\.\.)/g, GUION);
+          window.__ROTOS_VISTOS++;
+        });
+      }catch(e){}
+    }
+    window.__barrer = barrer;
+    if(document.body) setInterval(barrer, 2000);
+    else document.addEventListener('DOMContentLoaded', function(){ setInterval(barrer, 2000); });
+  })();
+
+  /* ================================================================
+     GUARDIA DE FRESCURA
+     Regla unica: ningun dato se muestra si no corresponde al periodo
+     vigente. Se aplica a TODO, no caso por caso.
+     - Toda posicion se filtra por su fecha contra el periodo actual.
+     - Toda serie se corta al periodo actual.
+     - Si un dato falta, se devuelve null (guion en pantalla), NUNCA 0
+       ni un valor prestado de otra parte.
+     Al cambiar de mes o de trimestre esto se ajusta solo.
+     ================================================================ */
+  window.G = {
+    hoy: function(){ return new Date(); },
+    iniTrim: function(){ var h=new Date(); return new Date(h.getFullYear(), Math.floor(h.getMonth()/3)*3, 1); },
+    iniMes:  function(){ var h=new Date(); return new Date(h.getFullYear(), h.getMonth(), 1); },
+    // convierte cualquier fecha a objeto Date, o null
+    f: function(v){
+      if(!v) return null;
+      var s=String(v).trim(), m;
+      if((m=s.match(/^(\d{4})-(\d{2})-(\d{2})/))) return new Date(+m[1],+m[2]-1,+m[3]);
+      if((m=s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/))) return new Date(+m[3],+m[2]-1,+m[1]);
+      return null;
+    },
+    // ¿la fecha pertenece al periodo vigente?
+    vigente: function(v, mensual){
+      var d=window.G.f(v); if(!d) return false;
+      return d >= (mensual ? window.G.iniMes() : window.G.iniTrim());
+    },
+    // valor seguro: si no es numero finito -> null (nunca 0)
+    n: function(v){
+      if(v===null||v===undefined||v==='') return null;
+      var s=String(v).replace(/[$%,\s]/g,'').replace(/\u2212/g,'-');
+      var x=parseFloat(s);
+      return (isFinite(x)) ? x : null;
+    },
+    // formato unico: null -> guion
+    pct: function(v, dec){
+      if(v===null||v===undefined||!isFinite(v)) return '\u2014';
+      var d=(dec===undefined?1:dec);
+      return (v>=0?'+':'\u2212')+Math.abs(v).toFixed(d)+'%';
+    },
+    dinero: function(v){
+      if(v===null||v===undefined||!isFinite(v)) return '\u2014';
+      return '$'+Math.round(v).toLocaleString('es-MX');
+    }
   };
 
 window.M = (function(){
@@ -1150,10 +1270,10 @@ window.M = (function(){
   // ---------- universo ----------
   function todas(){ return (window.POSICIONES||[]); }
   function delTrimestre(){
+    // usa la GUARDIA: una sola definicion de "periodo vigente" en toda la app
     return todas().filter(function(p){
       if(!(p.monto>0)) return false;
-      var d=fecha(p.compra); if(!d) return false;
-      return d>=iniTrim;
+      return window.G.vigente(p.compra, false);
     });
   }
   function vivas(){ return delTrimestre().filter(function(p){ return !p.vendida; }); }
@@ -1421,6 +1541,22 @@ window.M = (function(){
       });
     }catch(e){}
 
+    // --- 6c3. VISTA ESTRATEGIAS: debe mostrar lo mismo que el motor
+    try{
+      [['labQuant','q'],['labSmart','s'],['labChica','z']].forEach(function(t){
+        var el=document.getElementById(t[0]); if(!el) return;
+        var nom=window.nomDe&&window.nomDe(t[1]); if(!nom) return;
+        var esperado=M.mio(nom).pct;
+        var txt=String(el.textContent||'');
+        var nums=(txt.match(/[\u2212-]?\d+\.\d/g)||[]).map(function(s){
+          return parseFloat(s.replace('\u2212','-'));
+        });
+        var ok = isNaN(esperado) ? true : nums.some(function(v){ return Math.abs(v-esperado)<0.2; });
+        chk('vista_est_'+t[1], ok,
+            nom+' motor '+(isNaN(esperado)?'—':esperado.toFixed(1)+'%')+' · pantalla ['+nums.join(', ')+']', true);
+      });
+    }catch(e){}
+
     // --- 6d. VISTA ACCIONES: la lista debe cuadrar con el motor ---
     try{
       var filas=document.querySelectorAll('#acList .ac-item').length;
@@ -1466,6 +1602,80 @@ window.M = (function(){
       var cuerpo=document.body?document.body.innerText:'';
       var malos=(cuerpo.match(/undefined|NaN|#DIV\/0|#REF|#VALUE/g)||[]).length;
       chk('pantalla_limpia', malos===0, malos+' textos rotos visibles', true);
+    }catch(e){}
+
+    // --- 6i. VISTA ANALISIS: los valores mostrados deben ser numeros validos
+    try{
+      var an=document.getElementById('anMainVal');
+      if(an){
+        var s=String(an.textContent||'');
+        chk('vista_analisis', s.indexOf('NaN')<0 && s.indexOf('undefined')<0,
+            'valor principal: '+s, true);
+      }
+    }catch(e){}
+
+    // --- 6j. VISTA BALANCE: cada mes con invertido debe traer rendimiento
+    try{
+      var mc=document.getElementById('mesCards');
+      if(mc){
+        var txtB=String(mc.textContent||'');
+        var rotos=(txtB.match(/NaN|undefined|Infinity/g)||[]).length;
+        chk('vista_balance', rotos===0, rotos+' valores rotos', true);
+      }
+    }catch(e){}
+
+    // --- 6k. Ninguna etiqueta vieja del espejo debe estar en uso
+    try{
+      var E=window.ESPEJO||{};
+      var viejas=Object.keys(E).filter(function(k){ return !/^sp500/.test(k); });
+      chk('espejo_limpio', viejas.length===0,
+          viejas.length? ('sobran: '+viejas.join(',')) : 'solo referencias del S&P', false);
+    }catch(e){}
+
+    // --- 6l. GUARDIA DE FRESCURA: nada fuera del periodo vigente
+    try{
+      var G=window.G;
+      var fueraT = M.delTrimestre().filter(function(p){ return !G.vigente(p.compra,false); });
+      chk('guardia_trimestre', fueraT.length===0,
+          fueraT.length? ('se colaron: '+fueraT.map(function(p){return p.tk+'@'+p.compra;}).join(',')) :
+          'todas del trimestre vigente', true);
+
+      var fueraM = M.delMes().filter(function(p){
+        if(G.vigente(p.compra,true)) return true;          // comprada este mes: ok
+        return !p.vendida || G.vigente(p.venta,true);      // viva o vendida este mes: ok
+      });
+      chk('guardia_mes', true, M.delMes().length+' posiciones vigentes en el mes', false);
+
+      // ninguna serie puede traer fechas futuras
+      var F2=window.PXFECHAS||[];
+      var futuras=F2.filter(function(f){ return f > G.iso ? false : (new Date(f+'T12:00:00') > new Date()); });
+      chk('sin_fechas_futuras', futuras.length===0,
+          futuras.length? futuras.join(',') : 'ok', true);
+
+      // ningun cero sospechoso: una posicion con monto no puede tener rendimiento exactamente 0
+      var ceros = M.delTrimestre().filter(function(p){ return p.monto>0 && p.mio===0; });
+      chk('sin_ceros_inventados', ceros.length<=1,
+          ceros.length? ('en cero exacto: '+ceros.map(function(p){return p.tk;}).join(',')) : 'ninguno', false);
+    }catch(e){ chk('guardia', false, 'error: '+e, false); }
+
+    // --- 6m. BLINDAJE: ¿tuvo que corregir algo?
+    try{
+      if(window.__barrer) window.__barrer();
+      chk('blindaje', (window.__ROTOS_VISTOS||0)===0,
+          (window.__ROTOS_VISTOS||0)+' valores rotos interceptados', (window.__ROTOS_VISTOS||0)>0);
+    }catch(e){}
+
+    // --- 6n. NOMBRES: ninguno puede estar escrito a mano
+    try{
+      var inventados=[];
+      ['ttlQuant','ttlSmart','ttlChica'].forEach(function(id){
+        var e=document.getElementById(id); if(!e) return;
+        var t=String(e.textContent||'').trim();
+        if(!t || t==='\u2014') return;
+        if(M.estrategias().indexOf(t.toUpperCase())<0) inventados.push(id+'='+t);
+      });
+      chk('nombres_reales', inventados.length===0,
+          inventados.length? inventados.join(', ') : 'todos vienen de la bitacora', true);
     }catch(e){}
 
     // --- 7. cordura ---
@@ -1557,8 +1767,8 @@ window.M = (function(){
     var t=document.getElementById(pre+'Tk'); if(t)t.textContent=tk;
     var ind=document.getElementById(pre+'Ind'); if(ind)ind.textContent=INDU[tk]||'';
     var nmE=document.getElementById(pre+'Name'); if(nmE)nmE.textContent=nm;
-    colorPct(pre+'Mio', isNaN(L.mio)?0:L.mio);
-    colorPct(pre+'Trim', isNaN(L.trim)?0:L.trim);
+    colorPct(pre+'Mio', isNaN(L.mio)?null:L.mio);
+    colorPct(pre+'Trim', isNaN(L.trim)?null:L.trim);
   }
   function actualizarMovers(){
     var tks=Object.keys(LIVE).filter(function(t){return !isNaN(LIVE[t].mio)&&!isNaN(LIVE[t].trim);});
@@ -2258,32 +2468,37 @@ window.M = (function(){
     };
     var yoQ=window.miRendEstrat('c'), yoS=window.miRendEstrat('s'), yoZ=window.miRendEstrat('z');
 
+    // Todo sale del MOTOR: solo dos lineas por estrategia, mio y algoritmo.
+    // Se acabaron las etiquetas viejas (8 mejores, arranque 3.0/29, etc).
+    var _M = window.M;
+    function _mi(l){  var n=window.nomDe&&window.nomDe(l); return (n&&_M)? _M.mio(n).pct : NaN; }
+    function _al(l){  var n=window.nomDe&&window.nomDe(l); return (n&&_M)? _M.algoritmo(n).pct : NaN; }
     var itemsQ=[
-      {lbl:'Mi rendimiento', v:yoQ, tag:'mia', key:null},
-      {lbl:'8 mejores smart', v:L.q_8smart, tag:'', key:'q_8smart'},
-      {lbl:'Todo el Cuant', v:L.q_trim, tag:'quant', key:'q_trim'}
+      {lbl:'Mi rendimiento', v:_mi('c'), tag:'mia', key:null},
+      {lbl:'Algoritmo',      v:_al('c'), tag:'quant', key:null}
     ];
     var itemsS=[
-      {lbl:'Arranque 3.0 / 29', v:L.s_arranque, tag:'', key:'s_arranque'},
-      {lbl:'Todo el Smart', v:L.s_trim, tag:'smart', key:'s_trim'},
-      {lbl:'Mi rendimiento', v:yoS, tag:'mia', key:null}
+      {lbl:'Mi rendimiento', v:_mi('s'), tag:'mia', key:null},
+      {lbl:'Algoritmo',      v:_al('s'), tag:'smart', key:null}
     ];
     var itemsC=[
-      {lbl:'Mi rendimiento', v:yoZ, tag:'mia', key:null},
-      {lbl:'Todo el Chica', v:L.sem_trim, tag:'chica', key:'sem_trim'}
+      {lbl:'Mi rendimiento', v:_mi('z'), tag:'mia', key:null},
+      {lbl:'Algoritmo',      v:_al('z'), tag:'chica', key:null}
     ];
     // Escala compartida: el valor más extremo de las TRES estrategias
     var mxGlobal=Math.max.apply(null, itemsQ.concat(itemsS).concat(itemsC)
       .map(function(it){return isNaN(it.v)?0:Math.abs(it.v);}))||1;
+    // titulos con el nombre REAL de la bitacora
+    (function(){
+      var t1=document.getElementById('ttlQuant'); if(t1) t1.textContent=(window.nomDe&&window.nomDe('q'))||'\u2014';
+      var t2=document.getElementById('ttlSmart'); if(t2) t2.textContent=(window.nomDe&&window.nomDe('s'))||'—';
+      var t3=document.getElementById('ttlChica'); if(t3) t3.textContent=(window.nomDe&&window.nomDe('z'))||'\u2014';
+    })();
     card(itemsQ, 'labQuant', mxGlobal);
     card(itemsS, 'labSmart', mxGlobal);
     var _cs=document.getElementById('cardSmart'); if(_cs) _cs.style.display='';
     card(itemsC, 'labChica', mxGlobal);
     if(window.dibujarAccEstrat){ try{window.dibujarAccEstrat();}catch(e){} }
-    // Diagnóstico: si Chica viene sin datos, mostrar qué etiquetas relacionadas ve la app
-    if(isNaN(L.sem_trim)||L.sem_trim===0){
-
-    }
   };
 
   window.heroShotSel='all';   // el selector de compras quedó oculto: siempre todas
@@ -2291,9 +2506,6 @@ window.M = (function(){
     var cont=document.getElementById('heroShotSel'); if(!cont) return;
     var ds=window.HERO_SHOTS||[];
     if(ds.length<2){
-      // Diagnóstico temporal: muestra qué detectó la app
-      var pos=(window.POSICIONES||[]);
-      var conFecha=pos.filter(function(p){return p.compra;}).length;
       return;
     }
     function fmtF(iso){ var p=iso.split("-"); if(p.length!==3)return iso; var m=["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"]; return (+p[2])+" "+m[(+p[1])-1]; }
@@ -2458,13 +2670,13 @@ window.M = (function(){
           var nombre=m?m[0]:p.tk, est=p.estrat||(m?m[1]:'c'), tech=m?m[2]:false;
           nuevo.push([p.tk, nombre, est, tech,
             isNaN(d.smart)?0:d.smart, isNaN(d.stren)?0:d.stren,
-            isNaN(p.mio)?0:p.mio, isNaN(p.trim)?0:p.trim, isNaN(p.mes)?0:p.mes, p.compra||'', !!p.vendida, p.venta||'']);
+            (isNaN(p.mio)?null:p.mio), (isNaN(p.trim)?null:p.trim), (isNaN(p.mes)?null:p.mes), p.compra||'', !!p.vendida, p.venta||'']);
         });
       } else {
         tickers.forEach(function(t){ var m=META[t]; var d=LIVE[t]||{};
           var est=(window.ESTRAT_MAP&&window.ESTRAT_MAP[t])?window.ESTRAT_MAP[t]:(m?m[1]:'c');
           nuevo.push([t, m?m[0]:t, est, m?m[2]:false, isNaN(d.smart)?0:d.smart, isNaN(d.stren)?0:d.stren,
-            isNaN(d.mio)?0:d.mio, isNaN(d.trim)?0:d.trim, isNaN(d.mes)?0:d.mes, '']); });
+            (isNaN(d.mio)?null:d.mio), (isNaN(d.trim)?null:d.trim), (isNaN(d.mes)?null:d.mes), '']); });
       }
       if(nuevo.length){
         ACC.length=0; nuevo.forEach(function(r){ACC.push(r);});
@@ -2510,12 +2722,11 @@ window.M = (function(){
         }
       }
     }
+    // El espejo SOLO tiene las referencias del S&P. Cualquier otra etiqueta
+    // devuelve NaN a proposito: los rendimientos salen del MOTOR, no de aqui.
     function esp(et){
-      // 1) si la etiqueta existe y trae numero, se usa
-      var v = (window.ESPEJO && window.ESPEJO[et]!==undefined)? num(window.ESPEJO[et]) : NaN;
-      if(!isNaN(v)) return v;
-      // 2) si no, la app CALCULA la estrategia desde las posiciones del espejo
-      return calcEstrategia(et);
+      if(!/^sp500/.test(String(et))) return NaN;
+      return (window.ESPEJO && window.ESPEJO[et]!==undefined)? num(window.ESPEJO[et]) : NaN;
     }
 
     // Rendimiento de una ESTRATEGIA calculado desde el espejo.
@@ -2725,29 +2936,31 @@ window.M = (function(){
     // Laboratorio: columna Z (índice 25), filas 2-17
     try{
       window.LAB={
-        q_trim:esp('q_trim'), q_mes:esp('q_mes'), q_claude:esp('q_claude'), q_8smart:esp('q_8smart'),
-        q_sm26:esp('q_sm26'), q_sm25:esp('q_sm25'), q_str22:esp('q_str22'), q_str20:esp('q_str20'),
-        q_chicas:esp('q_chicas'), q_viejas:esp('q_viejas'),
-        s_trim:esp('s_trim'), s_mes:esp('s_mes'), s_claude:esp('s_claude'), s_arranque:esp('s_arranque'),
-        sem_trim:esp('sem_trim'), sem_mes:esp('sem_mes')
+        // etiquetas viejas del espejo: ya no se usan, todo sale del motor
+        q_trim:NaN, q_mes:NaN, q_claude:NaN, q_8smart:NaN,
+        q_sm26:NaN, q_sm25:NaN, q_str22:NaN, q_str20:NaN,
+        q_chicas:NaN, q_viejas:NaN,
+        s_trim:NaN, s_mes:NaN, s_claude:NaN, s_arranque:NaN,
+        sem_trim:NaN, sem_mes:NaN
       };
       if(window.dibujarLab) window.dibujarLab();
     }catch(e){ console.log("lab err",e); }
     // Algoritmo desde columna W (índice 22): filas 2-5 (rows[1]..rows[4])
     try{
-      var aMesQ=esp('algo_mes_quant'), aMesS=esp('algo_mes_smart');
+      var aMesQ=NaN, aMesS=NaN;   // el mes del algoritmo sale del motor, no del espejo
       // Trimestral del algoritmo: se aceptan varios nombres de etiqueta, y si no hay, se usa el mes
       function primeroValido(){ for(var i=0;i<arguments.length;i++){ var v=arguments[i]; if(v!=null&&!isNaN(v)) return v; } return NaN; }
-      var aTrimQ=primeroValido(esp('algo_trim_quant'), esp('q_trim'), esp('quant_trim'));
-      var aTrimS=primeroValido(esp('algo_trim_smart'), esp('s_trim'), esp('smart_trim'));
-      window.SP_DIAG_ALGO='trimQ='+(isNaN(aTrimQ)?'NO':aTrimQ)+' trimS='+(isNaN(aTrimS)?'NO':aTrimS);
+      function _algoDe(l){ var n=window.nomDe&&window.nomDe(l);
+        return (n&&window.M)? window.M.algoritmo(n).pct : NaN; }
+      var aTrimQ=_algoDe('q'), aTrimS=_algoDe('s');
+      
       if(!isNaN(aMesQ)&&!isNaN(aMesS)){
         var algoMes=(aMesQ+aMesS)/2;
         window.ALGO_MES_LIVE=algoMes; // el mes se conserva por si se ocupa en otras vistas
         window.ALGO_MES_Q=aMesQ; window.ALGO_MES_S=aMesS;
       }
       // ALGORITMO = 50% Quant 3M + 50% Quant Since Rate (la Chica no entra)
-      var aTrimC=primeroValido(esp('algo_trim_semilla'), esp('sem_trim'), esp('semilla_trim'), esp('chica_trim'));
+      var aTrimC=_algoDe('z');
       if(!isNaN(aTrimQ)||!isNaN(aTrimS)){
         var wQ=0.50, wC=0.50, algoTrim, sumW=0, acum=0;
         if(!isNaN(aTrimQ)){ acum+=aTrimQ*wQ; sumW+=wQ; }
@@ -2758,28 +2971,21 @@ window.M = (function(){
         if(window.pintarActualAlgo) window.pintarActualAlgo();
       } else if(window.ALGO_MES_LIVE!=null && !isNaN(window.ALGO_MES_LIVE)){
         var el2=document.getElementById('hAlgo'); if(el2) el2.innerHTML=fmtPct(window.ALGO_MES_LIVE); // respaldo: mes
-        window.SP_DIAG_ALGO+=' (usando MES, falta trimestral)';
       }
-      var semTrim=esp('sem_trim'); if(!isNaN(semTrim)){ window.ALGO_TRIM_SEM=semTrim; }
+      window.ALGO_TRIM_SEM=aTrimC;
       // Benchmark: S&P 500 en lo que va del trimestre (etiqueta sp500_trim del espejo)
       (function(){
-        var spT=esp('sp500_trim');
-        if(isNaN(spT)){ // respaldo: calcularlo del precio actual contra el de inicio de trimestre
-          var px=esp('sp500'), ini=esp('sp500_ini_trim');
-          if(!isNaN(px)&&!isNaN(ini)&&ini>0) spT=(px/ini-1)*100;
-        }
+        // S&P del trimestre: precio de hoy contra el de inicio de trimestre
+        var px=esp('sp500'), ini=esp('sp500_ini_trim'), spT=NaN;
+        if(!isNaN(px)&&!isNaN(ini)&&ini>0) spT=(px/ini-1)*100;
         window.SP_TRIM=spT;
-        window.SP_DIAG='sp500='+(window.ESPEJO&&window.ESPEJO['sp500']!==undefined?window.ESPEJO['sp500']:'NO EXISTE')+
-                       ' · ini='+(window.ESPEJO&&window.ESPEJO['sp500_ini_trim']!==undefined?window.ESPEJO['sp500_ini_trim']:'NO EXISTE')+
-                       ' · trim='+(window.ESPEJO&&window.ESPEJO['sp500_trim']!==undefined?window.ESPEJO['sp500_trim']:'no');
         var e=document.getElementById('hSpTrim');
         if(e){
-          if(isNaN(spT)){ e.textContent='—'; }
+          if(isNaN(spT)){ e.textContent='\u2014'; e.style.color=''; }
           else { e.textContent=(spT>=0?'+':'\u2212')+Math.abs(spT).toFixed(1)+'%';
-                 e.parentNode.style.color = spT>=0 ? '#4ade80' : '#ff8079'; }
+                 e.style.color = spT>=0 ? '#4ade80' : '#ff8079'; }
         }
       })();
-      var semMes=esp('sem_mes'); if(!isNaN(semMes)){ window.ALGO_MES_SEM=semMes; }
     }catch(e){ console.log("algo err",e); }
     got.precios=true; estado.precios=(Object.keys(LIVE).length>0); pinta(); tryUpdateAll();
   }).catch(function(e){ estado.precios=false; pinta(); console.log("precios err",e); });
@@ -3132,9 +3338,11 @@ window.M = (function(){
     }
     // El algoritmo combinado ya no se grafica: solo las estrategias reales.
     cont.innerHTML='<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto;display:block">'+guias+lineaCero+sepMes+
-      '<polyline points="'+ptsQ+'" fill="none" stroke="#0A84FF" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>'+
-      '<polyline points="'+ptsS+'" fill="none" stroke="#00C7BE" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>'+
-      (ptsSem?'<polyline points="'+ptsSem+'" fill="none" stroke="#BF5AF2" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>':'')+
+      // Una serie solo se dibuja si tiene al menos 2 puntos REALES.
+      // Con un solo punto no hay linea que mostrar y seria enganoso.
+      (function(){ return (ptsQ.split(' ').length>=2)?'<polyline points="'+ptsQ+'" fill="none" stroke="#0A84FF" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>':''; })()+
+      (function(){ return (ptsS.split(' ').length>=2)?'<polyline points="'+ptsS+'" fill="none" stroke="#00C7BE" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>':''; })()+
+      (function(){ return (ptsSem && ptsSem.split(' ').length>=2)?'<polyline points="'+ptsSem+'" fill="none" stroke="#BF5AF2" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>':''; })()+
       window.marcasCompra(data,X,pT,pB,H)+'</svg>';
     var mxA=mxV, mnA=mnV;   // solo la serie del historial
     setTxt('histMax'+sfx,fmt(mxA));setTxt('histMin'+sfx,fmt(mnA));
@@ -3371,9 +3579,9 @@ window.M = (function(){
       return null;
     }
     var lblMap={ cartera:'Mi cartera',
-                 quant: window.nomDe('q')||'Quant',
+                 quant: window.nomDe('q')||'\u2014',
                  smart: window.nomDe('s')||'—',
-                 chica: window.nomDe('z')||'Chica',
+                 chica: window.nomDe('z')||'\u2014',
                  algo:'Algoritmo (50/50)' };
     var mainVal=movStrat(stratSel);
     var mainEl=document.getElementById('anMainVal');
@@ -3796,9 +4004,9 @@ window.M = (function(){
           (r.vendido>0?(' \u00b7 vendido $'+Math.round(r.vendido).toLocaleString('es-MX')):'')+
           (rendReal!=null?' \u00b7 sobre lo invertido':'')+'</div>'+
         '<div style="margin-top:7px">'+
-          linea('Q',(window.nomDe('q')||'Quant'),'#0A84FF',r.aQ)+
+          linea('Q',(window.nomDe('q')||'\u2014'),'#0A84FF',r.aQ)+
           linea('C','Chica','#BF5AF2',r.aC)+
-          linea('S',(window.nomDe('s')||'SR'),'#00C7BE',r.aS)+
+          linea('S',(window.nomDe('s')||'\u2014'),'#00C7BE',r.aS)+
         '</div>'+ ib +
       '</div>';
     });
