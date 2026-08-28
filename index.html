@@ -603,7 +603,7 @@
   <div class="foot" id="anFoot">Desliza las manijas o usa los atajos · no es asesoría de inversión</div>
 </div>
 
-<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v254</div>
+<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v256</div>
 
 <div class="wrap view" id="viewBalance">
   <div class="st-hero">
@@ -869,8 +869,12 @@ function updateCount(){
   // que la auditoría lo detecte y NO se muestren números fantasma.
   window.FETCH_ERRORES = [];
   window.FETCH_OK = [];
-  function fetchCSV(gid){
+  // Lee el enlace publicado, con REINTENTOS: si Google limita peticiones
+  // por recargar seguido, vuelve a intentar en vez de rendirse.
+  function fetchCSV(gid, intento){
     window.FUENTE_DATOS = "publicado";
+    intento = intento || 1;
+    var MAX = 4;
     return fetch(url(gid)).then(function(r){
       if(!r.ok) throw new Error("HTTP " + r.status);
       return r.text();
@@ -879,8 +883,15 @@ function updateCount(){
       window.FETCH_OK.push({ gid: gid, chars: t.length });
       return t;
     }).catch(function(e){
+      if(intento < MAX){
+        var espera = intento * 1200;   // 1.2s, 2.4s, 3.6s
+        console.log('%c reintento ' + intento + ' gid=' + gid, 'color:#FF9F0A');
+        return new Promise(function(res){
+          setTimeout(function(){ res(fetchCSV(gid, intento+1)); }, espera);
+        });
+      }
       window.FETCH_ERRORES.push({ gid: gid, err: String(e && e.message || e) });
-      console.log('%c FALLO LECTURA gid=' + gid + ' — ' + (e && e.message), 'color:#ff6b60;font-weight:bold');
+      console.log('%c FALLO LECTURA gid=' + gid + ' tras ' + MAX + ' intentos', 'color:#ff6b60;font-weight:bold');
       throw e;
     });
   }
@@ -924,7 +935,7 @@ function updateCount(){
   window.META = META;
 
   var got = { precios:false, hist:false, claude:false };
-  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-254";
+  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-256";
 
   /* ===================== AUDITORIA INTERNA =====================
      No se muestra en pantalla. Escribe en window.AUDIT y en la consola.
@@ -1197,7 +1208,7 @@ function updateCount(){
         var n, arr=[];
         while((n=w.nextNode())){
           var t=n.nodeValue;
-          if(t && ROTO.test(t)) arr.push(n);
+          if(t && t.trim() && ROTO.test(t)) arr.push(n);
         }
         arr.forEach(function(x){
           x.nodeValue = x.nodeValue.replace(
@@ -1858,7 +1869,7 @@ window.M = (function(){
   if(window.__auditTimer) clearTimeout(window.__auditTimer);
   window.__auditTimer = setTimeout(function(){
     try{ window.auditar(); }catch(e){ console.log('audit err', e); }
-  }, 9000);
+  }, 14000);
 
   var estado={precios:false,historial:false,claude:false};
   function pinta(){
@@ -3489,6 +3500,9 @@ window.M = (function(){
         setTxt(idMin,fmt(Mn));
       }
       var sems=data.filter(function(p){return !isNaN(p.sem);});
+      console.log('%c series historial -> Q:'+qs.length+' S:'+ss.length+' Ch:'+sems.length+
+                  ' de '+data.length+' registros', 'color:#0A84FF');
+      if(qs.length===1) console.log('  unico punto Q:', JSON.stringify(qs[0]));
       // Max/min SOLO de la serie del historial. No se mezcla ningun valor
       // "live" del espejo: eso fue lo que descuadraba la Chica.
       llena(qs,'q','qMax','qMin','qNow', null);
