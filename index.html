@@ -476,15 +476,15 @@
     <button class="hist-sb on" data-d="0">Trimestre</button>
   </div>
   <div style="display:flex;gap:14px;margin-bottom:10px;flex-wrap:wrap;font-size:11.5px;color:var(--dim);font-weight:600">
-    <span style="display:flex;align-items:center;gap:5px"><span style="width:14px;height:3px;border-radius:2px;background:#0A84FF"></span>Quant</span>
-    <span style="display:flex;align-items:center;gap:5px"><span style="width:14px;height:3px;border-radius:2px;background:#00C7BE"></span>SR</span>
-    <span style="display:flex;align-items:center;gap:5px"><span style="width:14px;height:3px;border-radius:2px;background:#BF5AF2"></span>Chica</span>
+    <span style="display:flex;align-items:center;gap:5px"><span style="width:14px;height:3px;border-radius:2px;background:#0A84FF"></span><span id="lgQ">&mdash;</span></span>
+    <span style="display:flex;align-items:center;gap:5px"><span style="width:14px;height:3px;border-radius:2px;background:#00C7BE"></span><span id="lgS">&mdash;</span></span>
+    <span style="display:flex;align-items:center;gap:5px"><span style="width:14px;height:3px;border-radius:2px;background:#BF5AF2"></span><span id="lgZ">&mdash;</span></span>
   </div>
   <div id="histChart2"></div>
   <div class="strat-cards">
     <div style="display:none"><span id="histMax2"></span><span id="histNowV2"></span><span id="histMin2"></span></div>
     <div class="strat-card" style="--acc:#0A84FF">
-      <div class="sc-name"><span class="sc-dot"></span>Quant</div>
+      <div class="sc-name"><span class="sc-dot"></span><span id="scQ">&mdash;</span></div>
       <div class="sc-vals">
         <div class="sc-v"><div class="sc-l">Máx</div><div class="sc-n up" id="qMax">—</div></div>
         <div class="sc-v mid"><div class="sc-l">Actual</div><div class="sc-n now" id="qNow">—</div></div>
@@ -492,7 +492,7 @@
       </div>
     </div>
     <div class="strat-card" style="--acc:#00C7BE">
-      <div class="sc-name"><span class="sc-dot"></span>SR</div>
+      <div class="sc-name"><span class="sc-dot"></span><span id="scS">&mdash;</span></div>
       <div class="sc-vals">
         <div class="sc-v"><div class="sc-l">Máx</div><div class="sc-n up" id="sMax">—</div></div>
         <div class="sc-v mid"><div class="sc-l">Actual</div><div class="sc-n now" id="sNow">—</div></div>
@@ -500,7 +500,7 @@
       </div>
     </div>
     <div class="strat-card" style="--acc:#BF5AF2">
-      <div class="sc-name"><span class="sc-dot"></span>Chica</div>
+      <div class="sc-name"><span class="sc-dot"></span><span id="scZ">&mdash;</span></div>
       <div class="sc-vals">
         <div class="sc-v"><div class="sc-l">Máx</div><div class="sc-n up" id="semMax">—</div></div>
         <div class="sc-v mid"><div class="sc-l">Actual</div><div class="sc-n now" id="semNow">—</div></div>
@@ -559,9 +559,9 @@
 
   <div id="anSelStrat" style="display:flex;gap:6px;margin-bottom:14px;">
     <div class="an-strat on" data-k="cartera">Cartera</div>
-    <div class="an-strat" data-k="quant">Quant</div>
-    <div class="an-strat" data-k="smart">SR</div>
-    <div class="an-strat" data-k="chica">Chica</div>
+    <div class="an-strat" data-k="quant" id="anQ">&mdash;</div>
+    <div class="an-strat" data-k="smart" id="anS">&mdash;</div>
+    <div class="an-strat" data-k="chica" id="anZ">&mdash;</div>
     <div class="an-strat" data-k="algo">Algo</div>
   </div>
 
@@ -603,7 +603,7 @@
   <div class="foot" id="anFoot">Desliza las manijas o usa los atajos · no es asesoría de inversión</div>
 </div>
 
-<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v246</div>
+<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v249</div>
 
 <div class="wrap view" id="viewBalance">
   <div class="st-hero">
@@ -927,7 +927,7 @@ function updateCount(){
   window.META = META;
 
   var got = { precios:false, hist:false, claude:false };
-  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-246";
+  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-249";
 
   /* ===================== AUDITORIA INTERNA =====================
      No se muestra en pantalla. Escribe en window.AUDIT y en la consola.
@@ -996,6 +996,16 @@ function updateCount(){
   /* ---- PINTAR EL HOME desde el motor (unica fuente) ---- */
   window.pintarHome = function(){
     var M = window.M; if(!M) return;
+    // Nombres de estrategia: SIEMPRE de la bitacora, nunca escritos a mano
+    (function(){
+      var nq=window.nomDe&&window.nomDe('q'), ns=window.nomDe&&window.nomDe('s'), nz=window.nomDe&&window.nomDe('z');
+      [['lgQ',nq],['scQ',nq],['anQ',nq],
+       ['lgS',ns],['scS',ns],['anS',ns],
+       ['lgZ',nz],['scZ',nz],['anZ',nz]].forEach(function(t){
+        var e=document.getElementById(t[0]);
+        if(e) e.textContent = t[1] || '\u2014';
+      });
+    })();
     function fp(v, el, chip, dinero){
       var e=document.getElementById(el); if(!e) return;
       if(v==null||isNaN(v)){ e.textContent='—'; e.classList.remove('neg'); }
@@ -1700,6 +1710,51 @@ window.M = (function(){
     chk('sin_duplicados', nd===0, nd+' repetidas', true);
 
     var res=window.AUDIT;
+
+    // ---- AVISO EN PANTALLA si la auditoria encontro errores ----
+    (function(){
+      var prev=document.getElementById('auditBanner'); if(prev) prev.remove();
+      if(!res.errores) return;
+      var fallas=res.checks.filter(function(x){ return !x.ok && x.grave; });
+      var b=document.createElement('div');
+      b.id='auditBanner';
+      b.style.cssText='position:fixed;left:10px;right:10px;bottom:76px;z-index:9999;'+
+        'background:#2a1416;border:1px solid rgba(255,107,96,.45);border-radius:14px;'+
+        'padding:12px 14px;box-shadow:0 10px 30px rgba(0,0,0,.55);font-family:inherit';
+      var lista=fallas.slice(0,4).map(function(x){
+        return '<div style="font-size:10.5px;color:#ffb4ad;margin-top:3px">\u2022 '+x.n+' \u2014 '+x.d+'</div>';
+      }).join('');
+      b.innerHTML=
+        '<div style="display:flex;align-items:flex-start;gap:9px">'+
+          '<span style="font-size:15px;line-height:1">\u26a0\ufe0f</span>'+
+          '<div style="flex:1">'+
+            '<div style="font-size:13px;font-weight:800;color:#ff8079">'+
+              res.errores+' error'+(res.errores>1?'es':'')+' en los datos</div>'+
+            '<div style="font-size:11px;color:#ffb4ad;margin-top:2px">'+
+              'No confies en los numeros de pantalla. Pidele a Claude la version corregida.</div>'+
+            lista+
+            (fallas.length>4?'<div style="font-size:10px;color:#ffb4ad;margin-top:3px">y '+(fallas.length-4)+' mas\u2026</div>':'')+
+            '<button id="auditCopy" style="margin-top:9px;padding:7px 12px;font-size:11.5px;font-weight:700;'+
+              'background:#ff6b60;color:#fff;border:0;border-radius:8px">Copiar el reporte</button>'+
+          '</div>'+
+          '<button id="auditClose" style="background:none;border:0;color:#ffb4ad;font-size:17px;'+
+            'line-height:1;padding:0 2px">\u00d7</button>'+
+        '</div>';
+      document.body.appendChild(b);
+      var cerrar=document.getElementById('auditClose');
+      if(cerrar) cerrar.addEventListener('click',function(){ b.remove(); });
+      var cop=document.getElementById('auditCopy');
+      if(cop) cop.addEventListener('click',function(){
+        var t='AUDITORIA '+(window.__APPVER||'')+' \u2014 '+res.errores+' error(es)\n'+
+          res.checks.filter(function(x){return !x.ok;})
+                    .map(function(x){ return (x.grave?'FALLA ':'aviso ')+x.n+' \u2014 '+x.d; }).join('\n');
+        var ta=document.createElement('textarea');
+        ta.value=t; document.body.appendChild(ta); ta.select();
+        try{ document.execCommand('copy'); cop.textContent='Copiado'; }catch(e){}
+        ta.remove();
+      });
+    })();
+
     console.log('%c AUDITORIA '+(window.__APPVER||'')+' — '+
       (res.errores? res.errores+' ERROR(ES)':'sin errores')+
       (res.avisos? ' · '+res.avisos+' aviso(s)':''),
@@ -4075,12 +4130,24 @@ window.M = (function(){
     function cargar(){
       if(!window.fetchCSV){ setTimeout(cargar,400); return; }
       window.fetchCSV(GID_MENSUAL).then(function(txt){
-        var rows=csvSimple(txt), H=[];
+        var rows=csvSimple(txt), H=[], cM=null;
+        // Columnas por NOMBRE de encabezado, no por posicion: asi la hoja
+        // se puede reordenar sin romper nada.
+        (function(){
+          var hh=(rows[0]||[]).map(function(x){ return String(x||'').trim().toLowerCase(); });
+          function ix(){ for(var a=0;a<arguments.length;a++){
+              for(var k=0;k<hh.length;k++){ if(hh[k].indexOf(arguments[a])>=0) return k; } }
+            return -1; }
+          var o={ rend:ix('mi_rend','rend'), inv:ix('monto invertido','invertido'),
+                  util:ix('utilidad'), ib:ix('ib_inicio','ib inicio'),
+                  q:ix('traker real quant','quant'), c:ix('traker real chicas','chicas','chica') };
+          if(o.inv>=0 && o.util>=0) cM=o;
+        })();
+        if(!cM){ console.log('MENSUAL: no encontre las columnas'); }
         for(var i=1;i<rows.length;i++){
           var r=rows[i]; if(!r||!r[0]) continue;
           var mes=String(r[0]).trim();
           if(!/^\d{4}-\d{2}$/.test(mes)) continue;
-          if(!cM){ cM={inv:2,util:3,ib:4,q:5,c:6,rend:1}; }
           // Formato actual del robot:
           // 0 mes · 1 invertido_max · 2 invertido_fin · 3 vendido · 4 desplegado
           // 5 utilidad · 6 mi_rend · 7 quant_mes · 8 smart_mes · 9 chica_mes
