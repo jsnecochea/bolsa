@@ -460,8 +460,7 @@
     <button class="ac-sbtn on" data-k="ret">Mío</button>
     <button class="ac-sbtn" data-k="mes">Mes</button>
     <button class="ac-sbtn" data-k="trim">Trimestre</button>
-    <button class="ac-sbtn" data-k="smart">SR</button>
-    <button class="ac-sbtn" data-k="stren">Strength</button>
+    <button class="ac-sbtn" data-k="acc">Acción</button>
   </div>
   <div id="acShotSel" style="display:flex;flex-wrap:wrap;gap:6px;margin:2px 0 12px"></div>
   <div id="acList"></div>
@@ -480,20 +479,12 @@
     <button class="hist-sb on" data-d="0">Trimestre</button>
   </div>
   <div style="display:flex;gap:14px;margin-bottom:10px;flex-wrap:wrap;font-size:11.5px;color:var(--dim);font-weight:600">
-    <span style="display:flex;align-items:center;gap:5px"><span style="width:14px;height:3px;border-radius:2px;background:#ff6b60"></span>Algoritmo</span>
     <span style="display:flex;align-items:center;gap:5px"><span style="width:14px;height:3px;border-radius:2px;background:#0A84FF"></span>Quant</span>
     <span style="display:flex;align-items:center;gap:5px"><span style="width:14px;height:3px;border-radius:2px;background:#BF5AF2"></span>Chica</span>
   </div>
   <div id="histChart2"></div>
   <div class="strat-cards">
-    <div class="strat-card" style="--acc:#ff6b60">
-      <div class="sc-name"><span class="sc-dot"></span>Algoritmo</div>
-      <div class="sc-vals">
-        <div class="sc-v"><div class="sc-l">Máx</div><div class="sc-n up" id="histMax2">—</div></div>
-        <div class="sc-v mid"><div class="sc-l">Actual</div><div class="sc-n now" id="histNowV2">—</div></div>
-        <div class="sc-v"><div class="sc-l">Mín</div><div class="sc-n down" id="histMin2">—</div></div>
-      </div>
-    </div>
+    <div style="display:none"><span id="histMax2"></span><span id="histNowV2"></span><span id="histMin2"></span></div>
     <div class="strat-card" style="--acc:#0A84FF">
       <div class="sc-name"><span class="sc-dot"></span>Quant</div>
       <div class="sc-vals">
@@ -614,7 +605,7 @@
   <div class="foot" id="anFoot">Desliza las manijas o usa los atajos · no es asesoría de inversión</div>
 </div>
 
-<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v221</div>
+<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v223</div>
 
 <div class="wrap view" id="viewBalance">
   <div class="st-hero">
@@ -740,18 +731,30 @@ window.shotSel = 'all';
 function renderAcc(key){
   var arr = ACC.slice();
   if(window.shotSel && window.shotSel!=='all'){ arr = arr.filter(function(a){ return a[9]===window.shotSel; }); }
-  var idx = {ret:6, mes:8, trim:7, smart:4, stren:5};
-  var i = idx[key];
-  arr.sort(function(a,b){ return b[i]-a[i]; });
+  if(key==='acc'){
+    // por nombre de accion (A-Z) y dentro de cada una por fecha de compra
+    arr.sort(function(a,b){
+      if(a[0]!==b[0]) return a[0]<b[0] ? -1 : 1;
+      return String(a[9]||'') < String(b[9]||'') ? -1 : 1;
+    });
+  } else {
+    var idx = {ret:6, mes:8, trim:7};
+    var i = idx[key]!==undefined ? idx[key] : 6;
+    arr.sort(function(a,b){ return b[i]-a[i]; });
+  }
   function pct(v){ return (v>=0?'+':'\u2212')+Math.abs(v).toFixed(1)+'%'; }
   function cl(v){ return v>=0?'g':'r'; }
   var html = '';
   for(var j=0;j<arr.length;j++){
     var a=arr[j];
-    var tk=a[0], nm=a[1], st=a[2], tech=a[3], sm=a[4], sr=a[5], ret=a[6], trim=a[7], mes=a[8], fcompra=a[9], vend=a[10];
+    var tk=a[0], nm=a[1], st=a[2], tech=a[3], sm=a[4], sr=a[5], ret=a[6], trim=a[7], mes=a[8], fcompra=a[9], vend=a[10], fventa=a[11]||'';
     var dot='<span class="ac-dot '+st+'">'+(st==='c'?'Q':(st==='s'?'S':'C'))+'</span>';
     var chip=tech?TECHSVG:'';
-    var fbadge=(window.shotSel==='all'&&fcompra)?'<span style="font-size:9px;color:var(--dim2);margin-left:5px">'+fmtShotFecha(fcompra)+'</span>':'';
+    var per = vend && fcompra && fventa
+      ? fmtShotFecha(fcompra)+' \u2192 '+fmtShotFecha(fventa)
+      : (fcompra ? fmtShotFecha(fcompra) : '');
+    var fbadge=(per && (window.shotSel==='all'||vend))
+      ? '<span style="font-size:9px;color:'+(vend?'#FFD426':'var(--dim2)')+';margin-left:5px">'+per+'</span>' : '';
     var lk=vend?'<span style="font-size:9px;color:#FFD426;margin-left:5px" title="Vendida · congelada">&#128274;</span>':'';
     html += '<div class="ac-item'+(vend?' vend':'')+'">'+dot+
       '<div class="ac-info"><div class="ac-tk"'+(vend?' style="color:#FFD426"':'')+'>'+tk+chip+fbadge+lk+'</div><div class="ac-sub">'+nm+(vend?' · vendida':'')+'</div></div>'+
@@ -891,7 +894,7 @@ function updateCount(){
   window.META = META;
 
   var got = { precios:false, hist:false, claude:false };
-  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-221";
+  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-223";
 
   /* ===================== AUDITORIA INTERNA =====================
      No se muestra en pantalla. Escribe en window.AUDIT y en la consola.
@@ -1071,6 +1074,18 @@ function updateCount(){
       html+='</div>';
     });
     cont.innerHTML = html || '<div style="text-align:center;color:var(--dim2);padding:16px 0;font-size:13px">Sin posiciones en el trimestre</div>';
+  };
+
+  // nombres de estrategia desde la BITACORA, disponible en toda la app
+  window.nomDe = function(letra){
+    var es = (window.M && window.M.estrategias) ? window.M.estrategias() : [];
+    for(var i=0;i<es.length;i++){
+      var n=es[i], u=n.toUpperCase();
+      if(letra==='q' && /QUANT|3M/.test(u) && !/SR|SMART/.test(u)) return n;
+      if(letra==='s' && /(SR|SMART)/.test(u)) return n;
+      if(letra==='z' && /(CHICA|SEMILLA|MENSUAL)/.test(u)) return n;
+    }
+    return null;
   };
 
 window.M = (function(){
@@ -2311,7 +2326,7 @@ window.M = (function(){
           var nombre=m?m[0]:p.tk, est=p.estrat||(m?m[1]:'c'), tech=m?m[2]:false;
           nuevo.push([p.tk, nombre, est, tech,
             isNaN(d.smart)?0:d.smart, isNaN(d.stren)?0:d.stren,
-            isNaN(p.mio)?0:p.mio, isNaN(p.trim)?0:p.trim, isNaN(p.mes)?0:p.mes, p.compra||'', !!p.vendida]);
+            isNaN(p.mio)?0:p.mio, isNaN(p.trim)?0:p.trim, isNaN(p.mes)?0:p.mes, p.compra||'', !!p.vendida, p.venta||'']);
         });
       } else {
         tickers.forEach(function(t){ var m=META[t]; var d=LIVE[t]||{};
@@ -2920,7 +2935,12 @@ window.M = (function(){
     var iMin=vals.indexOf(mnV),iMax=vals.indexOf(mxV);
     var zero='';if(mn<0&&mx>0){var zy=Y(0);zero='<line x1="'+pL+'" y1="'+zy+'" x2="'+(W-pR)+'" y2="'+zy+'" stroke="rgba(255,255,255,.12)" stroke-dasharray="3 3"/>';}
     var area='M '+X(0)+' '+Y(data[0].val)+' L '+data.map(function(p,i){return X(i)+' '+Y(p.val);}).join(' L ')+' L '+X(data.length-1)+' '+(H-pB)+' L '+X(0)+' '+(H-pB)+' Z';
-    cont.innerHTML='<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto;display:block"><defs><linearGradient id="hgX'+sfx+'" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="rgba(255,69,58,.28)"/><stop offset="1" stop-color="rgba(255,69,58,0)"/></linearGradient></defs>'+zero+'<path d="'+area+'" fill="url(#hgX'+sfx+')"/><polyline points="'+ptsQ+'" fill="none" stroke="#0A84FF" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" opacity="0.9"/><polyline points="'+ptsS+'" fill="none" stroke="#00C7BE" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" opacity="0.9"/>'+(ptsSem?'<polyline points="'+ptsSem+'" fill="none" stroke="#BF5AF2" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" opacity="0.9"/>':'')+'<polyline points="'+pts+'" fill="none" stroke="#ff6b60" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/><circle cx="'+X(iMax)+'" cy="'+Y(mx)+'" r="4.5" fill="#30D158"/><circle cx="'+X(iMin)+'" cy="'+Y(mn)+'" r="4.5" fill="#ff453a"/><circle cx="'+X(data.length-1)+'" cy="'+Y(data[data.length-1].val)+'" r="4" fill="#fff"/>'+window.marcasCompra(data,X,pT,pB,H)+'</svg>';
+    // El algoritmo combinado ya no se grafica: solo las estrategias reales.
+    cont.innerHTML='<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto;display:block">'+zero+
+      '<polyline points="'+ptsQ+'" fill="none" stroke="#0A84FF" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>'+
+      '<polyline points="'+ptsS+'" fill="none" stroke="#00C7BE" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>'+
+      (ptsSem?'<polyline points="'+ptsSem+'" fill="none" stroke="#BF5AF2" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>':'')+
+      window.marcasCompra(data,X,pT,pB,H)+'</svg>';
     var mxA=mxV,mnA=mnV; if(window.ALGO_TRIM_LIVE!=null&&!isNaN(window.ALGO_TRIM_LIVE)){ mxA=Math.max(mxV,window.ALGO_TRIM_LIVE); mnA=Math.min(mnV,window.ALGO_TRIM_LIVE); }
     setTxt('histMax'+sfx,fmt(mxA));setTxt('histMin'+sfx,fmt(mnA));
     if(sfx!=='2'){var ult=data[data.length-1];setTxt('histNowV'+sfx,fmt(ult.val));}
@@ -3136,7 +3156,7 @@ window.M = (function(){
 
     // Los nombres salen de la BITACORA (columna ESTRAT), no se inventan.
     var _es = (window.M && window.M.estrategias) ? window.M.estrategias() : [];
-    function nomDe(letra){
+    function _nomDeLocal(letra){
       for(var i=0;i<_es.length;i++){
         var n=_es[i], u=n.toUpperCase();
         if(letra==='q' && /QUANT|3M/.test(u) && !/SR|SMART/.test(u)) return n;
@@ -3146,9 +3166,9 @@ window.M = (function(){
       return null;
     }
     var lblMap={ cartera:'Mi cartera',
-                 quant: nomDe('q')||'Quant',
-                 smart: nomDe('s')||'—',
-                 chica: nomDe('z')||'Chica',
+                 quant: window.nomDe('q')||'Quant',
+                 smart: window.nomDe('s')||'—',
+                 chica: window.nomDe('z')||'Chica',
                  algo:'Algoritmo (50/50)' };
     var mainVal=movStrat(stratSel);
     var mainEl=document.getElementById('anMainVal');
@@ -3571,9 +3591,9 @@ window.M = (function(){
           (r.vendido>0?(' \u00b7 vendido $'+Math.round(r.vendido).toLocaleString('es-MX')):'')+
           (rendReal!=null?' \u00b7 sobre lo invertido':'')+'</div>'+
         '<div style="margin-top:7px">'+
-          linea('Q',(nomDe('q')||'Quant'),'#0A84FF',r.aQ)+
+          linea('Q',(window.nomDe('q')||'Quant'),'#0A84FF',r.aQ)+
           linea('C','Chica','#BF5AF2',r.aC)+
-          linea('S',(nomDe('s')||'SR'),'#00C7BE',r.aS)+
+          linea('S',(window.nomDe('s')||'SR'),'#00C7BE',r.aS)+
         '</div>'+ ib +
       '</div>';
     });
