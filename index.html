@@ -614,7 +614,7 @@
   <div class="foot" id="anFoot">Desliza las manijas o usa los atajos · no es asesoría de inversión</div>
 </div>
 
-<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v211</div>
+<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v212</div>
 
 <div class="wrap view" id="viewBalance">
   <div class="st-hero">
@@ -889,7 +889,7 @@ function updateCount(){
   window.META = META;
 
   var got = { precios:false, hist:false, claude:false };
-  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-211";
+  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-212";
 
   /* ===================== AUDITORIA INTERNA =====================
      No se muestra en pantalla. Escribe en window.AUDIT y en la consola.
@@ -988,7 +988,13 @@ function updateCount(){
     if(eS) eS.textContent=acc.compras+' compras';
 
     var sp=M.sp500(), eSp=document.getElementById('hSpTrim');
-    if(eSp) eSp.innerHTML = isNaN(sp)?'—':((sp>=0?'+':'\u2212')+Math.abs(sp).toFixed(1)+'%');
+    if(eSp){
+      if(isNaN(sp)){ eSp.textContent='—'; }
+      else {
+        eSp.textContent=(sp>=0?'+':'\u2212')+Math.abs(sp).toFixed(1)+'%';
+        eSp.style.color = sp>=0 ? '#4ade80' : '#ff8079';
+      }
+    }
 
     // ---- estrategias ----
     var cont=document.getElementById('yvaList'); if(!cont) return;
@@ -998,8 +1004,30 @@ function updateCount(){
     M.estrategias().forEach(function(nom,i){
       var col=PAL[i%PAL.length];
       var mi=M.mio(nom), al=M.algoritmo(nom);
+      function pc2(v){ if(v==null||isNaN(v)) return '<span style="color:var(--dim2)">—</span>';
+        return '<span style="color:'+(v>=0?'#4ade80':'#ff6b60')+';font-weight:800">'+
+               (v>=0?'+':'\u2212')+Math.abs(v).toFixed(1)+'%</span>'; }
       if(!M.esMensual(nom)){
-        html += bloque(nom, col, mi.pct, al.pct, true);
+        var dif = (!isNaN(mi.pct)&&!isNaN(al.pct)) ? (mi.pct-al.pct) : NaN;
+        html += '<div style="border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:11px 12px;margin-bottom:10px">'+
+          '<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">'+
+            '<span style="width:9px;height:9px;border-radius:3px;background:'+col+';flex:none"></span>'+
+            '<span style="flex:1;font-size:13.5px;font-weight:800">'+nom+'</span>'+
+            (isNaN(dif)?'':'<span style="font-size:10.5px;font-weight:800;padding:3px 8px;border-radius:20px;background:'+
+              (dif>=0?'rgba(74,222,128,.15);color:#4ade80':'rgba(255,107,96,.15);color:#ff6b60')+'">'+
+              (dif>=0?'\u25b2 ':'\u25bc ')+Math.abs(dif).toFixed(1)+' pts</span>')+
+          '</div>'+
+          '<div style="display:flex;gap:10px">'+
+            '<div style="flex:1;text-align:center;background:rgba(255,255,255,.03);border-radius:9px;padding:8px">'+
+              '<div style="font-size:9.5px;color:var(--dim2);font-weight:700;margin-bottom:3px">T\u00da (trim)</div>'+
+              '<div style="font-size:20px">'+pc2(mi.pct)+'</div></div>'+
+            '<div style="flex:1;text-align:center;background:rgba(255,255,255,.03);border-radius:9px;padding:8px">'+
+              '<div style="font-size:9.5px;color:var(--dim2);font-weight:700;margin-bottom:3px">ALGORITMO</div>'+
+              '<div style="font-size:20px">'+pc2(al.pct)+'</div></div>'+
+          '</div>'+
+          '<div style="font-size:9px;color:var(--dim2);font-weight:600;margin-top:7px">'+
+            mi.n+' pos &middot; $'+mi.monto.toLocaleString('es-MX')+'</div>'+
+        '</div>';
         return;
       }
       var m0=Math.floor(M.hoy.getMonth()/3)*3, meses=[];
@@ -1337,7 +1365,9 @@ window.M = (function(){
   try{ if(window.cargarPrecios) window.cargarPrecios().then(function(){
         try{ if(window.pintarHome) window.pintarHome(); }catch(e){ console.log('pintar err', e); }
       }); }catch(e){ console.log('px err', e); }
-  setTimeout(function(){ try{ if(window.pintarHome) window.pintarHome(); }catch(e){} }, 4000);
+  [2000,4000,6500].forEach(function(ms){
+    setTimeout(function(){ try{ if(window.pintarHome) window.pintarHome(); }catch(e){} }, ms);
+  });
   // se ejecuta sola 6 segundos después de cargar, cuando ya llegaron los datos
   if(window.__auditTimer) clearTimeout(window.__auditTimer);
   window.__auditTimer = setTimeout(function(){
