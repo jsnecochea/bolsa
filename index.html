@@ -613,7 +613,7 @@
   <div class="foot" id="anFoot">Desliza las manijas o usa los atajos · no es asesoría de inversión</div>
 </div>
 
-<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v270</div>
+<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v272</div>
 
 <div class="wrap view" id="viewBalance">
   <div class="st-hero">
@@ -946,7 +946,7 @@ function updateCount(){
   window.META = META;
 
   var got = { precios:false, hist:false, claude:false };
-  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-270";
+  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-272";
 
   /* ===================== AUDITORIA INTERNA =====================
      No se muestra en pantalla. Escribe en window.AUDIT y en la consola.
@@ -1110,17 +1110,39 @@ function updateCount(){
         items.push({n:'S&P 500', v:(isNaN(v)?null:v), col:'#8e8e93'});
       })();
 
-      // Mío: ganancia total sobre invertido promedio
+      /* MI RENDIMIENTO DEL AÑO
+         REGLA PERMANENTE:
+         · Los meses CERRADOS toman su dato FIJO de la hoja MENSUAL.
+           Una vez capturados ahi, nunca se recalculan.
+         · El MES EN CURSO se calcula EN VIVO desde las posiciones,
+           pero SOLO si la hoja todavia no lo trae.
+         · En cuanto capturas el mes en la hoja, la app usa el tuyo y
+           deja de calcularlo. Nunca se cuenta dos veces.
+         Esto funciona solo cada mes y cada año, sin tocar nada.        */
       (function(){
-        var n=0, gan=0, sumInv=0;
+        var hoyD=new Date();
+        var mesHoy=hoyD.getFullYear()+'-'+('0'+(hoyD.getMonth()+1)).slice(-2);
+        var n=0, gan=0, sumInv=0, vivo=false, tieneMesHoy=false, cerrados=0;
         HM.forEach(function(r){
           if(String(r.mes).slice(0,4)!==anioN) return;
+          if(String(r.mes)>mesHoy) return;                 // meses futuros: fuera
           var inv=(!isNaN(r.invFin)&&r.invFin>0)?r.invFin:null;
           var u=(r.util!=null&&!isNaN(r.util))?r.util:null;
           if(inv===null||u===null) return;
+          if(r.mes===mesHoy) tieneMesHoy=true; else cerrados++;
           n++; gan+=u; sumInv+=inv;
         });
-        items.push({n:'Mío', v:(n&&sumInv)?(gan/(sumInv/n)*100):null, col:'#4ade80', fuerte:true});
+        if(!tieneMesHoy && window.M && window.M.miMes){
+          var t=window.M.miMes();
+          var inv2=window.M.invertido()+window.M.yaVendido();
+          if(t && t.pct!=null && !isNaN(t.pct) && inv2>0){
+            n++; gan += inv2*t.pct/100; sumInv += inv2; vivo=true;
+          }
+        }
+        window.__ANIO_DETALLE={ cerrados:cerrados, enVivo:vivo, meses:n,
+                                ganancia:gan, invProm:(n?sumInv/n:0) };
+        items.push({n:'Mío'+(vivo?' \u25cf':''), v:(n&&sumInv)?(gan/(sumInv/n)*100):null,
+                    col:'#4ade80', fuerte:true});
       })();
 
       // Estrategias: compuesto mes a mes de las columnas del tracker
@@ -1922,6 +1944,18 @@ window.M = (function(){
       chk('columna_rend_hoy', vivasSinDato.length===0,
           vivasSinDato.length? ('vivas sin rendimiento: '+vivasSinDato.length+
             ' -> revisar la columna REND YO HOY') : 'todas con dato', true);
+    }catch(e){}
+
+    // --- 6r. AÑO: meses cerrados fijos + mes en curso en vivo ---
+    try{
+      var A=window.__ANIO_DETALLE;
+      if(A){
+        var hoyD2=new Date();
+        var mesN=hoyD2.getMonth()+1;
+        chk('anio_meses', A.meses===mesN,
+            A.meses+' meses contados de '+mesN+' transcurridos · '+
+            A.cerrados+' fijos de la hoja'+(A.enVivo?' + 1 en vivo':''), true);
+      }
     }catch(e){}
 
     // --- 7. cordura ---
