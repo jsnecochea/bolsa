@@ -3001,7 +3001,7 @@ window.M = (function(){
       var gy=Y(gv);
       guias += '<line x1="'+pL+'" y1="'+gy+'" x2="'+(W-pR)+'" y2="'+gy+
                '" stroke="rgba(255,255,255,.10)" stroke-width="1"/>'+
-               '<text x="'+(pL+3)+'" y="'+(gy-3)+'" fill="rgba(255,255,255,.28)" font-size="9">'+
+               '<text x="'+(W-pR-2)+'" y="'+(gy-3)+'" text-anchor="end" fill="rgba(255,255,255,.35)" font-size="9">'+
                (gv>0?'+':'')+gv+'%</text>';
     }
     // Linea del CERO: blanca y mas marcada
