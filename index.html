@@ -614,7 +614,7 @@
   <div class="foot" id="anFoot">Desliza las manijas o usa los atajos · no es asesoría de inversión</div>
 </div>
 
-<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v201</div>
+<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v202</div>
 
 <div class="wrap view" id="viewBalance">
   <div class="st-hero">
@@ -889,7 +889,7 @@ function updateCount(){
   window.META = META;
 
   var got = { precios:false, hist:false, claude:false };
-  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-201";
+  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-202";
 
   /* ===================== AUDITORIA INTERNA =====================
      No se muestra en pantalla. Escribe en window.AUDIT y en la consola.
@@ -1046,6 +1046,48 @@ function updateCount(){
         F.length + ' dias · de ' + (F[0]||'-') + ' a ' + (F[F.length-1]||'-') +
         ' (hace ' + difDias + ' dias)', true);
 
+    // 8d) DOBLE VERIFICACION: lo que muestra la PANTALLA vs el calculo interno.
+    //     Aqui se atrapan los errores que los datos crudos no revelan.
+    try{
+      var txtPos = (document.getElementById('hPos')||{}).textContent || '';
+      var nPos = parseInt(String(txtPos).replace(/\D/g,''), 10);
+      var tickersTrim = {};
+      trim.forEach(function(p){ if(p.tk) tickersTrim[p.tk] = 1; });
+      var esperado = Object.keys(tickersTrim).length;
+      chk('pantalla_acciones', !isNaN(nPos) && Math.abs(nPos - esperado) <= 1,
+          'pantalla=' + nPos + ' vs calculo=' + esperado, true);
+
+      var txtInv = (document.getElementById('hInv')||{}).textContent || '';
+      var nInv = parseInt(String(txtInv).replace(/\D/g,''), 10);
+      var invEsp = trim.reduce(function(a,p){ return a + p.monto; }, 0);
+      chk('pantalla_invertido', !isNaN(nInv) && Math.abs(nInv - invEsp) <= invEsp*0.02,
+          'pantalla=$' + nInv + ' vs calculo=$' + invEsp, true);
+
+      // conteos que aparecen en las tarjetas de estrategia ("52 pos · $910,000")
+      var subs = document.querySelectorAll('.sc-sub, .rk-sub, [data-estrat-sub]');
+      var malos = [];
+      for(var q=0; q<subs.length; q++){
+        var m = String(subs[q].textContent||'').match(/(\d+)\s*pos/);
+        if(m && parseInt(m[1],10) > trim.length) malos.push(m[1]);
+      }
+      chk('pantalla_conteos', malos.length === 0,
+          malos.length ? 'tarjetas muestran ' + malos.join(',') + ' pos pero solo hay ' + trim.length : 'ok', true);
+    } catch(err){ chk('pantalla', false, 'error al verificar: ' + err, false); }
+
+    // 8e) S&P: el signo debe coincidir con precio actual vs inicio de trimestre
+    try{
+      var spNow = parseFloat(window.ESPEJO && window.ESPEJO.sp500);
+      var spIni = parseFloat(window.ESPEJO && window.ESPEJO.sp500_ini_trim);
+      if(!isNaN(spNow) && !isNaN(spIni) && spIni > 0){
+        var spReal = (spNow/spIni - 1) * 100;
+        var elSp = document.getElementById('hSpTrim');
+        var spPant = elSp ? parseFloat(String(elSp.textContent).replace(/[^\d.\-]/g,'')) : NaN;
+        if(elSp && String(elSp.textContent).indexOf('\u2212') >= 0) spPant = -Math.abs(spPant);
+        chk('sp500_signo', !isNaN(spPant) && Math.abs(spPant - spReal) < 1.5,
+            'pantalla=' + spPant + '% vs real=' + spReal.toFixed(1) + '%', true);
+      }
+    } catch(err2){}
+
     // 9) etiquetas del S&P
     var sp = window.ESPEJO || {};
     chk('sp500', sp.sp500 !== undefined && !isNaN(parseFloat(sp.sp500)), 'sp500=' + sp.sp500, false);
@@ -1065,8 +1107,21 @@ function updateCount(){
     res.checks.forEach(function(x){
       console.log((x.ok ? '  OK  ' : (x.grave ? ' FALLA ' : ' aviso ')) + x.n + ' — ' + x.d);
     });
+    // ---- enviar al Sheet para que Claude lo pueda leer ----
+    try{
+      fetch(WEBHOOK, {
+        method:'POST', mode:'no-cors',
+        headers:{'Content-Type':'text/plain;charset=utf-8'},
+        body: JSON.stringify({
+          version: window.__APPVER || '',
+          errores: res.errores, avisos: res.avisos,
+          checks: res.checks.map(function(x){ return { n:x.n, ok:x.ok, d:x.d, g:x.grave }; })
+        })
+      }).catch(function(){});
+    } catch(e){}
     return res;
   };
+  var WEBHOOK = "https://script.google.com/macros/s/AKfycbzIjsgMjB3RpWcpxH8Xu_a7nTTlrtL-HI1uOZcqEWsKtdvFea-_KLwkUiyJDraJy_br/exec";
   try{ if(window.cargarPrecios) window.cargarPrecios().then(function(){
         if(window.actualizarEstrategias) try{ window.actualizarEstrategias(); }catch(e){}
       }); }catch(e){ console.log('px err', e); }
