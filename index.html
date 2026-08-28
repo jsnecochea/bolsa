@@ -613,7 +613,7 @@
   <div class="foot" id="anFoot">Desliza las manijas o usa los atajos · no es asesoría de inversión</div>
 </div>
 
-<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v276</div>
+<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v278</div>
 
 <div class="wrap view" id="viewBalance">
   <div class="st-hero">
@@ -946,7 +946,7 @@ function updateCount(){
   window.META = META;
 
   var got = { precios:false, hist:false, claude:false };
-  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-276";
+  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-278";
 
   /* ===================== AUDITORIA INTERNA =====================
      No se muestra en pantalla. Escribe en window.AUDIT y en la consola.
@@ -1599,7 +1599,10 @@ window.M = (function(){
         return true;
       });
       function r(p){
-        var pf=window.pxEn?window.pxEn(p.tk, iso(fin)):null; if(!pf) return NaN;
+        // si se vendio dentro del periodo, el precio final es el del dia de la venta
+        var dv=p.vendida? fecha(p.venta) : null;
+        var fFin=(dv && dv<=fin) ? dv : fin;
+        var pf=window.pxEn?window.pxEn(p.tk, iso(fFin)):null; if(!pf) return NaN;
         var dc=fecha(p.compra);
         var pi=(dc>=ini)? p.pxCompra : (window.pxEn?window.pxEn(p.tk, iso(antes)):null);
         if(!pi) return NaN;
@@ -2438,7 +2441,11 @@ window.M = (function(){
                 var vv=new Date(String(p.venta));
                 if(!isNaN(vv.getTime()) && vv<ini) return; // se vendio antes del mes
               }
-              var pFin=window.pxEn(p.tk, isoFin);
+              // vendida dentro del mes: precio del dia de la venta
+              var dvv=(p.vendida && p.venta)? new Date(String(p.venta)) : null;
+              var isoF2=(dvv && !isNaN(dvv.getTime()) && dvv<=finMes)
+                ? iso(dvv) : isoFin;
+              var pFin=window.pxEn(p.tk, isoF2);
               var pIni=(dc>=ini) ? (p.pxCompra||null) : window.pxEn(p.tk, isoIni);
               if(!pFin || !pIni) return;
               var r=(pFin/pIni-1)*100;
@@ -3241,6 +3248,13 @@ window.M = (function(){
       cAct    = buscar(H2, ["actualizado","hora"], []);
       // la de "al vender" no puede ser la misma que "rend yo hoy"
       if(cMioV===cMio) cMioV=-1;
+      console.log('%c BITACORA columnas -> tk:'+cTk+' est:'+cEstrat+' compra:'+cCompra+
+                  ' venta:'+cVenta+' monto:'+cMonto+' mio:'+cMio+' mioV:'+cMioV+
+                  ' trim:'+cTrim+' mes:'+cMes+' pxC:'+cPxC, 'color:#0A84FF;font-weight:bold');
+      if(cMio<0 || cMio===cMioV){
+        console.log('%c   PROBLEMA con la columna de rendimiento. Encabezados:', 'color:#ff6b60');
+        console.log('   ', JSON.stringify(H2));
+      }
       if(cTk<0){ cTrim=cMes=cMio=cCompra=cMonto=cEstrat=cVenta=cMioV=cAct=cMotivo=cPxC=-1; } // no era la fila correcta
     }
     window.DIAG_COLS='tk:'+cTk+' compra:'+cCompra+' venta:'+cVenta+' monto:'+cMonto+' mio:'+cMio+' estrat:'+cEstrat+' vender:'+cMioV;
