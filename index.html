@@ -1028,7 +1028,7 @@ function updateCount(){
   window.META = META;
 
   var got = { precios:false, hist:false, claude:false };
-  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-300";
+  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-301";
 
   /* ===================== AUDITORIA INTERNA =====================
      No se muestra en pantalla. Escribe en window.AUDIT y en la consola.
@@ -1433,7 +1433,24 @@ function updateCount(){
     window.__ROTOS_VISTOS = 0;
     function barrer(){
       try{
-        var w=document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null);
+        /* EL BARRIDO NO DEBE ENTRAR AL CODIGO NI A LOS ESTILOS.
+           document.body incluye el texto de los <script> y <style>, y ahi
+           aparecen las palabras null, NaN, undefined e Infinity como parte del
+           programa. El barrido las tomaba por valores rotos de pantalla, las
+           "corregia" reescribiendo el codigo fuente, y contaba intercepciones
+           falsas. Salio a la luz el 2026-09-16, cuando el detalle por fin se
+           pudo leer: los seis "interceptados" eran comentarios de este archivo. */
+        var SALTAR = { SCRIPT:1, STYLE:1, NOSCRIPT:1, TEXTAREA:1, TITLE:1 };
+        var w=document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, {
+          acceptNode: function(n){
+            var p=n.parentNode;
+            while(p && p.nodeType===1){
+              if(SALTAR[p.nodeName]) return NodeFilter.FILTER_REJECT;
+              p=p.parentNode;
+            }
+            return NodeFilter.FILTER_ACCEPT;
+          }
+        });
         var n, arr=[];
         while((n=w.nextNode())){
           var t=n.nodeValue;
@@ -2329,10 +2346,20 @@ window.M = (function(){
         Object.keys(necesita).forEach(function(tk){
           if(!(PD[ultF] && PD[ultF][tk])) sinUlt.push(tk);
         });
-        var maxT=0;
-        F.forEach(function(f){ var c=Object.keys(PD[f]||{}).length; if(c>maxT) maxT=c; });
+        /* "Dia incompleto" se mide contra el DIA MAS RECIENTE, no contra el
+           maximo historico. La cartera crece: en julio habia 14 acciones y hoy
+           hay 44, y eso no es un hueco, es que se compraron mas. Comparar
+           contra el maximo marcaba como rotos todos los dias viejos.
+           Y solo se miran los ultimos 30 dias de la serie: un hueco de hace dos
+           meses ya no se puede llenar y no sirve de nada gritarlo. */
+        var ultN = Object.keys(PD[ultF]||{}).length;
+        var recientes = F.slice(-30);
         var cojos=[];
-        F.forEach(function(f){ var c=Object.keys(PD[f]||{}).length; if(c<maxT) cojos.push(f+'('+c+')'); });
+        recientes.forEach(function(f){
+          var c=Object.keys(PD[f]||{}).length;
+          if(c < ultN) cojos.push(f+'('+c+' de '+ultN+')');
+        });
+        var maxT=ultN;
         var hoyIsoC=new Date().getFullYear()+'-'+
                     ('0'+(new Date().getMonth()+1)).slice(-2)+'-'+
                     ('0'+new Date().getDate()).slice(-2);
@@ -2363,7 +2390,10 @@ window.M = (function(){
           var dMA=new Date(hoyMA.getFullYear(), hoyMA.getMonth()-1, 1);
           var etMA=dMA.getFullYear()+'-'+('0'+(dMA.getMonth()+1)).slice(-2);
           var faltaMA=(MA.fuera||[]).length+(MA.stale||[]).length;
-          chk('mes_anterior_cierre', faltaMA===0,
+          // Se reporta SIEMPRE como aviso, aunque no falte nada: este renglon
+          // existe para LEER el numero y capturarlo en la hoja. Si se marca
+          // como correcto, la auditoria no lo enseña y no sirve de nada.
+          chk('mes_anterior_cierre', false,
               etMA+': '+MA.pct.toFixed(2)+'% · $'+Math.round(MA.dinero).toLocaleString('es-MX')+
               ' sobre $'+Math.round(MA.monto).toLocaleString('es-MX')+' · '+MA.n+' pos'+
               ((MA.fuera||[]).length? ' · SIN PRECIO: '+MA.fuera.join(','):'')+
