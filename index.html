@@ -502,7 +502,7 @@
   </div>
   <div style="display:flex;gap:14px;margin-bottom:10px;flex-wrap:wrap;font-size:11.5px;color:var(--dim);font-weight:600">
     <span style="display:flex;align-items:center;gap:5px"><span style="width:14px;height:3px;border-radius:2px;background:#0A84FF"></span><span id="lgQ">&mdash;</span></span>
-    <span style="display:flex;align-items:center;gap:5px"><span style="width:14px;height:3px;border-radius:2px;background:#00C7BE"></span><span id="lgS">&mdash;</span></span>
+    <span style="display:flex;align-items:center;gap:5px"><span style="width:14px;height:3px;border-radius:2px;background:#4ade80"></span><span>MI CARTERA (real)</span></span>
     <span style="display:flex;align-items:center;gap:5px"><span style="width:14px;height:3px;border-radius:2px;background:#BF5AF2"></span><span id="lgZ">&mdash;</span></span>
   </div>
   <div id="histChart2"></div>
@@ -516,12 +516,12 @@
         <div class="sc-v"><div class="sc-l">Mín</div><div class="sc-n down" id="qMin">—</div></div>
       </div>
     </div>
-    <div class="strat-card" style="--acc:#00C7BE">
-      <div class="sc-name"><span class="sc-dot"></span><span id="scS">&mdash;</span></div>
+    <div class="strat-card" style="--acc:#4ade80">
+      <div class="sc-name"><span class="sc-dot"></span><span>MI CARTERA (real)</span></div>
       <div class="sc-vals">
-        <div class="sc-v"><div class="sc-l">Máx</div><div class="sc-n up" id="sMax">—</div></div>
-        <div class="sc-v mid"><div class="sc-l">Actual</div><div class="sc-n now" id="sNow">—</div></div>
-        <div class="sc-v"><div class="sc-l">Mín</div><div class="sc-n down" id="sMin">—</div></div>
+        <div class="sc-v"><div class="sc-l">Máx</div><div class="sc-n up" id="mioMax">—</div></div>
+        <div class="sc-v mid"><div class="sc-l">Actual</div><div class="sc-n now" id="mioNow">—</div></div>
+        <div class="sc-v"><div class="sc-l">Mín</div><div class="sc-n down" id="mioMin">—</div></div>
       </div>
     </div>
     <div class="strat-card" style="--acc:#BF5AF2">
@@ -628,7 +628,7 @@
   <div class="foot" id="anFoot">Desliza las manijas o usa los atajos · no es asesoría de inversión</div>
 </div>
 
-<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace">v290</div>
+<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace" id="verLbl">vivo-305</div>
 
 <div class="wrap view" id="viewBalance">
   <div class="st-hero">
@@ -1028,7 +1028,7 @@ function updateCount(){
   window.META = META;
 
   var got = { precios:false, hist:false, claude:false };
-  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-301";
+  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-305";
 
   /* ===================== AUDITORIA INTERNA =====================
      No se muestra en pantalla. Escribe en window.AUDIT y en la consola.
@@ -1286,75 +1286,136 @@ function updateCount(){
     var PAL=['#0A84FF','#BF5AF2','#00C7BE','#FF9F0A','#FF375F','#5E5CE6','#30D158','#FFD426'];
     var MM=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
     var html='';
+    /* TARJETAS POR ESTRATEGIA (vivo-303, rediseño)
+       Mismos numeros que antes (M.mio, M.algoritmo, M.mesDe); solo cambia el dibujo.
+       · Trimestral: TU vs ALGORITMO grandes + barra de duelo.
+       · Mensual: acumulado del trimestre arriba y los 3 meses del trimestre
+         en fila (el actual resaltado, los que faltan como "por venir"). */
+    function sg(v,d){ return (v>=0?'+':'−')+Math.abs(v).toFixed(d==null?1:d)+'%'; }
+    function cv(v){ return (v==null||isNaN(v))?'var(--dim2)':(v>=0?'#4ade80':'#ff6b60'); }
+    function tx(v,d){ return (v==null||isNaN(v))?'—':sg(v,d); }
+    function badge(dif){
+      if(isNaN(dif)) return '';
+      var up=dif>=0;
+      return '<span style="font-size:11px;font-weight:800;padding:4px 9px;border-radius:20px;white-space:nowrap;background:'+
+        (up?'rgba(74,222,128,.15);color:#4ade80':'rgba(255,107,96,.15);color:#ff6b60')+'">'+
+        (up?'▲ ':'▼ ')+Math.abs(dif).toFixed(1)+' pts vs algoritmo</span>';
+    }
+    function shell(col, nom, sub, dif, cuerpo){
+      return '<div style="position:relative;overflow:hidden;border:1px solid rgba(255,255,255,.08);border-radius:16px;'+
+          'padding:14px 14px 12px;margin-bottom:12px;background:linear-gradient(135deg,'+col+'22 0%,rgba(255,255,255,.015) 55%)">'+
+        '<div style="position:absolute;left:0;top:0;bottom:0;width:3px;background:'+col+'"></div>'+
+        '<div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:12px">'+
+          '<div style="flex:1;min-width:0">'+
+            '<div style="font-size:15px;font-weight:800;letter-spacing:.2px">'+nom+'</div>'+
+            '<div style="font-size:10.5px;color:var(--dim2);font-weight:600;margin-top:2px">'+sub+'</div>'+
+          '</div>'+badge(dif)+
+        '</div>'+cuerpo+'</div>';
+    }
+    function duelo(col, mio, algo){
+      var mx=Math.max(Math.abs(isNaN(mio)?0:mio), Math.abs(isNaN(algo)?0:algo), 0.1);
+      function barra(lbl, v, c){
+        var w=isNaN(v)?0:Math.max(2, Math.abs(v)/mx*100);
+        return '<div style="display:flex;align-items:center;gap:8px;margin-top:6px">'+
+          '<span style="width:62px;flex:none;font-size:9.5px;font-weight:700;color:var(--dim2)">'+lbl+'</span>'+
+          '<span style="flex:1;height:8px;border-radius:5px;background:rgba(255,255,255,.06);overflow:hidden">'+
+            '<span style="display:block;height:100%;width:'+w+'%;border-radius:5px;background:'+c+'"></span></span>'+
+          '<span style="width:52px;flex:none;text-align:right;font-size:12px;font-weight:800;color:'+cv(v)+'">'+tx(v)+'</span>'+
+        '</div>';
+      }
+      return '<div style="font-size:9.5px;color:var(--dim2);font-weight:700;letter-spacing:.4px">TRIMESTRE · TÚ VS ALGORITMO</div>'+barra('TÚ', mio, col)+barra('ALGORITMO', algo, 'rgba(255,255,255,.35)');
+    }
+    function grandes(lblA, a, lblB, b){
+      return '<div style="display:flex;gap:10px">'+
+        '<div style="flex:1.2;background:rgba(0,0,0,.22);border-radius:12px;padding:10px 12px">'+
+          '<div style="font-size:9.5px;color:var(--dim2);font-weight:700;letter-spacing:.4px">'+lblA+'</div>'+
+          '<div style="font-size:28px;font-weight:800;line-height:1.15;color:'+cv(a)+'">'+tx(a)+'</div></div>'+
+        '<div style="flex:1;background:rgba(0,0,0,.14);border-radius:12px;padding:10px 12px">'+
+          '<div style="font-size:9.5px;color:var(--dim2);font-weight:700;letter-spacing:.4px">'+lblB+'</div>'+
+          '<div style="font-size:22px;font-weight:800;line-height:1.3;color:'+cv(b)+';opacity:.85">'+tx(b)+'</div></div>'+
+      '</div>';
+    }
+    var ALG={};
     M.estrategias().forEach(function(nom,i){
       var col=PAL[i%PAL.length];
       var mi=M.mio(nom), al=M.algoritmo(nom);
-      function pc2(v){ if(v==null||isNaN(v)) return '<span style="color:var(--dim2)">—</span>';
-        return '<span style="color:'+(v>=0?'#4ade80':'#ff6b60')+';font-weight:800">'+
-               (v>=0?'+':'\u2212')+Math.abs(v).toFixed(1)+'%</span>'; }
       if(!M.esMensual(nom)){
         var dif = (!isNaN(mi.pct)&&!isNaN(al.pct)) ? (mi.pct-al.pct) : NaN;
-        html += '<div style="border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:11px 12px;margin-bottom:10px">'+
-          '<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">'+
-            '<span style="width:9px;height:9px;border-radius:3px;background:'+col+';flex:none"></span>'+
-            '<span style="flex:1;font-size:13.5px;font-weight:800">'+nom+'</span>'+
-            (isNaN(dif)?'':'<span style="font-size:10.5px;font-weight:800;padding:3px 8px;border-radius:20px;background:'+
-              (dif>=0?'rgba(74,222,128,.15);color:#4ade80':'rgba(255,107,96,.15);color:#ff6b60')+'">'+
-              (dif>=0?'\u25b2 ':'\u25bc ')+Math.abs(dif).toFixed(1)+' pts</span>')+
-          '</div>'+
-          '<div style="display:flex;gap:10px">'+
-            '<span style="width:44px;flex:none"></span>'+
-            '<div style="flex:1;text-align:center;background:rgba(255,255,255,.03);border-radius:9px;padding:8px">'+
-              '<div style="font-size:9.5px;color:var(--dim2);font-weight:700;margin-bottom:3px">T\u00da (trim)</div>'+
-              '<div style="font-size:20px">'+pc2(mi.pct)+'</div></div>'+
-            '<div style="flex:1;text-align:center;background:rgba(255,255,255,.03);border-radius:9px;padding:8px">'+
-              '<div style="font-size:9.5px;color:var(--dim2);font-weight:700;margin-bottom:3px">ALGORITMO</div>'+
-              '<div style="font-size:20px">'+pc2(al.pct)+'</div></div>'+
-          '</div>'+
-          '<div style="font-size:9px;color:var(--dim2);font-weight:600;margin-top:7px;padding-left:54px">'+
-            mi.n+' pos &middot; $'+mi.monto.toLocaleString('es-MX')+'</div>'+
-        '</div>';
+        html += shell(col, nom, 'Trimestral · '+mi.n+' pos · $'+mi.monto.toLocaleString('es-MX'), dif,
+                  grandes('MÍO · TRIMESTRE', mi.pct, 'ALGORITMO', al.pct));
+        if(/QUANT|3M/.test(nom)) ALG.q={nom:nom, v:al.pct, col:col};
         return;
       }
-      var m0=Math.floor(M.hoy.getMonth()/3)*3, meses=[];
-      for(var k=m0;k<=M.hoy.getMonth();k++){ meses.push({m:k, r:M.mesDe(nom,k)}); }
-      meses.reverse();   // el mes mas reciente arriba
+      var m0=Math.floor(M.hoy.getMonth()/3)*3, mAct=M.hoy.getMonth(), meses=[];
+      for(var k=m0;k<=mAct;k++){ meses.push({m:k, r:M.mesDe(nom,k)}); }
       function g(x){ var p=1,n=0; meses.forEach(function(z){ var v=z.r[x].pct; if(!isNaN(v)){p*=(1+v/100);n++;} });
                      return n?((p-1)*100):NaN; }
-      function pc(v,tam){ var t=tam||14;
-        if(v==null||isNaN(v)) return '<span style="color:var(--dim2);font-size:'+t+'px">—</span>';
-        return '<span style="color:'+(v>=0?'#4ade80':'#ff6b60')+';font-weight:800;font-size:'+t+'px">'+
-               (v>=0?'+':'\u2212')+Math.abs(v).toFixed(1)+'%</span>'; }
-      var difM = (!isNaN(g('mio'))&&!isNaN(g('algo'))) ? (g('mio')-g('algo')) : NaN;
-      html+='<div style="border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:11px 12px;margin-bottom:10px">'+
-        '<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">'+
-          '<span style="width:9px;height:9px;border-radius:3px;background:'+col+';flex:none"></span>'+
-          '<span style="flex:1;font-size:13.5px;font-weight:800">'+nom+'</span>'+
-          (isNaN(difM)?'':'<span style="font-size:10.5px;font-weight:800;padding:3px 8px;border-radius:20px;background:'+
-            (difM>=0?'rgba(74,222,128,.15);color:#4ade80':'rgba(255,107,96,.15);color:#ff6b60')+'">'+
-            (difM>=0?'\u25b2 ':'\u25bc ')+Math.abs(difM).toFixed(1)+' pts</span>')+
-        '</div>'+
-        '<div style="display:flex;gap:10px;margin-bottom:12px">'+
-          '<span style="width:44px;flex:none"></span>'+
-          '<div style="flex:1;text-align:center;background:rgba(255,255,255,.03);border-radius:9px;padding:8px">'+
-            '<div style="font-size:9.5px;color:var(--dim2);font-weight:700;margin-bottom:3px">M\u00cdO (trim)</div>'+
-            '<div>'+pc(g('mio'),20)+'</div></div>'+
-          '<div style="flex:1;text-align:center;background:rgba(255,255,255,.03);border-radius:9px;padding:8px">'+
-            '<div style="font-size:9.5px;color:var(--dim2);font-weight:700;margin-bottom:3px">ALGORITMO (trim)</div>'+
-            '<div>'+pc(g('algo'),20)+'</div></div>'+
-        '</div>'+
-        '<div style="display:flex;gap:10px;font-size:9.5px;color:var(--dim2);font-weight:700;padding:0 0 5px;border-bottom:1px solid rgba(255,255,255,.06)">'+
-          '<span style="width:44px;flex:none"></span>'+
-          '<span style="flex:1;text-align:center">POR MES</span>'+
-          '<span style="flex:1;text-align:center">POR MES</span></div>';
-      meses.forEach(function(z){
-        html+='<div style="display:flex;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04)">'+
-          '<span style="width:44px;flex:none;font-size:11px;font-weight:800;text-transform:uppercase;color:var(--dim2)">'+MM[z.m]+'</span>'+
-          '<span style="flex:1;text-align:center">'+pc(z.r.mio.pct,16)+'</span>'+
-          '<span style="flex:1;text-align:center">'+pc(z.r.algo.pct,16)+'</span></div>';
-      });
-      html+='</div>';
+      var gm=g('mio'), ga=g('algo');
+      var difM = (!isNaN(gm)&&!isNaN(ga)) ? (gm-ga) : NaN;
+      // los 3 meses del trimestre, en orden
+      var tiles='';
+      for(var k2=m0;k2<m0+3;k2++){
+        var z=null; meses.forEach(function(q){ if(q.m===k2) z=q; });
+        var act=(k2===mAct), fut=(k2>mAct);
+        tiles += '<div style="flex:1;min-width:0;border-radius:12px;padding:9px 6px;text-align:center;'+
+            (fut ? 'border:1px dashed rgba(255,255,255,.14);' :
+             act ? 'border:1.5px solid '+col+';background:'+col+'1a;' :
+                   'border:1px solid rgba(255,255,255,.08);background:rgba(0,0,0,.18);')+'">'+
+          '<div style="font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:'+(act?col:'var(--dim2)')+'">'+MM[k2]+(act?' · hoy':'')+'</div>'+
+          (fut ? '<div style="font-size:15px;font-weight:800;color:var(--dim2);margin-top:6px">—</div>'+
+                 '<div style="font-size:9px;color:var(--dim2);margin-top:3px">por venir</div>'
+               : '<div style="font-size:18px;font-weight:800;margin-top:4px;color:'+cv(z.r.mio.pct)+'">'+tx(z.r.mio.pct)+'</div>'+
+                 '<div style="font-size:9.5px;color:var(--dim2);font-weight:600;margin-top:2px">algo '+
+                   '<span style="color:'+cv(z.r.algo.pct)+';font-weight:800">'+tx(z.r.algo.pct)+'</span></div>')+
+        '</div>';
+      }
+      html += shell(col, nom, 'Mensual · mes '+(mAct-m0+1)+' de 3 · '+mi.n+' pos · $'+mi.monto.toLocaleString('es-MX'), difM,
+                grandes('MÍO · TRIMESTRE', gm, 'ALGORITMO', ga)+
+                '<div style="font-size:9.5px;color:var(--dim2);font-weight:700;letter-spacing:.4px;margin:12px 0 6px">MES POR MES</div>'+
+                '<div style="display:flex;gap:7px">'+tiles+'</div>');
+      if(/CHICA|SEMILLA/.test(nom)) ALG.z={nom:nom, v:ga, col:col};
     });
+    /* SECCION DE BARRAS (vivo-304, pedido de Salvador 2026-10-03)
+       Arriba: el trimestre de cada estrategia (algoritmo): QUANT azul, CHICA morado.
+       Abajo: las dos combinadas en la proporcion de referencia 66% QUANT / 33% CHICA
+       (2/3 y 1/3) contra MI rendimiento real del trimestre (= "Mi trimestre" del home).
+       Es la comparacion "peras con peras". */
+    (function(){
+      var mt=M.miTrimestre().pct;
+      var comb=NaN;
+      if(ALG.q && ALG.z && !isNaN(ALG.q.v) && !isNaN(ALG.z.v)) comb = ALG.q.v*2/3 + ALG.z.v/3;
+      var filas1=[], filas2=[];
+      if(ALG.q) filas1.push({l:ALG.q.nom, v:ALG.q.v, c:ALG.q.col});
+      if(ALG.z) filas1.push({l:ALG.z.nom, v:ALG.z.v, c:ALG.z.col});
+      filas2.push({l:'QUANT + CHICA (66/33)', v:comb, c:'#6b6b70'});
+      filas2.push({l:'MI RENDIMIENTO', v:mt, c:'#4ade80', fuerte:true});
+      var todos=filas1.concat(filas2), mx=0.1;
+      todos.forEach(function(f){ if(!isNaN(f.v)) mx=Math.max(mx, Math.abs(f.v)); });
+      function fila(f){
+        var w=isNaN(f.v)?0:Math.max(2, Math.abs(f.v)/mx*100);
+        return '<div style="margin-top:9px">'+
+          '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px">'+
+            '<span style="font-size:10.5px;font-weight:800;letter-spacing:.3px;color:'+(f.fuerte?'#fff':'var(--dim)')+'">'+f.l+'</span>'+
+            '<span style="font-size:'+(f.fuerte?'16':'14')+'px;font-weight:800;color:'+cv(f.v)+'">'+tx(f.v)+'</span></div>'+
+          '<div style="height:'+(f.fuerte?'12':'10')+'px;border-radius:6px;background:rgba(255,255,255,.06);overflow:hidden">'+
+            '<div style="height:100%;width:'+w+'%;border-radius:6px;background:'+f.c+'"></div></div>'+
+        '</div>';
+      }
+      var dif=(!isNaN(mt)&&!isNaN(comb))?(mt-comb):NaN;
+      var barras='<div style="border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:14px;margin-bottom:12px;background:rgba(255,255,255,.02)">'+
+        '<div style="display:flex;align-items:flex-start;gap:8px">'+
+          '<div style="flex:1"><div style="font-size:15px;font-weight:800">Trimestre</div>'+
+          '<div style="font-size:10.5px;color:var(--dim2);font-weight:600;margin-top:2px">Algoritmo por estrategia y combinado vs lo m\u00edo</div></div>'+
+          (isNaN(dif)?'':'<span style="font-size:11px;font-weight:800;padding:4px 9px;border-radius:20px;white-space:nowrap;background:'+
+            (dif>=0?'rgba(74,222,128,.15);color:#4ade80':'rgba(255,107,96,.15);color:#ff6b60')+'">'+
+            (dif>=0?'\u25b2 ':'\u25bc ')+Math.abs(dif).toFixed(1)+' pts vs Quant + Chica</span>')+
+        '</div>'+
+        filas1.map(fila).join('')+
+        '<div style="height:1px;background:rgba(255,255,255,.10);margin:14px 0 4px"></div>'+
+        filas2.map(fila).join('')+
+      '</div>';
+      html = barras + html;
+    })();
     cont.innerHTML = html || '<div style="text-align:center;color:var(--dim2);padding:16px 0;font-size:13px">Sin posiciones en el trimestre</div>';
   };
 
@@ -3712,7 +3773,7 @@ window.M = (function(){
         var e2=null;
         if(ev2==="quant"||ev2==="cuant"||ev2==="q"||ev2==="c") e2="c";
         else if(ev2==="smart"||ev2==="s") e2="s";
-        else if(ev2==="chica"||ev2==="chicas"||ev2==="semilla"||ev2==="z") e2="z";
+        else if(/chica|semilla/.test(ev2)||ev2==="z") e2="z";
         if(e2 && !ESTRAT_DECL[tk2]) ESTRAT_DECL[tk2]=e2;
       }
     }
@@ -3794,7 +3855,7 @@ window.M = (function(){
         if(evRaw) pEstratNom=evRaw.toUpperCase();   // nombre TAL CUAL lo escribiste
         if(ev==="quant"||ev==="cuant"||ev==="q"||ev==="c") pEstrat="c";
         else if(ev==="smart"||ev==="s"||ev==="sr") pEstrat="s";
-        else if(ev==="chica"||ev==="chicas"||ev==="semilla"||ev==="z") pEstrat="z";
+        else if(/chica|semilla/.test(ev)||ev==="z") pEstrat="z";
         else if(evRaw) pEstrat="c";   // estrategia nueva: se agrupa por su nombre
       }
       // los shots sin estrategia heredan el nombre del renglón principal
@@ -4263,10 +4324,36 @@ window.M = (function(){
       setTxt('histMax'+sfx,'—');setTxt('histMin'+sfx,'—');setTxt('histMaxD'+sfx,'');setTxt('histMinD'+sfx,'');setHTML('histNow'+sfx,'');return;}
     if(diasSel>0){var lim=new Date(Date.now()-diasSel*86400000);var fdata=data.filter(function(p){var d=pf(p.fecha);return !d||d>=lim;});if(fdata.length)data=fdata;}
     var vals=data.map(function(p){return p.val;});
+    /* MI CARTERA (real): mi rendimiento del trimestre sobre lo invertido de verdad.
+       Para cada dia: posiciones del trimestre compradas a esa fecha, ponderadas
+       por monto (igual que "Mi trimestre" del home). Vivas = precio de ese dia
+       contra precio de compra; vendidas = precio del dia de la venta.
+       Ultimo dia = el mismo numero del home (M.miTrimestre). */
+    (function(){
+      var M=window.M; if(!M || !window.pxEn) return;
+      var L=M.delTrimestre(); if(!L.length) return;
+      var ult=-1;
+      data.forEach(function(p,i){
+        p.mioR=NaN;
+        var d=pf(p.fecha); if(!d) return;
+        var s=0,w=0;
+        L.forEach(function(x){
+          var dc=M.fecha(x.compra); if(!dc || dc>d || !x.pxCompra) return;
+          var dv=x.vendida? M.fecha(x.venta) : null;
+          var px=window.pxEn(x.tk, M.iso(dv && dv<=d ? dv : d));
+          if(!px) return;
+          s+=(px/x.pxCompra-1)*100*x.monto; w+=x.monto;
+        });
+        if(w){ p.mioR=s/w; ult=i; }
+      });
+      var mt=M.miTrimestre();
+      if(ult>=0 && mt && !isNaN(mt.pct)) data[ult].mioR=mt.pct;
+    })();
     var W=600,H=220,pL=8,pR=8,pT=16,pB=16;
     // Escala Y: considera las 3 series para que todas quepan
     var allv=[];
-    data.forEach(function(p){ allv.push(p.val); if(!isNaN(p.q))allv.push(p.q); if(!isNaN(p.sm))allv.push(p.sm); if(!isNaN(p.sem))allv.push(p.sem); });
+    data.forEach(function(p){ if(!isNaN(p.q))allv.push(p.q); if(!isNaN(p.sem))allv.push(p.sem); if(p.mioR!=null&&!isNaN(p.mioR))allv.push(p.mioR); });
+    if(!allv.length) allv=vals.slice();
     var mn=Math.min.apply(null,allv), mx=Math.max.apply(null,allv), rg=(mx-mn)||1;
     function X(i){return pL+(data.length<=1?0:i/(data.length-1))*(W-pL-pR);}
     function Y(v){return pT+(1-(v-mn)/rg)*(H-pT-pB);}
@@ -4274,7 +4361,7 @@ window.M = (function(){
     var mnV=Math.min.apply(null,vals), mxV=Math.max.apply(null,vals);
     var pts=data.map(function(p,i){return X(i)+','+Y(p.val);}).join(' ');
     var ptsQ=data.filter(function(p){return !isNaN(p.q);}).map(function(p,i,arr){return X(data.indexOf(p))+','+Y(p.q);}).join(' ');
-    var ptsS=data.filter(function(p){return !isNaN(p.sm);}).map(function(p,i){return X(data.indexOf(p))+','+Y(p.sm);}).join(' ');
+    var ptsMio=data.filter(function(p){return p.mioR!=null&&!isNaN(p.mioR);}).map(function(p){return X(data.indexOf(p))+','+Y(p.mioR);}).join(' ');
     var ptsSem=data.filter(function(p){return !isNaN(p.sem);}).map(function(p){return X(data.indexOf(p))+','+Y(p.sem);}).join(' ');
     var iMin=vals.indexOf(mnV),iMax=vals.indexOf(mxV);
     var zero='';if(mn<0&&mx>0){var zy=Y(0);zero='<line x1="'+pL+'" y1="'+zy+'" x2="'+(W-pR)+'" y2="'+zy+'" stroke="rgba(255,255,255,.12)" stroke-dasharray="3 3"/>';}
@@ -4308,7 +4395,7 @@ window.M = (function(){
       // Una serie solo se dibuja si tiene al menos 2 puntos REALES.
       // Con un solo punto no hay linea que mostrar y seria enganoso.
       (function(){ return (ptsQ.split(' ').length>=2)?'<polyline points="'+ptsQ+'" fill="none" stroke="#0A84FF" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>':''; })()+
-      (function(){ return (ptsS.split(' ').length>=2)?'<polyline points="'+ptsS+'" fill="none" stroke="#00C7BE" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>':''; })()+
+      (function(){ return (ptsMio && ptsMio.split(' ').length>=2)?'<polyline points="'+ptsMio+'" fill="none" stroke="#4ade80" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>':''; })()+
       (function(){ return (ptsSem && ptsSem.split(' ').length>=2)?'<polyline points="'+ptsSem+'" fill="none" stroke="#BF5AF2" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>':''; })()+
       window.marcasCompra(data,X,pT,pB,H)+'</svg>';
     var mxA=mxV, mnA=mnV;   // solo la serie del historial
@@ -4332,7 +4419,13 @@ window.M = (function(){
       // Max/min SOLO de la serie del historial. No se mezcla ningun valor
       // "live" del espejo: eso fue lo que descuadraba la Chica.
       llena(qs,'q','qMax','qMin','qNow', null);
-      llena(ss,'sm','sMax','sMin','sNow', null);
+      // MI CARTERA (real): max/min de la serie, actual = el numero del home
+      (function(){
+        var ms=data.filter(function(p){return p.mioR!=null&&!isNaN(p.mioR);}).map(function(p){return p.mioR;});
+        if(!ms.length){ setTxt('mioMax','\u2014'); setTxt('mioMin','\u2014'); setTxt('mioNow','\u2014'); return; }
+        setTxt('mioMax',fmt(Math.max.apply(null,ms))); setTxt('mioMin',fmt(Math.min.apply(null,ms)));
+        setTxt('mioNow',fmt(ms[ms.length-1]));
+      })();
       // CHICA: el max y el min son DEL MES EN CURSO, no de todo el trimestre,
       // porque es una estrategia mensual y su serie se reinicia cada mes.
       if(sems.length){
@@ -4346,7 +4439,7 @@ window.M = (function(){
       } else {
         setTxt('semMax','\u2014'); setTxt('semMin','\u2014'); setTxt('semNow','\u2014');
       }
-      window.__DIAG='Q:'+qs.length+' S:'+ss.length+' Ch:'+sems.length;
+      window.__DIAG='Q:'+qs.length+' Ch:'+sems.length+' Mío:'+data.filter(function(p){return p.mioR!=null&&!isNaN(p.mioR);}).length;
     }
     setHTML('histNow'+sfx,data.length+' registros'+(sfx==='2'&&window.__DIAG?' · '+window.__DIAG:''));
   }
