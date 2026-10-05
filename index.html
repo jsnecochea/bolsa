@@ -1692,6 +1692,11 @@ window.M = (function(){
     if(p.vendida) return rPosMes(p);
     if(!p.tk) return NaN;
     var dc = fecha(p.compra);
+    // Comprada ESTE mes: inicio = precio de compra y fin = precio de hoy,
+    // que es exactamente "REND YO HOY" (p.mio). Se usa directo porque la
+    // hoja lo calcula con precio completo; el CSV trae PRECIO HOY y precio
+    // de compra redondeados a 1 decimal (SGY 11.6/11.1 -> $79 de error).
+    if(dc && dc>=iniMes && p.mio!=null && !isNaN(p.mio)) return p.mio;
     var pIni = (dc && dc>=iniMes) ? p.pxCompra : (window.pxEn ? window.pxEn(p.tk, iso(finMesAnt)) : null);
     if(!pIni) return NaN;
     var pFin = (p.pxHoy!=null && !isNaN(p.pxHoy) && p.pxHoy>0)
