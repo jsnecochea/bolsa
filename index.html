@@ -4948,30 +4948,29 @@ window.M = (function(){
       document.getElementById('anList').innerHTML='<div style="text-align:center;color:var(--dim2);padding:20px 0;font-size:13px">'+msg+'</div>';
     } else {
       var notaAprox=(fA!==recA.fecha||fB!==recB.fecha)?'<div style="font-size:10px;color:var(--dim2);text-align:center;margin-bottom:8px">Fechas más cercanas con datos: '+fmtFecha(fA)+' → '+fmtFecha(fB)+'</div>':'';
-      var tks=tickersDe(rB, stratSel), filas=[];
-      // Fechas del tramo, en orden, para poder rescatar acciones que entraron despues
-      var fechasTramo=rendFechas.filter(function(f){ return f>=fA && f<=fB; });
-      // Rendimiento del tramo = precio en B contra precio en A, tomados de
-      // la serie de precios. Es exacto y no depende de reinicios mensuales.
-      tks.forEach(function(tk){
-        var pa = window.pxEn ? window.pxEn(tk, fA) : null;
-        var pb = window.pxEn ? window.pxEn(tk, fB) : null;
-        var tarde=false;
-        if(!pa){
-          // entro despues del arranque: se toma su primer precio dentro del tramo
-          for(var i=0;i<fechasTramo.length;i++){
-            var v=window.pxEn ? window.pxEn(tk, fechasTramo[i]) : null;
-            if(v){ pa=v; tarde=(fechasTramo[i]!==fA); break; }
-          }
-        }
-        if(pa && pb){
-          filas.push({tk:tk, chg:(pb/pa-1)*100, tarde:tarde});
-          return;
-        }
-        // respaldo: si no hay precios, se usan los rendimientos guardados
-        var a=valDe(rA,stratSel,tk), b=valDe(rB,stratSel,tk);
-        if(isNaN(b)||isNaN(a)) return;
-        filas.push({tk:tk, chg:(b-a)*100, tarde:tarde});
+      // vivo-309: SOLO las posiciones que se tuvieron DURANTE el tramo
+      // (compradas antes de B y no vendidas antes de A). Antes salian todas las
+      // que alguna vez fueron de la estrategia, aunque ya se hubieran vendido,
+      // y se media como se movieron DESPUES de venderlas.
+      var filas=[], M_=window.M;
+      var letraSel=(stratSel==='quant')?'c':(stratSel==='chica')?'z':null;
+      var dA=M_.fecha(fA), dB=M_.fecha(fB), porTk={};
+      (window.POSICIONES||[]).forEach(function(p){
+        if(!p.tk || !(p.monto>0) || !p.pxCompra) return;
+        if(letraSel && estratDe(p.tk)!==letraSel) return;
+        var dc=M_.fecha(p.compra); if(!dc || dc>dB) return;
+        var dv=p.vendida? M_.fecha(p.venta) : null;
+        if(dv && dv<=dA) return;                       // ya vendida al arrancar el tramo
+        var prev=porTk[p.tk]; if(!prev || M_.fecha(prev.compra)<dc) porTk[p.tk]=p;   // la mas reciente
+      });
+      Object.keys(porTk).forEach(function(tk){
+        var p=porTk[tk], dc=M_.fecha(p.compra), dv=p.vendida? M_.fecha(p.venta) : null;
+        var tarde=(dc>dA);
+        var pa= tarde ? p.pxCompra : (window.pxEn ? window.pxEn(tk, fA) : null);
+        var vendioEnTramo=(dv && dv<=dB);
+        var pb= vendioEnTramo ? (window.pxEn ? window.pxEn(tk, M_.iso(dv)) : null) : (window.pxEn ? window.pxEn(tk, fB) : null);
+        if(!pa || !pb) return;
+        filas.push({tk:tk, chg:(pb/pa-1)*100, tarde:tarde});
       });
       filas.sort(function(a,b){return b.chg-a.chg;});
       var nF=filas.length||1, mx=1; filas.forEach(function(x){ if(Math.abs(x.chg)>mx)mx=Math.abs(x.chg); });
