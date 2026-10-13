@@ -4813,7 +4813,7 @@ window.M = (function(){
     // trimestre y da lo mismo que la grafica de Algoritmo.
     var iBase = idxA>0 ? idxA-1 : idxA, recBase=F[iBase];
     var hl=document.getElementById('anHeroLbl');
-    if(hl) hl.textContent='Del inicio del '+fmtFecha(recA.fecha)+' al cierre del '+fmtFecha(recB.fecha);
+    if(hl) hl.textContent=(idxA===0? 'Desde el arranque del trimestre (el historial empieza el '+fmtFecha(recA.fecha)+')' : 'Del inicio del '+fmtFecha(recA.fecha))+' al cierre del '+fmtFecha(recB.fecha);
     var pa=(idxA/(N-1))*100, pb=(idxB/(N-1))*100;
     document.getElementById('anHandleA').style.left=pa+'%';
     document.getElementById('anHandleB').style.left=pb+'%';
@@ -4873,13 +4873,14 @@ window.M = (function(){
       var F=window.REND_FECHAS; if(!F || idxB<=iBase) return NaN;
       var clave=(strat==='chica')? claveMes : claveTrim;
       function v(r){ var x=valSerie(strat,r); return (x==null||isNaN(x))?NaN:+x; }
-      var vA=v(F[iBase]);
-      if(isNaN(vA)){
-        // arranque en el ultimo dia de un periodo sin dato: el siguiente periodo arranca en 0
-        if(iBase<idxB && clave(F[iBase+1].fecha)!==clave(F[iBase].fecha)) vA=0; else return NaN;
-      }
-      var fac=1, base=vA, ult=vA, k=clave(F[iBase].fecha);
-      for(var i=iBase+1;i<=idxB;i++){
+      // Arranque = cierre del dia anterior. Si la fecha de la izquierda es la
+      // primera de su periodo (trimestre o mes) o la primera del historial,
+      // el periodo arranca en 0, IGUAL que la grafica de Algoritmo.
+      var vA, k, start=idxA;
+      if(idxA===0 || clave(F[idxA-1].fecha)!==clave(F[idxA].fecha)){ vA=0; k=clave(F[idxA].fecha); }
+      else { vA=v(F[idxA-1]); if(isNaN(vA)) return NaN; k=clave(F[idxA-1].fecha); }
+      var fac=1, base=vA, ult=vA;
+      for(var i=start;i<=idxB;i++){
         var kk=clave(F[i].fecha);
         if(kk!==k){
           if(isNaN(ult)) return NaN;                 // un periodo sin dato: no se inventa
