@@ -5025,7 +5025,14 @@ window.M = (function(){
         var q0s=q0.getFullYear()+'-'+('0'+(q0.getMonth()+1)).slice(-2)+'-01', ia=0;
         window.REND_FECHAS.forEach(function(r,i){ if(r.fecha<q0s) ia=i; });
         idxA=Math.min(ia, N-2);
-      } else idxA=Math.max(0, N-1-parseInt(dd,10));
+      } else {
+        // 7 / 15 / 30 = dias de CALENDARIO (antes contaba registros de dias habiles:
+        // "1 mes" arrancaba el 31 ago). Arranque = cierre del ultimo dia antes del limite.
+        var nd=parseInt(dd,10), lim=new Date(); lim.setHours(0,0,0,0); lim=new Date(lim.getTime()-nd*86400000);
+        var ls=lim.getFullYear()+'-'+('0'+(lim.getMonth()+1)).slice(-2)+'-'+('0'+lim.getDate()).slice(-2), ib=0;
+        window.REND_FECHAS.forEach(function(r,i){ if(r.fecha<=ls) ib=i; });
+        idxA=(nd>=9999)?0:Math.min(ib, N-2);
+      }
       render();
     });
   });
