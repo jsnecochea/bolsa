@@ -628,7 +628,7 @@
   <div class="foot" id="anFoot">Desliza las manijas o usa los atajos · no es asesoría de inversión</div>
 </div>
 
-<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace" id="verLbl">vivo-306</div>
+<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace" id="verLbl">vivo-307</div>
 
 <div class="wrap view" id="viewBalance">
   <div class="st-hero">
@@ -1028,7 +1028,7 @@ function updateCount(){
   window.META = META;
 
   var got = { precios:false, hist:false, claude:false };
-  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-306";
+  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-307";
 
   /* ===================== AUDITORIA INTERNA =====================
      No se muestra en pantalla. Escribe en window.AUDIT y en la consola.
@@ -4463,7 +4463,15 @@ window.M = (function(){
       if(qs.length===1) console.log('  unico punto Q:', JSON.stringify(qs[0]));
       // Max/min SOLO de la serie del historial. No se mezcla ningun valor
       // "live" del espejo: eso fue lo que descuadraba la Chica.
-      llena(qs,'q','qMax','qMin','qNow', null);
+      // FIX 2026-10-13 (vivo-307): Max/Min de QUANT 3M = SOLO el trimestre en curso.
+      // Antes usaba todo el historial (180 registros) y arrastraba el -24.3% del Q3.
+      // El trimestre arranca en 0: ese 0 cuenta como punto de partida.
+      var iniQ=(window.M&&window.M.iniTrim)||null;
+      var qsT=iniQ? qs.filter(function(p){ var d=pf(p.fecha); return d && d>=iniQ; }) : qs;
+      if(qsT.length){
+        var vq=qsT.map(function(p){return p.q;}).concat([0]);
+        setTxt('qMax',fmt(Math.max.apply(null,vq))); setTxt('qMin',fmt(Math.min.apply(null,vq)));
+      } else { setTxt('qMax','\u2014'); setTxt('qMin','\u2014'); }
       // MI CARTERA (real): max/min de la serie, actual = el numero del home
       (function(){
         var ms=data.filter(function(p){return p.mioR!=null&&!isNaN(p.mioR);}).map(function(p){return p.mioR;});
