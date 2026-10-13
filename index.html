@@ -153,6 +153,13 @@
   .hist-sel{display:flex;gap:7px;margin-bottom:16px;flex-wrap:wrap}
   .hist-sb{font-size:12px;font-weight:600;color:var(--dim);background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.07);border-radius:100px;padding:7px 15px;cursor:pointer}
   .hist-sb.on{background:rgba(255,69,58,.16);color:#ff8079;border-color:rgba(255,69,58,.35)}
+  .algo-per{margin:16px 0 14px}
+  .algo-per .ap-row{margin-bottom:12px}
+  .algo-per .ap-lbl{font-size:10.5px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;color:var(--dim2);margin-bottom:7px}
+  .algo-per .hist-sel{margin-bottom:0}
+  .algo-per .ap-rango{font-size:12px;color:var(--dim);font-weight:600;line-height:1.45}
+  .algo-per .ap-rango b{color:var(--txt,#fff);font-weight:800}
+  .algo-per .ap-nota{display:block;font-size:11px;color:var(--dim2);font-weight:600;margin-top:2px}
   .hist-mm{display:flex;gap:11px}
   .hist-card{flex:1;min-width:0;background:rgba(255,255,255,.04);border-radius:14px;padding:11px 12px}
   .hist-card .l{font-size:10px;color:var(--dim2);font-weight:700;text-transform:uppercase;letter-spacing:.03em}
@@ -495,18 +502,32 @@
   <div class="st-hero">
     <h1>Algoritmo del trimestre</h1>
   </div>
-  <div class="hist-sel" id="histSel2" style="margin:16px 0 14px">
-    <button class="hist-sb" data-d="30">30 días</button>
-    <button class="hist-sb" data-d="60">60 días</button>
-    <button class="hist-sb on" data-d="0">Trimestre</button>
+  <div class="algo-per" id="algoPer">
+    <div class="ap-row">
+      <div class="ap-lbl" id="apLblAct">Este trimestre</div>
+      <div class="hist-sel" id="histSel2">
+        <button class="hist-sb on" data-v="act" data-d="0">Completo</button>
+        <button class="hist-sb" data-v="act" data-d="30">Últimos 30 días</button>
+        <button class="hist-sb" data-v="act" data-d="60">Últimos 60 días</button>
+      </div>
+    </div>
+    <div class="ap-row">
+      <div class="ap-lbl">Trimestres anteriores</div>
+      <div class="hist-sel" id="histSelAnt">
+        <button class="hist-sb" data-v="ant" data-n="1" id="apAnt1">&mdash;</button>
+        <button class="hist-sb" data-v="ant" data-n="2" id="apAnt2">&mdash;</button>
+        <button class="hist-sb" data-v="ant" data-n="3" id="apAnt3">&mdash;</button>
+      </div>
+    </div>
+    <div class="ap-rango" id="apRango"></div>
   </div>
   <div style="display:flex;gap:14px;margin-bottom:10px;flex-wrap:wrap;font-size:11.5px;color:var(--dim);font-weight:600">
     <span style="display:flex;align-items:center;gap:5px"><span style="width:14px;height:3px;border-radius:2px;background:#0A84FF"></span><span id="lgQ">&mdash;</span></span>
-    <span style="display:flex;align-items:center;gap:5px"><span style="width:14px;height:3px;border-radius:2px;background:#4ade80"></span><span>MI CARTERA (real)</span></span>
     <span style="display:flex;align-items:center;gap:5px"><span style="width:14px;height:3px;border-radius:2px;background:#BF5AF2"></span><span id="lgZ">&mdash;</span></span>
+    <span style="display:flex;align-items:center;gap:5px"><span style="width:14px;height:3px;border-radius:2px;background:#4ade80"></span><span>MI CARTERA (real)</span></span>
   </div>
   <div id="histChart2"></div>
-  <div class="strat-cards">
+  <div class="strat-cards" id="algoCards">
     <div style="display:none"><span id="histMax2"></span><span id="histNowV2"></span><span id="histMin2"></span></div>
     <div class="strat-card" style="--acc:#0A84FF">
       <div class="sc-name"><span class="sc-dot"></span><span id="scQ">&mdash;</span></div>
@@ -516,20 +537,20 @@
         <div class="sc-v"><div class="sc-l">Mín</div><div class="sc-n down" id="qMin">—</div></div>
       </div>
     </div>
+    <div class="strat-card" style="--acc:#BF5AF2">
+      <div class="sc-name"><span class="sc-dot"></span><span id="scZ">&mdash;</span><span id="scZsub" style="font-size:10px;font-weight:700;color:var(--dim2);margin-left:6px">MES EN CURSO</span></div>
+      <div class="sc-vals">
+        <div class="sc-v"><div class="sc-l">Máx</div><div class="sc-n up" id="semMax">—</div></div>
+        <div class="sc-v mid"><div class="sc-l">Actual</div><div class="sc-n now" id="semNow">—</div></div>
+        <div class="sc-v"><div class="sc-l">Mín</div><div class="sc-n down" id="semMin">—</div></div>
+      </div>
+    </div>
     <div class="strat-card" style="--acc:#4ade80">
       <div class="sc-name"><span class="sc-dot"></span><span>MI CARTERA (real)</span></div>
       <div class="sc-vals">
         <div class="sc-v"><div class="sc-l">Máx</div><div class="sc-n up" id="mioMax">—</div></div>
         <div class="sc-v mid"><div class="sc-l">Actual</div><div class="sc-n now" id="mioNow">—</div></div>
         <div class="sc-v"><div class="sc-l">Mín</div><div class="sc-n down" id="mioMin">—</div></div>
-      </div>
-    </div>
-    <div class="strat-card" style="--acc:#BF5AF2">
-      <div class="sc-name"><span class="sc-dot"></span><span id="scZ">&mdash;</span></div>
-      <div class="sc-vals">
-        <div class="sc-v"><div class="sc-l">Máx</div><div class="sc-n up" id="semMax">—</div></div>
-        <div class="sc-v mid"><div class="sc-l">Actual</div><div class="sc-n now" id="semNow">—</div></div>
-        <div class="sc-v"><div class="sc-l">Mín</div><div class="sc-n down" id="semMin">—</div></div>
       </div>
     </div>
   </div>
@@ -628,7 +649,7 @@
   <div class="foot" id="anFoot">Desliza las manijas o usa los atajos · no es asesoría de inversión</div>
 </div>
 
-<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace" id="verLbl">vivo-307</div>
+<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace" id="verLbl">vivo-308</div>
 
 <div class="wrap view" id="viewBalance">
   <div class="st-hero">
@@ -1028,7 +1049,7 @@ function updateCount(){
   window.META = META;
 
   var got = { precios:false, hist:false, claude:false };
-  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-307";
+  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-308";
 
   /* ===================== AUDITORIA INTERNA =====================
      No se muestra en pantalla. Escribe en window.AUDIT y en la consola.
@@ -2101,6 +2122,7 @@ window.M = (function(){
           return isNaN(n)?null:(neg?-n:n);
         }
         var pMax=leerT('semMax'), pMin=leerT('semMin'), pNow=leerT('semNow');
+        if(window.__ALGO_VISTA && window.__ALGO_VISTA.tipo==='ant'){ chk('chica_card', true, 'viendo un trimestre anterior', false); throw 'skip'; }
         if(pMax===null && pMin===null && pNow===null){
           chk('chica_card', true, 'vista Algoritmo aun no abierta', false);
           throw 'skip';
@@ -4260,6 +4282,37 @@ window.M = (function(){
 (function(){
   var URL_HIST="https://docs.google.com/spreadsheets/d/e/2PACX-1vRLlBC-9OfQh7X97vgItClyw5nVBz97C_4rxTJnjwtZawle70J1OOZrVP-RZB1tVM9-6OIE41_gR_aN/pub?gid=1844874580&single=true&output=csv";
   var HISTX=[]; var diasSel=0;
+  /* VISTA DE LA PESTANA ALGORITMO (vivo-308, pedido de Salvador 2026-10-13)
+     act = trimestre en curso (dias 0 = completo, 30/60 = ultimos N dias,
+           pero NUNCA antes del inicio del trimestre).
+     ant = trimestre anterior n (1, 2 o 3), completo, al cierre. */
+  var vista2={tipo:'act', dias:0}; window.__ALGO_VISTA=vista2;
+  var MESC=["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"];
+  function iniTrimDe(d){ return new Date(d.getFullYear(), Math.floor(d.getMonth()/3)*3, 1); }
+  function nomTrim(d){ return 'Q'+(Math.floor(d.getMonth()/3)+1)+' '+d.getFullYear(); }
+  function fCorta(d){ return d.getDate()+' '+MESC[d.getMonth()]; }
+  function rangoVista(){
+    var hoy=new Date(); hoy.setHours(0,0,0,0);
+    var qIni=iniTrimDe(hoy);
+    if(vista2.tipo==='ant'){
+      var a=new Date(qIni.getFullYear(), qIni.getMonth()-3*vista2.n, 1);
+      return {ini:a, fin:new Date(a.getFullYear(), a.getMonth()+3, 0), qIni:a, desdeArranque:true, recorte:false};
+    }
+    var ini=qIni, recorte=false;
+    if(vista2.dias>0){
+      var lim=new Date(hoy.getTime()-(vista2.dias-1)*86400000); lim.setHours(0,0,0,0);
+      if(lim>qIni) ini=lim; else recorte=true;
+    }
+    return {ini:ini, fin:hoy, qIni:qIni, desdeArranque:(ini.getTime()===qIni.getTime()), recorte:recorte};
+  }
+  function etiquetasTrim(){
+    var qIni=iniTrimDe(new Date());
+    var e=document.getElementById('apLblAct'); if(e) e.textContent='Este trimestre · '+nomTrim(qIni);
+    for(var k=1;k<=3;k++){
+      var b=document.getElementById('apAnt'+k);
+      if(b) b.textContent=nomTrim(new Date(qIni.getFullYear(), qIni.getMonth()-3*k, 1));
+    }
+  }
   function csv(t){var R=[],r=[],c="",q=false;for(var i=0;i<t.length;i++){var ch=t[i];if(q){if(ch=='"'){if(t[i+1]=='"'){c+='"';i++;}else q=false;}else c+=ch;}else{if(ch=='"')q=true;else if(ch==','){r.push(c);c="";}else if(ch=='\n'){r.push(c);R.push(r);r=[];c="";}else if(ch=='\r'){}else c+=ch;}}if(c.length||r.length){r.push(c);R.push(r);}return R;}
   function n(v){if(v==null)return NaN;v=String(v).replace(/[%$,\s]/g,'');var x=parseFloat(v);return isNaN(x)?NaN:x;}
   function pf(f){if(!f)return null;if(f.indexOf('-')>0){var p=f.split('-');return new Date(+p[0],+p[1]-1,+p[2]);}if(f.indexOf('/')>0){var q=f.split('/');return new Date(+q[2],+q[1]-1,+q[0]);}return null;}
@@ -4367,7 +4420,50 @@ window.M = (function(){
     var data=HISTX.slice();
     if(!data.length){cont.innerHTML='<div style="text-align:center;color:#777;padding:44px 0;font-size:13px">Aún no hay historial guardado.<br>El robot lo va llenando 3 veces al día.</div>';
       setTxt('histMax'+sfx,'—');setTxt('histMin'+sfx,'—');setTxt('histMaxD'+sfx,'');setTxt('histMinD'+sfx,'');setHTML('histNow'+sfx,'');return;}
-    if(diasSel>0){var lim=new Date(Date.now()-diasSel*86400000);var fdata=data.filter(function(p){var d=pf(p.fecha);return !d||d>=lim;});if(fdata.length)data=fdata;}
+    var RV=null;
+    if(sfx==='2'){
+      RV=rangoVista();
+      data=data.filter(function(p){ var d=pf(p.fecha); return d && d>=RV.ini && d<=RV.fin; });
+      var eR=document.getElementById('apRango');
+      var esAnt=(vista2.tipo==='ant');
+      // la etiqueta del centro de cada tarjeta: Actual (trimestre en curso) o Cierre (anterior)
+      var ac=document.querySelectorAll('#algoCards .sc-v.mid .sc-l');
+      for(var ia=0;ia<ac.length;ia++) ac[ia].textContent=esAnt?'Cierre':'Actual';
+      var sz=document.getElementById('scZsub'); if(sz) sz.textContent=esAnt?'TRIMESTRE':'MES EN CURSO';
+      if(!data.length){
+        var primero=HISTX.length?pf(HISTX[0].fecha):null;
+        cont.innerHTML='<div style="text-align:center;color:#888;padding:44px 12px;font-size:13px;line-height:1.5">No hay historial guardado de '+nomTrim(RV.qIni)+'.'+
+          (primero?'<br>El robot empezó a guardarlo el '+fCorta(primero)+' '+primero.getFullYear()+'.':'')+'</div>';
+        if(eR) eR.innerHTML='<b>'+nomTrim(RV.qIni)+'</b> · sin datos';
+        ['qMax','qMin','qNow','semMax','semMin','semNow','mioMax','mioMin','mioNow'].forEach(function(id){ setTxt(id,'\u2014'); });
+        setHTML('histNow2','');
+        return;
+      }
+      var dias={}; data.forEach(function(p){ dias[String(p.fecha).slice(0,10)]=1; });
+      var nd=Object.keys(dias).length;
+      var d0=pf(data[0].fecha), d1=pf(data[data.length-1].fecha);
+      if(eR){
+        var txt='<b>'+nomTrim(RV.qIni)+'</b> · '+fCorta(d0)+' – '+fCorta(d1)+' · '+nd+(nd===1?' día':' días')+' de mercado';
+        if(esAnt) txt+='<span class="ap-nota">Trimestre cerrado: el número del centro es el cierre.</span>';
+        else if(RV.recorte) txt+='<span class="ap-nota">El trimestre apenas lleva '+nd+(nd===1?' día':' días')+': solo se muestran esos.</span>';
+        eR.innerHTML=txt;
+      }
+      // CHICA en un trimestre anterior: los meses encadenados (acumulado del trimestre).
+      // En el trimestre en curso se queda como estaba: el mes en curso.
+      var baseM=1, mesAct=null, ultMesV=null;
+      data.forEach(function(p){
+        if(isNaN(p.sem)){ p.semV=NaN; return; }
+        if(!esAnt){ p.semV=p.sem; return; }
+        var km=String(p.fecha).slice(0,7);
+        if(mesAct!==null && km!==mesAct && ultMesV!==null){ baseM*= (1+ultMesV/100); }
+        if(km!==mesAct){ mesAct=km; }
+        ultMesV=p.sem;
+        p.semV=(baseM*(1+p.sem/100)-1)*100;
+      });
+    } else {
+      if(diasSel>0){var lim=new Date(Date.now()-diasSel*86400000);var fdata=data.filter(function(p){var d=pf(p.fecha);return !d||d>=lim;});if(fdata.length)data=fdata;}
+      data.forEach(function(p){ p.semV=p.sem; });
+    }
     var vals=data.map(function(p){return p.val;});
     /* MI CARTERA (real): mi rendimiento del trimestre sobre lo invertido de verdad.
        Para cada dia: posiciones del trimestre compradas a esa fecha, ponderadas
@@ -4376,7 +4472,14 @@ window.M = (function(){
        Ultimo dia = el mismo numero del home (M.miTrimestre). */
     (function(){
       var M=window.M; if(!M || !window.pxEn) return;
-      var L=M.delTrimestre(); if(!L.length) return;
+      var L;
+      if(RV && vista2.tipo==='ant'){
+        L=(window.POSICIONES||[]).filter(function(x){
+          if(!(x.monto>0)) return false;
+          var dc=M.fecha(x.compra); return dc && dc>=RV.ini && dc<=RV.fin;
+        });
+      } else L=M.delTrimestre();
+      if(!L.length) return;
       var ult=-1;
       data.forEach(function(p,i){
         p.mioR=NaN;
@@ -4392,13 +4495,14 @@ window.M = (function(){
         if(w){ p.mioR=s/w; ult=i; }
       });
       var mt=M.miTrimestre();
-      if(ult>=0 && mt && !isNaN(mt.pct)) data[ult].mioR=mt.pct;
+      if(!(RV && vista2.tipo==='ant') && ult>=0 && mt && !isNaN(mt.pct)) data[ult].mioR=mt.pct;
     })();
     var W=600,H=220,pL=8,pR=8,pT=16,pB=16;
     // Escala Y: considera las 3 series para que todas quepan
     var allv=[];
-    data.forEach(function(p){ if(!isNaN(p.q))allv.push(p.q); if(!isNaN(p.sem))allv.push(p.sem); if(p.mioR!=null&&!isNaN(p.mioR))allv.push(p.mioR); });
+    data.forEach(function(p){ if(!isNaN(p.q))allv.push(p.q); if(!isNaN(p.semV))allv.push(p.semV); if(p.mioR!=null&&!isNaN(p.mioR))allv.push(p.mioR); });
     if(!allv.length) allv=vals.slice();
+    if(sfx==='2') allv.push(0); // el trimestre arranca en 0: la linea del cero siempre a la vista
     var mn=Math.min.apply(null,allv), mx=Math.max.apply(null,allv), rg=(mx-mn)||1;
     function X(i){return pL+(data.length<=1?0:i/(data.length-1))*(W-pL-pR);}
     function Y(v){return pT+(1-(v-mn)/rg)*(H-pT-pB);}
@@ -4407,7 +4511,7 @@ window.M = (function(){
     var pts=data.map(function(p,i){return X(i)+','+Y(p.val);}).join(' ');
     var ptsQ=data.filter(function(p){return !isNaN(p.q);}).map(function(p,i,arr){return X(data.indexOf(p))+','+Y(p.q);}).join(' ');
     var ptsMio=data.filter(function(p){return p.mioR!=null&&!isNaN(p.mioR);}).map(function(p){return X(data.indexOf(p))+','+Y(p.mioR);}).join(' ');
-    var ptsSem=data.filter(function(p){return !isNaN(p.sem);}).map(function(p){return X(data.indexOf(p))+','+Y(p.sem);}).join(' ');
+    var ptsSem=data.filter(function(p){return !isNaN(p.semV);}).map(function(p){return X(data.indexOf(p))+','+Y(p.semV);}).join(' ');
     var iMin=vals.indexOf(mnV),iMax=vals.indexOf(mxV);
     var zero='';if(mn<0&&mx>0){var zy=Y(0);zero='<line x1="'+pL+'" y1="'+zy+'" x2="'+(W-pR)+'" y2="'+zy+'" stroke="rgba(255,255,255,.12)" stroke-dasharray="3 3"/>';}
     var area='M '+X(0)+' '+Y(data[0].val)+' L '+data.map(function(p,i){return X(i)+' '+Y(p.val);}).join(' L ')+' L '+X(data.length-1)+' '+(H-pB)+' L '+X(0)+' '+(H-pB)+' Z';
@@ -4466,12 +4570,13 @@ window.M = (function(){
       // FIX 2026-10-13 (vivo-307): Max/Min de QUANT 3M = SOLO el trimestre en curso.
       // Antes usaba todo el historial (180 registros) y arrastraba el -24.3% del Q3.
       // El trimestre arranca en 0: ese 0 cuenta como punto de partida.
-      var iniQ=(window.M&&window.M.iniTrim)||null;
-      var qsT=iniQ? qs.filter(function(p){ var d=pf(p.fecha); return d && d>=iniQ; }) : qs;
-      if(qsT.length){
-        var vq=qsT.map(function(p){return p.q;}).concat([0]);
+      // vivo-308: data ya viene recortada a la vista (trimestre en curso o anterior).
+      if(qs.length){
+        var vq=qs.map(function(p){return p.q;});
+        if(RV && RV.desdeArranque) vq=vq.concat([0]);
         setTxt('qMax',fmt(Math.max.apply(null,vq))); setTxt('qMin',fmt(Math.min.apply(null,vq)));
-      } else { setTxt('qMax','\u2014'); setTxt('qMin','\u2014'); }
+        if(vista2.tipo==='ant') setTxt('qNow',fmt(qs[qs.length-1].q));
+      } else { setTxt('qMax','\u2014'); setTxt('qMin','\u2014'); if(vista2.tipo==='ant') setTxt('qNow','\u2014'); }
       // MI CARTERA (real): max/min de la serie, actual = el numero del home
       (function(){
         var ms=data.filter(function(p){return p.mioR!=null&&!isNaN(p.mioR);}).map(function(p){return p.mioR;});
@@ -4481,7 +4586,12 @@ window.M = (function(){
       })();
       // CHICA: el max y el min son DEL MES EN CURSO, no de todo el trimestre,
       // porque es una estrategia mensual y su serie se reinicia cada mes.
-      if(sems.length){
+      if(sems.length && vista2.tipo==='ant'){
+        var vvA=sems.map(function(p){ return p.semV; });
+        setTxt('semMax', fmt(Math.max.apply(null,vvA.concat([0]))));
+        setTxt('semMin', fmt(Math.min.apply(null,vvA.concat([0]))));
+        setTxt('semNow', fmt(vvA[vvA.length-1]));
+      } else if(sems.length){
         var mesUlt = String(sems[sems.length-1].fecha).slice(0,7);
         var delMes = sems.filter(function(p){ return String(p.fecha).slice(0,7)===mesUlt; });
         var base = delMes.length ? delMes : sems;
@@ -4512,7 +4622,16 @@ window.M = (function(){
   window.cerrarHist=function(){var bg=document.getElementById('histBg');if(bg)bg.classList.remove('open');};
 
   document.addEventListener('DOMContentLoaded',function(){
-    ['#histSel','#histSel2'].forEach(function(selId){
+    etiquetasTrim();
+    var todos=document.querySelectorAll('#histSel2 .hist-sb, #histSelAnt .hist-sb');
+    todos.forEach(function(b){ b.addEventListener('click',function(){
+      todos.forEach(function(x){ x.classList.remove('on'); }); b.classList.add('on');
+      if(b.getAttribute('data-v')==='ant'){ vista2.tipo='ant'; vista2.n=parseInt(b.getAttribute('data-n'),10); vista2.dias=0; }
+      else { vista2.tipo='act'; vista2.dias=parseInt(b.getAttribute('data-d'),10)||0; }
+      dibujarEn('2');
+      if(vista2.tipo==='act' && window.pintarActualAlgo) window.pintarActualAlgo();
+    }); });
+    ['#histSel'].forEach(function(selId){
       var sel=document.querySelectorAll(selId+' .hist-sb');
       sel.forEach(function(b){b.addEventListener('click',function(){sel.forEach(function(x){x.classList.remove('on');});b.classList.add('on');diasSel=parseInt(b.getAttribute('data-d'));dibujar();});});
     });
@@ -4531,6 +4650,7 @@ window.M = (function(){
     var src=document.getElementById('hAlgo');
     if(src){ var t=(src.textContent||'').trim(); if(t&&t!=='—'){ var e=document.getElementById('histNowV2'); if(e)e.textContent=t; } }
     var dd=document.getElementById('histNowD2'); if(dd){ dd.textContent=fechaHoy(); }
+    if(window.__ALGO_VISTA && window.__ALGO_VISTA.tipo==='ant') return; // viendo un trimestre cerrado
     if(window.ALGO_TRIM_Q!=null && !isNaN(window.ALGO_TRIM_Q)){ put('qNow','qNowD',ft(window.ALGO_TRIM_Q)); }   // max/min salen SOLO de la serie
     if(window.ALGO_TRIM_S!=null && !isNaN(window.ALGO_TRIM_S)){ put('sNow','sNowD',ft(window.ALGO_TRIM_S)); }   // max/min salen SOLO de la serie
   }
