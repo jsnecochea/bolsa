@@ -4970,7 +4970,7 @@ window.M = (function(){
         var vendioEnTramo=(dv && dv<=dB);
         var pb= vendioEnTramo ? (window.pxEn ? window.pxEn(tk, M_.iso(dv)) : null) : (window.pxEn ? window.pxEn(tk, fB) : null);
         if(!pa || !pb) return;
-        filas.push({tk:tk, chg:(pb/pa-1)*100, tarde:tarde});
+        filas.push({tk:tk, chg:(pb/pa-1)*100, tarde:tarde, vend:(vendioEnTramo? {mio:p.mioV} : null)});
       });
       filas.sort(function(a,b){return b.chg-a.chg;});
       var nF=filas.length||1, mx=1; filas.forEach(function(x){ if(Math.abs(x.chg)>mx)mx=Math.abs(x.chg); });
@@ -4981,7 +4981,8 @@ window.M = (function(){
         var w=(Math.abs(x.chg)/mx*50).toFixed(1), apt=(x.chg/nF), pos=x.chg>=0;
         var bar= pos?'<div class="an-bar" style="left:50%;width:'+w+'%;background:#1baf7a;border-radius:0 3px 3px 0"></div>'
                      :'<div class="an-bar" style="right:50%;width:'+w+'%;background:#e24b4a;border-radius:3px 0 0 3px"></div>';
-        var vd=(window.VENDIDAS&&window.VENDIDAS[x.tk])?window.VENDIDAS[x.tk]:null;
+        // candado solo si ESTA posicion se vendio dentro del tramo (no otra vieja del mismo ticker)
+        var vd=x.vend||null;
         var salida=(vd&&!isNaN(vd.mio))?('<div class="an-sold">'+(vd.mio>=0?'+':'\u2212')+Math.abs(vd.mio).toFixed(1)+'%</div>'):'<div class="an-sold"></div>';
         var stx=estratDe(x.tk);
         var dotx='<div class="an-dot"><span class="dv-dot '+(stx||'c')+'" style="width:15px;height:15px;font-size:8px">'+(stx==='c'?'Q':(stx==='s'?'S':'C'))+'</span></div>';
