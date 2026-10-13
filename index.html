@@ -604,17 +604,16 @@
   <div class="section-cap">Análisis por tramo</div>
 
   <div id="anSelStrat" style="display:flex;gap:6px;margin-bottom:14px;">
-    <div class="an-strat on" data-k="cartera">Cartera</div>
     <div class="an-strat" data-k="quant" id="anQ">&mdash;</div>
-    <div class="an-strat" data-k="smart" id="anS">&mdash;</div>
     <div class="an-strat" data-k="chica" id="anZ">&mdash;</div>
-    <div class="an-strat" data-k="algo">Algo</div>
+    <div class="an-strat on" data-k="cartera">Mía</div>
   </div>
 
   <div id="anShort" style="display:flex;gap:6px;margin-bottom:16px;">
     <div class="an-short" data-d="7">7 días</div>
     <div class="an-short" data-d="15">15 días</div>
     <div class="an-short" data-d="30">1 mes</div>
+    <div class="an-short" data-d="trim">Trimestre</div>
     <div class="an-short on" data-d="9999">Todo</div>
   </div>
 
@@ -649,7 +648,7 @@
   <div class="foot" id="anFoot">Desliza las manijas o usa los atajos · no es asesoría de inversión</div>
 </div>
 
-<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace" id="verLbl">vivo-308</div>
+<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace" id="verLbl">vivo-309</div>
 
 <div class="wrap view" id="viewBalance">
   <div class="st-hero">
@@ -1049,7 +1048,7 @@ function updateCount(){
   window.META = META;
 
   var got = { precios:false, hist:false, claude:false };
-  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-308";
+  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-309";
 
   /* ===================== AUDITORIA INTERNA =====================
      No se muestra en pantalla. Escribe en window.AUDIT y en la consola.
@@ -4829,33 +4828,62 @@ window.M = (function(){
       if(strat==="algo") return rec.algo;          // algoritmo combinado
       return NaN;
     }
-    // Movimiento de una estrategia entre las dos fechas.
-    // Se calcula con PRECIOS (exacto, no depende de reinicios mensuales);
-    // si no hay precios, se usa el respaldo de la serie del historial.
+    /* MOVIMIENTO EN EL TRAMO (vivo-309, 2026-10-13).
+       ERROR QUE HABIA: se tomaban TODAS las acciones que alguna vez fueron de la
+       estrategia (28 de QUANT: las 10 de hoy + 18 de Q2/Q3 ya vendidas), una sola
+       vez por ticker, y se promediaba su precio de A a B. Las viejas ya no tienen
+       precio nuevo, asi que entraban con 0% y hundian el promedio (1 oct-12 oct:
+       daba +1.4%). Mi cartera tenia el mismo error: contaba acciones ya vendidas.
+       AHORA: se usa la MISMA serie que la grafica de Algoritmo, encadenando
+       periodos cuando el tramo cruza un reinicio:
+         QUANT  = algoritmo del trimestre (se reinicia cada trimestre)
+         CHICA  = algoritmo del mes (se reinicia cada mes)
+         MIA    = mi rendimiento del trimestre (posiciones de ese trimestre)
+       Cada fecha es el CIERRE de ese dia. */
+    function claveTrim(f){ var y=f.slice(0,4), m=+f.slice(5,7); return y+'-Q'+Math.ceil(m/3); }
+    function claveMes(f){ return f.slice(0,7); }
+    function miTrimEn(f){
+      var M=window.M; if(!M || !window.pxEn) return NaN;
+      var d=M.fecha(f); if(!d) return NaN;
+      var q0=new Date(d.getFullYear(), Math.floor(d.getMonth()/3)*3, 1);
+      var s=0,w=0;
+      (window.POSICIONES||[]).forEach(function(x){
+        if(!(x.monto>0) || !x.pxCompra) return;
+        var dc=M.fecha(x.compra); if(!dc || dc<q0 || dc>d) return;
+        var dv=x.vendida? M.fecha(x.venta) : null;
+        if(dv && dv<=d && x.mioV!=null && !isNaN(x.mioV)){ s+=x.mioV*x.monto; w+=x.monto; return; }
+        var px=window.pxEn(x.tk, M.iso(dv && dv<=d ? dv : d)); if(!px) return;
+        s+=(px/x.pxCompra-1)*100*x.monto; w+=x.monto;
+      });
+      return w? s/w : NaN;
+    }
+    function valSerie(strat, rec){
+      if(strat==='quant') return rec.algoQ;
+      if(strat==='chica') return (rec.chicaMes!=null && !isNaN(rec.chicaMes)) ? rec.chicaMes : rec.algoSem;
+      if(strat==='cartera') return miTrimEn(rec.fecha);
+      return NaN;
+    }
     function movStrat(strat){
-      try{
-        if(window.pxEn && window.PXFECHAS && window.PXFECHAS.length){
-          var letra = (strat==='quant')?'c':(strat==='smart')?'s':(strat==='chica')?'z':null;
-          var P=(window.POSICIONES||[]).filter(function(p){
-            if(!p.tk) return false;
-            if(strat==='cartera') return p.monto>0;
-            if(!letra) return false;
-            return window.estratDe && window.estratDe(p.tk)===letra;
-          });
-          var s=0,w=0;
-          var vistos={};
-          P.forEach(function(p){
-            if(vistos[p.tk]) return; vistos[p.tk]=1;
-            var pa=window.pxEn(p.tk, recA.fecha), pb=window.pxEn(p.tk, recB.fecha);
-            if(!pa||!pb) return;
-            var peso=(strat==='cartera')? (p.monto||1) : 1;
-            s+=((pb/pa-1)*100)*peso; w+=peso;
-          });
-          if(w) return s/w;
+      var F=window.REND_FECHAS; if(!F || idxB<=idxA) return NaN;
+      var clave=(strat==='chica')? claveMes : claveTrim;
+      function v(r){ var x=valSerie(strat,r); return (x==null||isNaN(x))?NaN:+x; }
+      var vA=v(F[idxA]);
+      if(isNaN(vA)){
+        // arranque en el ultimo dia de un periodo sin dato: el siguiente periodo arranca en 0
+        if(idxA<idxB && clave(F[idxA+1].fecha)!==clave(F[idxA].fecha)) vA=0; else return NaN;
+      }
+      var fac=1, base=vA, ult=vA, k=clave(F[idxA].fecha);
+      for(var i=idxA+1;i<=idxB;i++){
+        var kk=clave(F[i].fecha);
+        if(kk!==k){
+          if(isNaN(ult)) return NaN;                 // un periodo sin dato: no se inventa
+          fac*=(1+ult/100)/(1+base/100); base=0; ult=NaN; k=kk;
         }
-      }catch(e){}
-      var a=campo(strat,recA), b=campo(strat,recB);
-      return (isNaN(a)||isNaN(b))?NaN:(b-a);
+        var x=v(F[i]); if(!isNaN(x)) ult=x;
+      }
+      if(isNaN(ult)) return NaN;
+      fac*=(1+ult/100)/(1+base/100);
+      return (fac-1)*100;
     }
 
     // Los nombres salen de la BITACORA (columna ESTRAT), no se inventan.
@@ -4869,7 +4897,7 @@ window.M = (function(){
       }
       return null;
     }
-    var lblMap={ cartera:'Mi cartera',
+    var lblMap={ cartera:'Mi rendimiento',
                  quant: window.nomDe('q')||'\u2014',
                  smart: window.nomDe('s')||'—',
                  chica: window.nomDe('z')||'\u2014',
@@ -4879,14 +4907,14 @@ window.M = (function(){
     mainEl.textContent=fp(mainVal); mainEl.style.color = (isNaN(mainVal)||mainVal>=0)?'#4ade80':'#ff5a5a';
     document.getElementById('anMainLbl').textContent=lblMap[stratSel];
     // Nota si falta dato personal en alguna de las dos fechas (solo aplica a cartera/quant/smart)
-    var faltaMio = (stratSel==='cartera') && (isNaN(campo(stratSel,recA)) || isNaN(campo(stratSel,recB)));
+    var faltaMio = (stratSel==='cartera') && isNaN(mainVal);
     var notaEl=document.getElementById('anNotaMio');
     if(notaEl){
-      if(faltaMio){ notaEl.style.display='block'; notaEl.innerHTML='En alguna de estas fechas no se guardó tu rendimiento personal (registros viejos). Tus datos están completos desde el 8 jul; el Algoritmo sí es confiable en todo el tramo.'; }
+      if(faltaMio){ notaEl.style.display='block'; notaEl.innerHTML='Sin precios guardados para alguna de estas fechas: no se calcula. Los precios están completos desde el 8 jul.'; }
       else { notaEl.style.display='none'; }
     }
 
-    var comps=[]; ['quant','smart','chica','cartera'].forEach(function(k){ if(k===stratSel) return; comps.push({k:k,v:movStrat(k)}); });
+    var comps=[]; ['quant','chica','cartera'].forEach(function(k){ if(k===stratSel) return; comps.push({k:k,v:movStrat(k)}); });
     document.getElementById('anCompare').innerHTML=comps.map(function(c){
       var col=(isNaN(c.v)||c.v>=0)?'#4ade80':'#ff5a5a';
       var txt=isNaN(c.v)?'—':fp(c.v);
@@ -4988,8 +5016,17 @@ window.M = (function(){
     b.addEventListener('click',function(){
       document.querySelectorAll('#anShort .an-short').forEach(function(x){x.classList.remove('on');});
       b.classList.add('on');
-      var d=parseInt(b.getAttribute('data-d')), N=(window.REND_FECHAS||[]).length;
-      if(N>=2){ idxB=N-1; idxA=Math.max(0, N-1-d); render(); }
+      var dd=b.getAttribute('data-d'), N=(window.REND_FECHAS||[]).length;
+      if(N<2) return;
+      idxB=N-1;
+      if(dd==='trim'){
+        // arranque = cierre del ultimo dia del trimestre anterior (base 0 del trimestre)
+        var h=new Date(), q0=new Date(h.getFullYear(), Math.floor(h.getMonth()/3)*3, 1);
+        var q0s=q0.getFullYear()+'-'+('0'+(q0.getMonth()+1)).slice(-2)+'-01', ia=0;
+        window.REND_FECHAS.forEach(function(r,i){ if(r.fecha<q0s) ia=i; });
+        idxA=Math.min(ia, N-2);
+      } else idxA=Math.max(0, N-1-parseInt(dd,10));
+      render();
     });
   });
   // Arrastre de manijas
