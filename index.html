@@ -4488,6 +4488,8 @@ window.M = (function(){
         L.forEach(function(x){
           var dc=M.fecha(x.compra); if(!dc || dc>d || !x.pxCompra) return;
           var dv=x.vendida? M.fecha(x.venta) : null;
+          // ya vendida a esa fecha: el resultado REAL de la hoja (REND YO AL VENDER)
+          if(dv && dv<=d && x.mioV!=null && !isNaN(x.mioV)){ s+=x.mioV*x.monto; w+=x.monto; return; }
           var px=window.pxEn(x.tk, M.iso(dv && dv<=d ? dv : d));
           if(!px) return;
           s+=(px/x.pxCompra-1)*100*x.monto; w+=x.monto;
