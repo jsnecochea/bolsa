@@ -648,7 +648,7 @@
   <div class="foot" id="anFoot">Desliza las manijas o usa los atajos · no es asesoría de inversión</div>
 </div>
 
-<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace" id="verLbl">vivo-310</div>
+<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace" id="verLbl">vivo-311</div>
 
 <div class="wrap view" id="viewBalance">
   <div class="st-hero">
@@ -1048,7 +1048,7 @@ function updateCount(){
   window.META = META;
 
   var got = { precios:false, hist:false, claude:false };
-  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-310";
+  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-311";
 
   /* ===================== AUDITORIA INTERNA =====================
      No se muestra en pantalla. Escribe en window.AUDIT y en la consola.
@@ -1828,7 +1828,7 @@ window.M = (function(){
       return API.esMensual(nom) ? pond(L.filter(function(p){
           var dc=fecha(p.compra); if(p.vendida){ var dv=fecha(p.venta); if(dv&&dv<iniMes) return false; }
           return true;
-        }), rPosMes) : pond(L, rPos);
+        }), rPosMesVivo) : pond(L, rPos);
     },
     // ALGORITMO de una estrategia = lista original (con PRECIO INICIO TRIM)
     algoritmo: function(nom){
@@ -1842,7 +1842,8 @@ window.M = (function(){
           if(p.vendida){ var dv=fecha(p.venta); if(dv&&dv<iniMes) return false; }
           return true;
         });
-        return promedio(Lm, rPosMes);
+        // vivo-311: algoritmo mensual = DESDE INICIO MES (en vivo) de la lista del mes
+        return promedio(Lm, function(p){ return (!p.vendida && p.mes!=null && !isNaN(p.mes)) ? p.mes : rPosMes(p); });
       }
       // trimestral: solo las que traen dato de trimestre (la lista original)
       return promedio(L.filter(function(p){ return p.trim!=null && !isNaN(p.trim); }),
@@ -1867,6 +1868,20 @@ window.M = (function(){
         var pi=(dc>=ini)? p.pxCompra : (window.pxEn?window.pxEn(p.tk, iso(antes)):null);
         if(!pi) return NaN;
         return (pf/pi-1)*100;
+      }
+      // vivo-311: el MES EN CURSO va en vivo y con la base correcta.
+      //  algo = DESDE INICIO MES de la hoja (precio de arranque del mes -> PRECIO HOY)
+      //  mio  = precio de compra (o cierre del mes anterior) -> PRECIO HOY (rPosMesVivo)
+      // Antes los dos usaban r(): mismo precio de compra y el cierre de AYER, asi que
+      // el algoritmo de la Chica salia igual a lo mio (+1.5%) y atrasado.
+      // Los meses ya cerrados siguen con r() (cierres reales).
+      if(m===hoy.getMonth()){
+        var rAlgo=function(p){
+          if(p.vendida) return r(p);
+          return (p.mes!=null && !isNaN(p.mes)) ? p.mes : r(p);
+        };
+        return { algo: promedio(L, rAlgo),
+                 mio: pond(L.filter(function(p){return p.monto>0;}), function(p){ return p.vendida? r(p) : rPosMesVivo(p); }) };
       }
       return { algo: promedio(L, r), mio: pond(L.filter(function(p){return p.monto>0;}), r) };
     },
@@ -4787,6 +4802,39 @@ window.M = (function(){
     var porF={}; hs.forEach(function(x){ porF[x.fecha]=x; }); // último del día = cierre
     var fechas=Object.keys(porF).sort();
     window.REND_FECHAS=fechas.map(function(f){return porF[f];});
+    /* vivo-311: PUNTO "HOY · EN VIVO" (pedido de Salvador 2026-10-15).
+       El historial solo trae un registro por dia, al cierre (robot 18:31).
+       Con el mercado abierto, el home usa el precio de este momento y el
+       analisis se quedaba en el cierre de ayer. Se agrega hoy con los
+       MISMOS numeros que usa el home: Quant = M.algoritmo (promedio de
+       DESDE INICIO TRIM), Chica = promedio de DESDE INICIO MES de su lista
+       del mes, Mia = M.miTrimestre. Solo dias habiles de 7:30 a 15:05. */
+    (function(){
+      try{
+        var M=window.M; if(!M) return;
+        var ahora=new Date(), wd=ahora.getDay(), mins=ahora.getHours()*60+ahora.getMinutes();
+        if(wd===0||wd===6) return;
+        var hoyS=M.iso(ahora), RF=window.REND_FECHAS, ult=RF.length?RF[RF.length-1]:null;
+        var abierto=(mins>=450 && mins<=905);
+        if(ult && ult.fecha>hoyS) return;
+        if(ult && ult.fecha===hoyS && !abierto) return;   // ya hay cierre de hoy
+        if(!abierto && !(ult && ult.fecha<hoyS && mins>905)) return;
+        var nq=(window.nomDe&&window.nomDe('q'))||'QUANT 3M';
+        var aq=M.algoritmo? M.algoritmo(nq) : null;
+        var iniM=new Date(ahora.getFullYear(), ahora.getMonth(), 1), s=0, n=0;
+        (window.POSICIONES||[]).forEach(function(x){
+          if(!/CHICA|MENSUAL|SEMILLA/i.test(String(x.estratNom||''))) return;
+          var dc=M.fecha(x.compra); if(!dc || dc<iniM) return;
+          if(x.mes==null || isNaN(x.mes)) return; s+=x.mes; n++;
+        });
+        var mt=M.miTrimestre? M.miTrimestre() : null;
+        var rec={fecha:hoyS, hora:'vivo', vivo:true,
+                 algoQ:(aq&&!isNaN(aq.pct))?aq.pct:NaN,
+                 chicaMes:n? s/n : NaN,
+                 mioVivo:(mt&&!isNaN(mt.pct))?mt.pct:NaN};
+        if(ult && ult.fecha===hoyS) RF[RF.length-1]=rec; else RF.push(rec);
+      }catch(e){ console.log('punto vivo', e); }
+    })();
     var N=window.REND_FECHAS.length;
     var foot=document.getElementById('anFoot');
     if(N<2){
@@ -4813,7 +4861,7 @@ window.M = (function(){
     // trimestre y da lo mismo que la grafica de Algoritmo.
     var iBase = idxA>0 ? idxA-1 : idxA, recBase=F[iBase];
     var hl=document.getElementById('anHeroLbl');
-    if(hl) hl.textContent=(idxA===0? 'Desde el arranque del trimestre (el historial empieza el '+fmtFecha(recA.fecha)+')' : 'Del inicio del '+fmtFecha(recA.fecha))+' al cierre del '+fmtFecha(recB.fecha);
+    if(hl) hl.textContent=(idxA===0? 'Desde el arranque del trimestre (el historial empieza el '+fmtFecha(recA.fecha)+')' : 'Del inicio del '+fmtFecha(recA.fecha))+(recB.vivo? ' a este momento (en vivo)' : ' al cierre del '+fmtFecha(recB.fecha));
     var pa=(idxA/(N-1))*100, pb=(idxB/(N-1))*100;
     document.getElementById('anHandleA').style.left=pa+'%';
     document.getElementById('anHandleB').style.left=pb+'%';
@@ -4822,8 +4870,8 @@ window.M = (function(){
     var bA=document.getElementById('anBubbleA'), bB=document.getElementById('anBubbleB');
     bA.style.display='block'; bB.style.display='block';
     bA.style.left=pa+'%'; bB.style.left=pb+'%';
-    bA.textContent=fmtFecha(recA.fecha); bB.textContent=fmtFecha(recB.fecha);
-    document.getElementById('anDates').innerHTML='<span>'+fmtFecha(F[0].fecha)+'</span><span>'+fmtFecha(F[N-1].fecha)+'</span>';
+    bA.textContent=fmtFecha(recA.fecha); bB.textContent=recB.vivo? 'hoy · vivo' : fmtFecha(recB.fecha);
+    document.getElementById('anDates').innerHTML='<span>'+fmtFecha(F[0].fecha)+'</span><span>'+(F[N-1].vivo?'hoy':fmtFecha(F[N-1].fecha))+'</span>';
 
     // Valor de cada estrategia en el tramo (diferencia entre las dos fechas) desde HISTSTRAT
     function campo(strat, rec){
@@ -4866,7 +4914,7 @@ window.M = (function(){
     function valSerie(strat, rec){
       if(strat==='quant') return rec.algoQ;
       if(strat==='chica') return (rec.chicaMes!=null && !isNaN(rec.chicaMes)) ? rec.chicaMes : rec.algoSem;
-      if(strat==='cartera') return miTrimEn(rec.fecha);
+      if(strat==='cartera') return rec.vivo ? rec.mioVivo : miTrimEn(rec.fecha);
       return NaN;
     }
     function movStrat(strat){
@@ -4948,13 +4996,14 @@ window.M = (function(){
     }
     var fA=masCercana(recBase.fecha), fB=masCercana(recB.fecha);
     var rA=fA?rendMap[fA]:null, rB=fB?rendMap[fB]:null;
+    if(recB.vivo){ fB=recB.fecha; rB=rB||{}; }
     if(!rA || !rB || fA===fB){
       var msg = (rendFechas.length<2)
         ? 'El desglose por acción se activa cuando el robot de rendimiento tenga al menos dos días.<br>Se va llenando con los días.'
         : 'Aún no hay dos fechas distintas de rendimiento dentro de este tramo.';
       document.getElementById('anList').innerHTML='<div style="text-align:center;color:var(--dim2);padding:20px 0;font-size:13px">'+msg+'</div>';
     } else {
-      var notaAprox=(fA!==recA.fecha||fB!==recB.fecha)?'<div style="font-size:10px;color:var(--dim2);text-align:center;margin-bottom:8px">Fechas más cercanas con datos: '+fmtFecha(fA)+' → '+fmtFecha(fB)+'</div>':'';
+      var notaAprox=(fA!==recBase.fecha||fB!==recB.fecha)?'<div style="font-size:10px;color:var(--dim2);text-align:center;margin-bottom:8px">Fechas más cercanas con datos: '+fmtFecha(fA)+' → '+fmtFecha(fB)+'</div>':'';
       // vivo-309: SOLO las posiciones que se tuvieron DURANTE el tramo
       // (compradas antes de B y no vendidas antes de A). Antes salian todas las
       // que alguna vez fueron de la estrategia, aunque ya se hubieran vendido,
@@ -4975,7 +5024,8 @@ window.M = (function(){
         var tarde=(dc>dA);
         var pa= tarde ? p.pxCompra : (window.pxEn ? window.pxEn(tk, fA) : null);
         var vendioEnTramo=(dv && dv<=dB);
-        var pb= vendioEnTramo ? (window.pxEn ? window.pxEn(tk, M_.iso(dv)) : null) : (window.pxEn ? window.pxEn(tk, fB) : null);
+        var pb= vendioEnTramo ? (window.pxEn ? window.pxEn(tk, M_.iso(dv)) : null)
+              : ((recB.vivo && p.pxHoy) ? p.pxHoy : (window.pxEn ? window.pxEn(tk, fB) : null));
         if(!pa || !pb) return;
         filas.push({tk:tk, chg:(pb/pa-1)*100, tarde:tarde, vend:(vendioEnTramo? {mio:p.mioV} : null)});
       });
