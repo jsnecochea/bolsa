@@ -1844,7 +1844,9 @@ window.M = (function(){
           var dc=fecha(p.compra); return !!(dc && dc>=iniMes && dc<=hoy);
         });
         // vivo-311: algoritmo mensual = DESDE INICIO MES (en vivo) de la lista del mes
-        return promedio(Lm, function(p){ return (!p.vendida && p.mes!=null && !isNaN(p.mes)) ? p.mes : rPosMes(p); });
+        return promedio(Lm, function(p){
+          if(p.vendida && p.pxMes>0 && p.pxVenta>0) return (p.pxVenta/p.pxMes-1)*100;   // vivo-312: congelado al vender
+          return (!p.vendida && p.mes!=null && !isNaN(p.mes)) ? p.mes : rPosMes(p); });
       }
       // trimestral: solo las que traen dato de trimestre (la lista original)
       return promedio(L.filter(function(p){ return p.trim!=null && !isNaN(p.trim); }),
@@ -1871,7 +1873,9 @@ window.M = (function(){
         });
         var esAct=(m===hoy.getMonth());
         return {
-          algo: promedio(LB, function(p){ return (p.mes!=null && !isNaN(p.mes)) ? p.mes : NaN; }),
+          algo: promedio(LB, function(p){
+                  if(p.vendida && p.pxMes>0 && p.pxVenta>0) return (p.pxVenta/p.pxMes-1)*100;   // congelado al vender
+                  return (p.mes!=null && !isNaN(p.mes)) ? p.mes : NaN; }),
           mio:  pond(LB.filter(function(p){return p.monto>0;}), function(p){
                   if(p.vendida) return (p.mioV!=null && !isNaN(p.mioV)) ? p.mioV : NaN;
                   return esAct ? rPosMesVivo(p) : ((p.mio!=null && !isNaN(p.mio)) ? p.mio : NaN);
@@ -3799,7 +3803,7 @@ window.M = (function(){
       }
     })();
     // Ubicar columnas del bloque de acciones por su encabezado (Ticker/Trim/Mes/Mío)
-    var cTk=-1,cTrim=-1,cMes=-1,cMio=-1,cCompra=-1,cMonto=-1,cEstrat=-1,cVenta=-1,cMioV=-1,cAct=-1,cMotivo=-1,cPxC=-1,cPxHoy=-1,cTrimPx=-1,cMesPx=-1;
+    var cTk=-1,cTrim=-1,cMes=-1,cMio=-1,cCompra=-1,cMonto=-1,cEstrat=-1,cVenta=-1,cMioV=-1,cAct=-1,cMotivo=-1,cPxC=-1,cPxHoy=-1,cTrimPx=-1,cMesPx=-1,cPxV=-1;
     // Detector TOLERANTE: acepta los encabezados de la bitácora nueva
     // ("Acción", "Fecha Compra", "Monto Invertido ($)", "DESDE INICIO TRIM"...)
     // y los del espejo viejo ("ticker", "compra", "monto", "trim"...).
@@ -3844,6 +3848,7 @@ window.M = (function(){
       cPxHoy  = buscar(H2, [], ["precio hoy"]);
       cTrimPx = buscar(H2, [], ["precio inicio trim"]);
       cMesPx  = buscar(H2, [], ["precio inicio mes"]);
+      cPxV    = buscar(H2, [], ["fin venta"]);   // vivo-312: precio de venta
       cMotivo = buscar(H2, ["motivo","motivo venta"], []);
       cAct    = buscar(H2, ["actualizado","hora"], []);
       // la de "al vender" no puede ser la misma que "rend yo hoy"
@@ -3857,7 +3862,7 @@ window.M = (function(){
       }
       window.__BITCOLS={tk:cTk,est:cEstrat,compra:cCompra,venta:cVenta,
                         monto:cMonto,mio:cMio,mioV:cMioV,trim:cTrim,mes:cMes,pxC:cPxC};
-      if(cTk<0){ cTrim=cMes=cMio=cCompra=cMonto=cEstrat=cVenta=cMioV=cAct=cMotivo=cPxC=cPxHoy=cTrimPx=cMesPx=-1; } // no era la fila correcta
+      if(cTk<0){ cTrim=cMes=cMio=cCompra=cMonto=cEstrat=cVenta=cMioV=cAct=cMotivo=cPxC=cPxHoy=cTrimPx=cMesPx=cPxV=-1; } // no era la fila correcta
     }
     window.DIAG_COLS='tk:'+cTk+' compra:'+cCompra+' venta:'+cVenta+' monto:'+cMonto+' mio:'+cMio+' estrat:'+cEstrat+' vender:'+cMioV;
     if(cTk<0){ cTk=17; cTrim=18; cMes=19; cMio=20; } // respaldo a posición vieja
@@ -3947,6 +3952,9 @@ window.M = (function(){
       if(isNaN(pMioVenta)) pMioVenta=null;
       var pPrecioCompra = (cPxC>=0) ? num(r[cPxC]) : null;
       if(isNaN(pPrecioCompra)) pPrecioCompra=null;
+      // vivo-312: precio de inicio de mes y precio de venta (para medir el algoritmo congelado)
+      var pPxMes = (cMesPx>=0) ? num(r[cMesPx]) : null; if(pPxMes!==null && (isNaN(pPxMes)||pPxMes<=0)) pPxMes=null;
+      var pPxVenta = (cPxV>=0) ? num(r[cPxV]) : null; if(pPxVenta!==null && (isNaN(pPxVenta)||pPxVenta<=0)) pPxVenta=null;
       // estrategia del renglón (desde la bitácora); si no hay columna, respaldo a META
       var pEstrat=null, pEstratNom=null;
       if(cEstrat>=0){
@@ -3993,7 +4001,7 @@ window.M = (function(){
       }
       if(cAct>=0 && !window.ESPEJO_ACT){ var av=(r[cAct]||"").trim(); if(av) window.ESPEJO_ACT=av; }
       // cada renglón = una posición (shot) independiente
-      window.POSICIONES.push({tk:tk, compra:fcIso, trim:pTrim, mes:pMes, mio:pMio, viva:mioVivo, monto:pMonto, estrat:pEstrat, estratNom:pEstratNom, pxCompra:pPrecioCompra, pxHoy:(!isNaN(pxHoyCel)&&pxHoyCel>0)?pxHoyCel:null, mioV:pMioVenta, esMia:esMia, vendida:vendida, venta:ventaCel});
+      window.POSICIONES.push({tk:tk, compra:fcIso, trim:pTrim, mes:pMes, mio:pMio, viva:mioVivo, monto:pMonto, estrat:pEstrat, estratNom:pEstratNom, pxCompra:pPrecioCompra, pxHoy:(!isNaN(pxHoyCel)&&pxHoyCel>0)?pxHoyCel:null, mioV:pMioVenta, pxMes:pPxMes, pxVenta:pPxVenta, esMia:esMia, vendida:vendida, venta:ventaCel});
       // LIVE[tk] guarda la última leída (para score/alertas por acción)
       LIVE[tk].trim=pTrim; LIVE[tk].mes=pMes; LIVE[tk].mio=pMio;
     }
