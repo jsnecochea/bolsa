@@ -648,7 +648,7 @@
   <div class="foot" id="anFoot">Desliza las manijas o usa los atajos · no es asesoría de inversión</div>
 </div>
 
-<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace" id="verLbl">vivo-311</div>
+<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace" id="verLbl">vivo-312</div>
 
 <div class="wrap view" id="viewBalance">
   <div class="st-hero">
@@ -1048,7 +1048,7 @@ function updateCount(){
   window.META = META;
 
   var got = { precios:false, hist:false, claude:false };
-  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-311";
+  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-312";
 
   /* ===================== AUDITORIA INTERNA =====================
      No se muestra en pantalla. Escribe en window.AUDIT y en la consola.
@@ -1825,9 +1825,10 @@ window.M = (function(){
     // MIO de una estrategia
     mio: function(nom){
       var L=API.deEstrategia(nom);
+      // vivo-312: una posicion pertenece al mes en que se COMPRO. La Chica se vende y se
+      // vuelve a comprar el primer dia habil; la vendida el dia 2 es del mes anterior.
       return API.esMensual(nom) ? pond(L.filter(function(p){
-          var dc=fecha(p.compra); if(p.vendida){ var dv=fecha(p.venta); if(dv&&dv<iniMes) return false; }
-          return true;
+          var dc=fecha(p.compra); return !!(dc && dc>=iniMes && dc<=hoy);
         }), rPosMesVivo) : pond(L, rPos);
     },
     // ALGORITMO de una estrategia = lista original (con PRECIO INICIO TRIM)
@@ -1838,9 +1839,9 @@ window.M = (function(){
         return true;
       });
       if(API.esMensual(nom)){
+        // vivo-312: solo lo comprado este mes (la lista de octubre ya no cuenta en noviembre)
         var Lm = L.filter(function(p){
-          if(p.vendida){ var dv=fecha(p.venta); if(dv&&dv<iniMes) return false; }
-          return true;
+          var dc=fecha(p.compra); return !!(dc && dc>=iniMes && dc<=hoy);
         });
         // vivo-311: algoritmo mensual = DESDE INICIO MES (en vivo) de la lista del mes
         return promedio(Lm, function(p){ return (!p.vendida && p.mes!=null && !isNaN(p.mes)) ? p.mes : rPosMes(p); });
@@ -1859,6 +1860,24 @@ window.M = (function(){
         if(p.vendida){ var dv=fecha(p.venta); if(dv && dv<ini) return false; }
         return true;
       });
+      // vivo-312 (pedido de Salvador 2026-11-02): en los meses del trimestre en curso cada mes
+      // se mide con SU lista (lo comprado ese mes). Algoritmo = DESDE INICIO MES (precio de
+      // inicio de mes -> precio de venta o de hoy). Mio = REND YO AL VENDER si se vendio,
+      // o el rendimiento en vivo si sigue viva. Antes el algoritmo de un mes cerrado salia
+      // igual a lo mio porque usaba el precio de compra como punto de partida.
+      if(m>=iniTrim.getMonth() && m<=hoy.getMonth()){
+        var LB=API.deEstrategia(nom).filter(function(p){
+          var dc=fecha(p.compra); return !!(dc && dc>=ini && dc<=new Date(hoy.getFullYear(), m+1, 0) && dc<=hoy);
+        });
+        var esAct=(m===hoy.getMonth());
+        return {
+          algo: promedio(LB, function(p){ return (p.mes!=null && !isNaN(p.mes)) ? p.mes : NaN; }),
+          mio:  pond(LB.filter(function(p){return p.monto>0;}), function(p){
+                  if(p.vendida) return (p.mioV!=null && !isNaN(p.mioV)) ? p.mioV : NaN;
+                  return esAct ? rPosMesVivo(p) : ((p.mio!=null && !isNaN(p.mio)) ? p.mio : NaN);
+                })
+        };
+      }
       function r(p){
         // si se vendio dentro del periodo, el precio final es el del dia de la venta
         var dv=p.vendida? fecha(p.venta) : null;
