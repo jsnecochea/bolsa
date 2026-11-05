@@ -648,7 +648,7 @@
   <div class="foot" id="anFoot">Desliza las manijas o usa los atajos · no es asesoría de inversión</div>
 </div>
 
-<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace" id="verLbl">vivo-313</div>
+<div style="position:fixed;top:6px;right:8px;font-size:9px;color:rgba(255,255,255,.4);z-index:200;font-family:monospace" id="verLbl">vivo-314</div>
 
 <div class="wrap view" id="viewBalance">
   <div class="st-hero">
@@ -1048,7 +1048,7 @@ function updateCount(){
   window.META = META;
 
   var got = { precios:false, hist:false, claude:false };
-  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-313";
+  var LIVE = {}; window.LIVE = LIVE; window.__APPVER = "vivo-314";
 
   /* ===================== AUDITORIA INTERNA =====================
      No se muestra en pantalla. Escribe en window.AUDIT y en la consola.
@@ -1208,7 +1208,7 @@ function updateCount(){
         var inv=(!isNaN(r.invFin)&&r.invFin>0)?r.invFin:null;
         var u=(r.util!=null&&!isNaN(r.util))?r.util:null;
         if(inv===null||u===null) return;
-        n++; gan+=u; sumInv+=inv; gg*=(1+u/inv);   // vivo-313: compuesto mes a mes
+        n++; gan+=u; sumInv+=inv; gg*=(1+u/inv);   // vivo-314: compuesto mes a mes
       });
       if(!n||!sumInv){ e4.textContent='\u2014'; return; }
       var v=(gg-1)*100;
@@ -1736,6 +1736,14 @@ window.M = (function(){
     });
     return { pct: w? s/w : NaN, monto: w, n: n, fuera: fuera, dinero: w? s/100 : 0 };
   }
+  // vivo-314: la base del porcentaje es el capital VIVO (lo vendido ya no esta en juego,
+  // pero su ganancia/perdida realizada si suma al dinero). Pedido de Salvador 2026-11-05.
+  function pondVivo(lista, f){
+    var r=pond(lista,f), vivo=0;
+    lista.forEach(function(p){ if(!p.vendida && !isNaN(f(p))) vivo+=p.monto; });
+    if(!vivo) return r;
+    return { pct: r.dinero/vivo*100, monto: vivo, n: r.n, fuera: r.fuera, dinero: r.dinero };
+  }
   function promedio(lista, f){
     var s=0,n=0,fuera=[];
     lista.forEach(function(p){
@@ -1762,11 +1770,11 @@ window.M = (function(){
       var t={}; vivas().forEach(function(p){ if(p.tk) t[p.tk]=1; });
       return { tickers: Object.keys(t).length, compras: vivas().length };
     },
-    miTrimestre: function(){ return pond(delTrimestre(), rPos); },
-    miMes: function(){ return pond(delMes(), rPosMes); },
+    miTrimestre: function(){ return pondVivo(delTrimestre(), rPos); },
+    miMes: function(){ return pondVivo(delMes(), rPosMes); },
     // "Mi mes" para el HOME: mismo instante/precio que "Mi trimestre"
     // en las vivas (ver rPosMesVivo arriba). FIX 2026-10-05.
-    utilidadMesLive: function(){ return pond(delMes(), rPosMesVivo); },
+    utilidadMesLive: function(){ return pondVivo(delMes(), rPosMesVivo); },
 
     /* UTILIDAD DEL MES, con el mismo criterio que la hoja MENSUAL:
        · entran las posiciones VIVAS este mes y las VENDIDAS este mes
@@ -1780,7 +1788,7 @@ window.M = (function(){
       var ini=new Date(h.getFullYear(), mm, 1);
       var finM=new Date(h.getFullYear(), mm+1, 0); if(finM>h) finM=h;
       var antes=new Date(h.getFullYear(), mm, 0);
-      var dinero=0, cap=0, n=0, fuera=[], stale=[];
+      var dinero=0, cap=0, capTodo=0, n=0, fuera=[], stale=[];
       todas().forEach(function(p){
         if(!(p.monto>0) || !p.tk) return;
         var dc=fecha(p.compra); if(!dc || dc>finM) return;
@@ -1800,8 +1808,9 @@ window.M = (function(){
           if(fI && fF && fI===fF){ stale.push(p.tk); return; }
         }
         dinero += (pFin/pIni - 1) * p.monto;
-        cap += p.monto; n++;
+        if(!p.vendida) cap += p.monto; capTodo += p.monto; n++;
       });
+      if(!cap) cap=capTodo;   // vivo-314: base = capital vivo
       return { dinero: dinero, monto: cap, n: n, fuera: fuera, stale: stale,
                pct: cap? (dinero/cap*100) : NaN };
     },
@@ -1825,7 +1834,7 @@ window.M = (function(){
     // MIO de una estrategia
     mio: function(nom){
       var L=API.deEstrategia(nom);
-      // vivo-313: una posicion pertenece al mes en que se COMPRO. La Chica se vende y se
+      // vivo-314: una posicion pertenece al mes en que se COMPRO. La Chica se vende y se
       // vuelve a comprar el primer dia habil; la vendida el dia 2 es del mes anterior.
       return API.esMensual(nom) ? pond(L.filter(function(p){
           var dc=fecha(p.compra); return !!(dc && dc>=iniMes && dc<=hoy);
@@ -1839,13 +1848,13 @@ window.M = (function(){
         return true;
       });
       if(API.esMensual(nom)){
-        // vivo-313: solo lo comprado este mes (la lista de octubre ya no cuenta en noviembre)
+        // vivo-314: solo lo comprado este mes (la lista de octubre ya no cuenta en noviembre)
         var Lm = L.filter(function(p){
           var dc=fecha(p.compra); return !!(dc && dc>=iniMes && dc<=hoy);
         });
         // vivo-311: algoritmo mensual = DESDE INICIO MES (en vivo) de la lista del mes
         return promedio(Lm, function(p){
-          if(p.vendida && p.pxMes>0 && p.pxVenta>0) return (p.pxVenta/p.pxMes-1)*100;   // vivo-313: congelado al vender
+          if(p.vendida && p.pxMes>0 && p.pxVenta>0) return (p.pxVenta/p.pxMes-1)*100;   // vivo-314: congelado al vender
           return (!p.vendida && p.mes!=null && !isNaN(p.mes)) ? p.mes : rPosMes(p); });
       }
       // trimestral: solo las que traen dato de trimestre (la lista original)
@@ -1862,7 +1871,7 @@ window.M = (function(){
         if(p.vendida){ var dv=fecha(p.venta); if(dv && dv<ini) return false; }
         return true;
       });
-      // vivo-313 (pedido de Salvador 2026-11-02): en los meses del trimestre en curso cada mes
+      // vivo-314 (pedido de Salvador 2026-11-02): en los meses del trimestre en curso cada mes
       // se mide con SU lista (lo comprado ese mes). Algoritmo = DESDE INICIO MES (precio de
       // inicio de mes -> precio de venta o de hoy). Mio = REND YO AL VENDER si se vendio,
       // o el rendimiento en vivo si sigue viva. Antes el algoritmo de un mes cerrado salia
@@ -3848,7 +3857,7 @@ window.M = (function(){
       cPxHoy  = buscar(H2, [], ["precio hoy"]);
       cTrimPx = buscar(H2, [], ["precio inicio trim"]);
       cMesPx  = buscar(H2, [], ["precio inicio mes"]);
-      cPxV    = buscar(H2, [], ["fin venta"]);   // vivo-313: precio de venta
+      cPxV    = buscar(H2, [], ["fin venta"]);   // vivo-314: precio de venta
       cMotivo = buscar(H2, ["motivo","motivo venta"], []);
       cAct    = buscar(H2, ["actualizado","hora"], []);
       // la de "al vender" no puede ser la misma que "rend yo hoy"
@@ -3952,7 +3961,7 @@ window.M = (function(){
       if(isNaN(pMioVenta)) pMioVenta=null;
       var pPrecioCompra = (cPxC>=0) ? num(r[cPxC]) : null;
       if(isNaN(pPrecioCompra)) pPrecioCompra=null;
-      // vivo-313: precio de inicio de mes y precio de venta (para medir el algoritmo congelado)
+      // vivo-314: precio de inicio de mes y precio de venta (para medir el algoritmo congelado)
       var pPxMes = (cMesPx>=0) ? num(r[cMesPx]) : null; if(pPxMes!==null && (isNaN(pPxMes)||pPxMes<=0)) pPxMes=null;
       var pPxVenta = (cPxV>=0) ? num(r[cPxV]) : null; if(pPxVenta!==null && (isNaN(pPxVenta)||pPxVenta<=0)) pPxVenta=null;
       // estrategia del renglón (desde la bitácora); si no hay columna, respaldo a META
